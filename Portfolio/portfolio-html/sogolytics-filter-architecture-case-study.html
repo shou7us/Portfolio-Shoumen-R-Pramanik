@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script>
+  // Client-side protection against direct URLs
+  (function(){
+    let unlocked = false;
+    for (let i = 0; i < sessionStorage.length; i++) {
+      let key = sessionStorage.key(i);
+      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
+        unlocked = true; break;
+      }
+    }
+    if (!unlocked) { window.location.href = 'index.html'; }
+  })();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sogolytics Filter Architecture — UX Case Study</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────
+   TOKENS
+───────────────────────────────────────── */
+:root {
+  --bg: #f5f2ec;
+  --surface: #f5f2ec;
+  --surface-2:    #f0ebe1;
+  --border: #d9d4cc;
+  --border-hi:    rgba(13,15,20, 0.4);
+  --accent: #c94c2e;
+  --accent-dim:   rgba(201, 76, 46, 0.1);
+  --accent-glow:  rgba(201, 76, 46, 0.1);
+  --accent-bg:    rgba(201, 76, 46, 0.1);
+  --emerald: #2d7a4e;
+  --emerald-bg:   rgba(201, 76, 46, 0.1);
+  --amber: #c94c2e;
+  --amber-bg:     rgba(201, 76, 46, 0.1);
+  --red: #c94c2e;
+  --red-bg: rgba(201, 76, 46, 0.1);
+  --text-1:       #0d0f14;
+  --text-2:       #6b6560;
+  --text-3:       #6b6560;
+}
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; font-size:16px; }
+body { background:var(--bg); color:var(--text-1); font-family:'DM Sans',sans-serif; line-height:1.75; overflow-x:hidden; }
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--accent-dim); border-radius: 2px; }
+::selection { background:rgba(59,130,246,.25); }
+
+/* ─── NAV ─── */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:200;
+  height:54px; background: #f5f2ec;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; padding:0 60px;
+}
+.nav-brand { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--text-3); }
+.nav-links  { display:flex; gap:28px; list-style:none; }
+.nav-links a { font-size:11px; letter-spacing:.10em; text-transform:uppercase; text-decoration:none; color:var(--text-3); transition:color .2s; }
+.nav-links a:hover { color:var(--accent); }
+.nav-badge  { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em; border:1px solid var(--accent-dim); color:var(--accent); padding:3px 10px; border-radius: 3px; }
+#progress-bar { position:fixed; top:54px; left:0; z-index:199; height:2px; width:0%; background:var(--accent); transition:width .1s linear; }
+
+/* ─── HERO ─── */
+.hero { min-height:100vh; padding:130px 60px 90px; display:grid; grid-template-columns:1fr 400px; gap:72px; align-items:center; border-bottom:1px solid var(--border); position:relative; overflow:hidden; }
+.hero::before { content:''; position:absolute; inset:0; pointer-events:none; background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px); background-size:56px 56px; opacity:.5; }
+.hero::after  { content:''; position:absolute; top:-160px; right:-140px; width:680px; height:680px; pointer-events:none; background:radial-gradient(circle,rgba(59,130,246,.10) 0%,transparent 62%); }
+.hero-left { position:relative; z-index:1; }
+.hero-eyebrow { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--accent); margin-bottom:20px; display:flex; align-items:center; gap:12px; }
+.hero-eyebrow::before { content:''; width:28px; height:1px; background:var(--accent); }
+h1 { font-family:'Playfair Display', serif; font-size:clamp(34px,4.2vw,58px); font-weight:700; line-height:1.04; letter-spacing:-.025em; margin-bottom:28px; }
+h1 em { font-style:normal; color:var(--accent); }
+.hero-sub { font-size:17px; color:var(--text-2); line-height:1.8; max-width:560px; margin-bottom:44px; }
+.meta-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius: 2px; overflow:hidden; margin-bottom:40px; }
+.meta-cell { background:var(--surface); padding:18px 22px; }
+.meta-lbl  { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:var(--text-3); margin-bottom:7px; }
+.meta-val  { font-size:13px; font-weight:600; color:var(--text-1); line-height:1.3; }
+.tag-row   { display:flex; flex-wrap:wrap; gap:8px; }
+.chip      { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.10em; text-transform:uppercase; color:var(--text-2); border:1px solid var(--border-hi); padding:5px 11px; border-radius: 3px; transition:all .2s; cursor:default; }
+.chip:hover { border-color:var(--accent); color:var(--accent); }
+.manifesto-card { background:var(--surface); border:1px solid var(--border); border-radius: 2px; padding:40px 36px; position:relative; z-index:1; overflow:hidden; }
+.manifesto-card::before { content:'"'; font-family:'Playfair Display', serif; font-size:160px; line-height:1; color:var(--accent); opacity:.08; position:absolute; top:-28px; left:16px; pointer-events:none; }
+.manifesto-lbl { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:var(--accent); margin-bottom:24px; }
+.manifesto-text p { font-family:'Playfair Display', serif; font-size:17px; font-weight:700; line-height:1.5; color:var(--text-1); margin-bottom:14px; }
+.manifesto-text p.sub { font-family:'DM Sans',sans-serif; font-size:14px; font-weight:400; color:var(--text-2); margin-bottom:0; }
+.nda-note { margin-top:28px; padding-top:20px; border-top:1px solid var(--border); font-size:11px; color:var(--text-3); font-style:italic; }
+
+/* ─── LAYOUT ─── */
+.wrap { max-width:1160px; margin:0 auto; padding:0 60px; }
+.sec  { padding:96px 0; border-bottom:1px solid var(--border); }
+.sec:last-child { border-bottom:none; }
+.eyebrow { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:var(--accent); margin-bottom:10px; display:flex; align-items:center; gap:10px; }
+.eyebrow-num { color:var(--text-3); }
+h2 { font-family:'Playfair Display', serif; font-size:clamp(26px,2.8vw,40px); font-weight:700; letter-spacing:-.02em; line-height:1.1; margin-bottom:44px; }
+h3 { font-family:'Playfair Display', serif; font-size:19px; font-weight:700; margin-bottom:16px; color:var(--text-1); }
+h4 { font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; color:var(--text-1); margin-bottom:8px; }
+p  { color:var(--text-2); margin-bottom:18px; }
+p:last-child { margin-bottom:0; }
+strong { color:var(--text-1); font-weight:600; }
+em.good { color:var(--emerald); font-style:normal; }
+em.warn { color:var(--amber); font-style:normal; }
+.two-col   { display:grid; grid-template-columns:1fr 1fr; gap:48px; }
+.three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:28px; }
+.four-col  { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:20px; }
+
+/* ─── COMPONENTS ─── */
+.callout { border-left:3px solid var(--accent); background:var(--accent-bg); border-radius: 0 2px 2px 0; padding:20px 24px; margin:28px 0; }
+.callout.green { border-left-color:var(--emerald); background:var(--emerald-bg); }
+.callout.amber { border-left-color:var(--amber);   background:var(--amber-bg); }
+.callout.red   { border-left-color:var(--red);     background:var(--red-bg); }
+.callout-lbl   { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--accent); margin-bottom:8px; }
+.callout.green .callout-lbl { color:var(--emerald); }
+.callout.amber .callout-lbl { color:var(--amber); }
+.callout.red   .callout-lbl { color:var(--red); }
+.callout p { font-size:14px; color:var(--text-1); margin:0; }
+
+.ph { font-family:'DM Mono',monospace; font-size:11px; color:var(--amber); background:var(--amber-bg); border:1px dashed rgba(245,158,11,.28); border-radius: 5px; padding:8px 14px; margin:10px 0; display:block; }
+.ph::before { content:'⚠ PLACEHOLDER — '; font-weight:500; }
+
+.divider { display:flex; align-items:center; gap:20px; margin:52px 0 40px; }
+.divider::before,.divider::after { content:''; flex:1; height:1px; background:var(--border); }
+.divider span { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:var(--text-3); }
+
+.stat-card { background:var(--surface); border:1px solid var(--border); border-radius: 2px; padding:32px 28px; }
+.stat-num  { font-family:'Playfair Display', serif; font-size:52px; font-weight:700; color:var(--accent); line-height:1; margin-bottom:8px; }
+.stat-lbl  { font-size:13px; color:var(--text-2); }
+.stat-note { font-family:'DM Mono',monospace; font-size:9px; color:var(--text-3); letter-spacing:.1em; margin-top:6px; }
+
+.icard { background:var(--surface); border:1px solid var(--border); border-radius: 2px; padding:28px 24px; transition:border-color .2s,transform .2s; }
+.icard:hover { border-color:var(--border-hi); transform:translateY(-2px); }
+.icard-icon { font-size:22px; margin-bottom:14px; display:block; }
+.icard h3   { font-size:15px; margin-bottom:10px; }
+.icard p    { font-size:13px; color:var(--text-2); margin:0; }
+
+.pill   { display:inline-flex; align-items:center; gap:5px; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.08em; font-weight:500; padding:3px 9px; border-radius: 2px; }
+.pill::before { content:'●'; font-size:7px; }
+.pill-g { background:rgba(16,185,129,.10); color:var(--emerald); border:1px solid rgba(16,185,129,.18); }
+.pill-a { background:rgba(245,158,11,.10);  color:var(--amber);   border:1px solid rgba(245,158,11,.18); }
+.pill-r { background:rgba(239,68,68,.10);   color:var(--red);     border:1px solid rgba(239,68,68,.18); }
+.pill-b { background:var(--accent-bg);      color:var(--accent);  border:1px solid rgba(59,130,246,.18); }
+.pill-n { background:rgba(255,255,255,.04); color:var(--text-3);  border:1px solid var(--border-hi); }
+
+.tbl-wrap { overflow-x:auto; margin:28px 0; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+thead tr  { border-bottom:1px solid var(--accent-dim); }
+thead th  { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); padding:12px 18px; text-align:left; font-weight:500; }
+tbody tr  { border-bottom:1px solid var(--border); transition:background .15s; }
+tbody tr:hover { background:var(--surface); }
+tbody td  { padding:14px 18px; color:var(--text-2); vertical-align:top; }
+tbody td:first-child { color:var(--text-1); font-weight:500; }
+
+.persona { background:var(--surface); border:1px solid var(--border); border-radius: 2px; overflow:hidden; }
+.persona-head { padding:20px 24px; display:flex; align-items:center; gap:14px; border-bottom:1px solid var(--border); }
+.persona-avatar { width:40px; height:40px; border-radius: 50%; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.persona-name { font-weight:600; font-size:15px; }
+.persona-role { font-size:12px; color:var(--text-2); margin-top:2px; }
+.persona-body { padding:20px 24px; }
+.persona-body p { font-size:13px; }
+
+.timeline { position:relative; padding-left:28px; margin:28px 0; }
+.timeline::before { content:''; position:absolute; left:0; top:10px; bottom:10px; width:1px; background:var(--border-hi); }
+.tl-item { position:relative; margin-bottom:28px; }
+.tl-item:last-child { margin-bottom:0; }
+.tl-item::before { content:''; position:absolute; left:-32px; top:8px; width:8px; height:8px; border-radius: 50%; background:var(--accent);  }
+.tl-date  { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--text-3); margin-bottom:5px; }
+.tl-title { font-weight:600; font-size:14px; color:var(--text-1); margin-bottom:5px; }
+.tl-body  { font-size:13px; color:var(--text-2); }
+
+.gap-list { display:grid; gap:10px; margin:28px 0; }
+.gap-row  { display:grid; grid-template-columns:2fr .7fr .7fr 1.8fr; gap:14px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius: 2px; padding:14px 18px; transition:border-color .2s; }
+.gap-row:hover { border-color:var(--border-hi); }
+.gap-row.crit  { border-left:3px solid var(--red); }
+.gap-row.sig   { border-left:3px solid var(--amber); }
+.gap-row.road  { border-left:3px solid var(--text-3); }
+.gap-name { font-size:13px; font-weight:600; color:var(--text-1); }
+.gap-sol  { font-size:12px; color:var(--text-2); }
+
+/* Journey map */
+.journey-wrap { overflow-x:auto; margin:28px 0; }
+.journey-table { min-width:900px; border-collapse:collapse; font-size:12px; }
+.journey-table th { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); padding:12px 16px; background:var(--surface-2); border:1px solid var(--border); text-align:left; }
+.journey-table td { padding:14px 16px; border:1px solid var(--border); vertical-align:top; line-height:1.6; }
+.journey-table .row-lbl { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); background:var(--surface-2); font-weight:500; min-width:130px; }
+.friction-hi  { color:var(--red);    font-weight:600; font-size:12px; }
+.friction-med { color:var(--amber);  font-size:12px; }
+.friction-lo  { color:var(--text-3); font-size:12px; }
+.intervention { background:var(--accent-bg); border:1px solid var(--accent-dim) !important; color:var(--text-1); font-weight:600; font-size:11px; }
+.intervention-lbl { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); display:block; margin-bottom:4px; }
+
+/* Before/after */
+.ba-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); border-radius: 2px; overflow:hidden; margin:28px 0; }
+.ba-col   { background:var(--surface); padding:32px 28px; }
+.ba-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.2em; text-transform:uppercase; margin-bottom:20px; }
+.ba-label.before { color:var(--red); }
+.ba-label.after  { color:var(--emerald); }
+.ba-item  { display:flex; align-items:flex-start; gap:10px; margin-bottom:14px; font-size:13px; color:var(--text-2); line-height:1.55; }
+.ba-item:last-child { margin-bottom:0; }
+.ba-glyph { flex-shrink:0; font-size:14px; margin-top:1px; }
+
+/* STAR card */
+.star-card { background:var(--surface); border:1px solid var(--border); border-radius: 2px; overflow:hidden; }
+.star-head { background:var(--surface-2); border-bottom:1px solid var(--border); padding:18px 28px; display:flex; justify-content:space-between; align-items:center; }
+.star-head-title { font-family:'Playfair Display', serif; font-weight:700; font-size:17px; }
+.star-rows { }
+.star-row { display:grid; grid-template-columns:100px 1fr; border-bottom:1px solid var(--border); }
+.star-row:last-child { border-bottom:none; }
+.star-key { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--accent); background:var(--surface-2); border-right:1px solid var(--border); padding:20px; display:flex; align-items:flex-start; }
+.star-val { padding:20px 24px; font-size:13px; color:var(--text-2); line-height:1.65; }
+.star-val strong { color:var(--text-1); }
+
+/* Insight cards */
+.insight-card { background:var(--surface); border:1px solid var(--border); border-radius: 2px; padding:28px 24px; border-top:2px solid var(--accent); }
+.insight-num  { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--text-3); margin-bottom:12px; }
+.insight-row  { margin-bottom:12px; }
+.insight-row:last-child { margin-bottom:0; }
+.insight-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:4px; }
+.insight-row p { font-size:13px; color:var(--text-2); margin:0; }
+
+/* Decision framework */
+.decision-tbl { width:100%; border-collapse:collapse; font-size:13px; margin:28px 0; }
+.decision-tbl th { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); padding:12px 18px; background:var(--surface-2); border:1px solid var(--border); text-align:left; font-weight:500; }
+.decision-tbl td { padding:14px 18px; border:1px solid var(--border); color:var(--text-2); vertical-align:top; }
+.decision-tbl td:first-child { color:var(--text-1); font-weight:500; }
+.decision-tbl tr.chosen { background:var(--accent-bg); }
+.decision-tbl tr.chosen td:first-child { color:var(--accent); }
+
+/* Compliance */
+.compliance-row { display:grid; grid-template-columns:1fr 1fr 1.5fr; gap:1px; background:var(--border); }
+.compliance-row > div { background:var(--surface); padding:16px 20px; }
+.compliance-lbl { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); margin-bottom:6px; }
+.compliance-val { font-size:13px; font-weight:600; color:var(--text-1); margin-bottom:6px; }
+.compliance-body { font-size:12px; color:var(--text-2); line-height:1.6; }
+.compliance-wrap { border:1px solid var(--border); border-radius: 2px; overflow:hidden; margin:28px 0; }
+
+/* Ecosystem map */
+.eco-map { background:var(--surface); border:1px solid var(--border); border-radius: 2px; padding:36px; margin:28px 0; position:relative; }
+.eco-center { text-align:center; margin-bottom:32px; }
+.eco-center-badge { display:inline-block; background:var(--accent-bg); border:1px solid var(--accent-dim); border-radius: 2px; padding:12px 28px; font-family:'Playfair Display', serif; font-weight:700; font-size:16px; color:var(--accent); }
+.eco-products { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.eco-product  { background:var(--surface-2); border:1px solid var(--border); border-radius: 2px; padding:16px 18px; text-align:center; position:relative; }
+.eco-product::before { content:''; position:absolute; top:-13px; left:50%; transform:translateX(-50%); width:1px; height:13px; background:var(--border-hi); }
+.eco-product:nth-child(1)::before,
+.eco-product:nth-child(2)::before,
+.eco-product:nth-child(3)::before { display:block; }
+.eco-name { font-weight:600; font-size:13px; margin-bottom:4px; }
+.eco-desc { font-size:11px; color:var(--text-3); }
+.eco-arrow { text-align:center; margin:12px 0; color:var(--accent); font-size:20px; }
+.eco-connector { background:var(--accent-bg); border:1px solid var(--accent-dim); border-radius: 2px; padding:14px 20px; text-align:center; font-size:13px; color:var(--accent); font-weight:600; margin-top:16px; }
+
+/* Brand */
+.swatch-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:28px 0; }
+.swatch { border:1px solid var(--border); border-radius: 2px; overflow:hidden; }
+.swatch-block { height:68px; }
+.swatch-info  { padding:12px; background:var(--surface); }
+.swatch-name  { font-size:12px; font-weight:600; color:var(--text-1); }
+.swatch-hex   { font-family:'DM Mono',monospace; font-size:10px; color:var(--text-3); margin-top:2px; }
+
+/* Footer */
+footer { border-top:1px solid var(--border); padding:48px 60px; display:flex; justify-content:space-between; align-items:center; }
+.footer-left  { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--text-3); }
+.footer-right { font-size:12px; color:var(--text-3); font-style:italic; max-width:500px; text-align:right; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-brand">UX Case Study</span>
+  <ul class="nav-links">
+    <li><a href="index.html" style="color: var(--accent); font-weight: 700;">← Home</a></li>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#research">Research</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#mechanics">Mechanics</a></li>
+    <li><a href="#outcome">Outcome</a></li>
+    <li><a href="#reflection">Reflection</a></li>
+  </ul>
+  <span class="nav-badge">B2B SaaS · Cross-Product</span>
+</nav>
+<div id="progress-bar"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">Sogolytics · Experience Management Platform</div>
+    <h1>Designing a <em>Unified Filter Architecture</em> Across a Multi-Product B2B Platform</h1>
+    <p class="hero-sub">When five products each manage filters differently, power users pay a cognitive tax every time they switch contexts. I redesigned the cross-product filter architecture from the platform up — not from the screen in.</p>
+    <div class="meta-strip">
+      <div class="meta-cell"><div class="meta-lbl">Role</div><div class="meta-val">Embedded UX Designer</div></div>
+      <div class="meta-cell"><div class="meta-lbl">Timeline</div><div class="meta-val">6 Months</div></div>
+      <div class="meta-cell"><div class="meta-lbl">Team</div><div class="meta-val">Designer + PM + Engineers</div></div>
+      <div class="meta-cell"><div class="meta-lbl">Platform</div><div class="meta-val">B2B SaaS · 5 Products</div></div>
+    </div>
+    <div class="tag-row">
+      <span class="chip">Systems Architecture</span>
+      <span class="chip">Cross-Product Design</span>
+      <span class="chip">B2B SaaS</span>
+      <span class="chip">Smart Filters</span>
+      <span class="chip">IA Design</span>
+      <span class="chip">Figma</span>
+      <span class="chip">Usability Testing</span>
+    </div>
+  </div>
+  <div class="manifesto-card">
+    <div class="manifesto-lbl">Design Manifesto</div>
+    <div class="manifesto-text">
+      <p>I design systems that make complexity disappear — not because it doesn't exist, but because the right architecture absorbs it before the user ever has to.</p>
+      <p class="sub">The filter problem wasn't a UI problem. It was a platform problem. Solving the screen would have fixed nothing at scale.</p>
+    </div>
+    <div class="nda-note">Employer and sensitive performance metrics anonymised at their request. Full context available under mutual NDA.</div>
+  </div>
+</section>
+
+<!-- SECTION 1 — OVERVIEW -->
+<section class="sec" id="overview">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">01 —</span> Project Overview</div>
+    <h2>The Problem Behind the Problem</h2>
+    <div class="two-col">
+      <div>
+        <p>Sogolytics is a B2B experience management platform serving data analysts, marketing managers, and business owners across products spanning survey creation (SogoSurvey), CX analytics (SogoCX), employee experience (SogoEX), core data management (SogoCore), and integrations (SogoConnect). At the time of this project, the platform was undergoing a significant strategic shift — from a feedback tool to an enterprise-grade experience management suite.</p>
+        <p>That strategic shift exposed a critical gap: <strong>every product had its own filter system, built independently, with no shared logic, interaction model, or management layer.</strong> A data analyst moving between SogoSurvey response analysis and SogoCX customer insights encountered entirely different filter behaviours — different UI patterns, different filter persistence rules, and no way to reuse or share filters across surfaces.</p>
+        <div class="callout">
+          <div class="callout-lbl">Core Problem</div>
+          <p>Power users who relied on filters for data analysis had to re-learn filtering every time they changed products, manually recreate filters that logically should transfer, and manage growing filter libraries with no organisational infrastructure — creating avoidable cognitive load and analysis friction at exactly the moment users needed clarity most.</p>
+        </div>
+        <p>The project mandate was to redesign the filter creation experience across all products and introduce smart filters. I reframed that mandate: <strong>the real problem wasn't filter UI — it was the absence of a unified filter architecture.</strong> Designing screens before solving the system would have produced five marginally improved isolated experiences, not a platform-ready solution.</p>
+      </div>
+      <div>
+        <div class="persona">
+          <div class="persona-head">
+            <div class="persona-avatar" style="background:var(--accent-bg);">🔬</div>
+            <div>
+              <div class="persona-name">Data Analyst Dave</div>
+              <div class="persona-role" style="color:var(--accent);">Primary User · Cross-Product Power User</div>
+            </div>
+          </div>
+          <div class="persona-body">
+            <p>Works at a marketing agency. Relies on Sogolytics to analyse datasets across CX and survey data simultaneously. Dave's core frustration isn't that filters are hard to configure — it's that he builds the same filter logic repeatedly across different products with no shared foundation. His mental model of "a filter" is product-agnostic. The platform's filter model wasn't.</p>
+          </div>
+        </div>
+        <br>
+        <div class="persona">
+          <div class="persona-head">
+            <div class="persona-avatar" style="background:var(--emerald-bg);">📊</div>
+            <div>
+              <div class="persona-name">Marketing Manager / Business Owner</div>
+              <div class="persona-role" style="color:var(--emerald);">Secondary User · Insight Consumer</div>
+            </div>
+          </div>
+          <div class="persona-body">
+            <p>Accesses filtered views shared by analysts. Needs filter outputs to be legible, reproducible, and trustworthy. Their frustration: filtered reports that can't be re-run, modified, or audited without analyst involvement. Filter governance was entirely manual.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 2 — HISTORY -->
+<section class="sec" id="history">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">02 —</span> History</div>
+    <h2>How We Got Here — And What We Refused to Repeat</h2>
+    <div class="two-col">
+      <div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-date">Origin State</div>
+            <div class="tl-title">Siloed Product Development</div>
+            <div class="tl-body">Each Sogolytics product was built independently, with filter functionality designed by individual product teams. The result was five filter systems with no shared interaction model, logic layer, or persistence strategy.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-date">User Friction Surfaces</div>
+            <div class="tl-title">Power Users Hit the Ceiling</div>
+            <div class="tl-body">As usage matured, analysts began working across multiple products. The cognitive overhead of re-learning and re-creating filters became a documented pain point — surfaced in user interviews and journey mapping as a top frustration at the analysis phase.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-date">Strategic Context</div>
+            <div class="tl-title">Platform Rebranding Exposed the Gap</div>
+            <div class="tl-body">The company's shift toward enterprise experience management positioned Sogolytics as a multi-product suite. Enterprise buyers evaluate platforms holistically. Fragmented filter UX directly undermined the "unified platform" narrative.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-date">This Project</div>
+            <div class="tl-title">Architecture-First Redesign</div>
+            <div class="tl-body">Rather than improving each product's filter UI in isolation, I advocated for and led a cross-product filter architecture redesign — establishing shared logic, a unified Filter Manager, and smart filter suggestions as a platform-level capability.</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="callout green">
+          <div class="callout-lbl">What We Refused to Repeat</div>
+          <p>"We won't design another great filter for a single product. We will design one filter system that every product inherits — or we will have this conversation again in 12 months, with more products and more debt."</p>
+        </div>
+        <br>
+        <h3>Lessons from Past Approaches</h3>
+        <p>Previous iterations had treated filter improvements as feature-level work — adding more filter options, improving individual filter UIs, or expanding filter criteria. Each improvement was locally correct and systemically insufficient.</p>
+        <p>The pattern was clear: <strong>filter improvements that ignored cross-product architecture created local wins and platform debt simultaneously.</strong> A user who learned a new filter UI in SogoSurvey had to unlearn it in SogoCX. Documentation couldn't fix an architecture problem. Onboarding flows couldn't either.</p>
+        <div class="callout amber">
+          <div class="callout-lbl">The Strategic Reframe</div>
+          <p>The mandate was "improve filter creation and introduce smart filters." My reframe to the PM: <strong>smart filters built on top of fragmented architecture would smart-suggest into five inconsistent systems.</strong> The intelligence layer depended on a consistent data model underneath it. Architecture was not a nice-to-have prerequisite — it was the product.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3 — GEOGRAPHY & DEMOGRAPHICS -->
+<section class="sec" id="geography">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">03 —</span> Geography &amp; Demographics</div>
+    <h2>Who Uses This, and Where</h2>
+    <div class="two-col">
+      <div>
+        <p>Sogolytics is headquartered in Virginia, USA, and serves a predominantly North American B2B customer base, with enterprise clients spanning marketing agencies, financial services, healthcare organisations, and retail. The primary user profile for this project was <strong>data professionals operating in multi-product enterprise environments</strong> — users whose data analysis workflows crossed product boundaries regularly.</p>
+        <p>While the platform serves global clients, the core filter use case — cross-product analysis by a data analyst or marketing manager — is culturally consistent: analytical users across geographies share the same mental model of filter logic. The design challenge was not cultural; it was <strong>structural</strong>. A filter system that works for a marketing analyst in Chicago should work identically for one in London or Sydney, because the cognitive model of filtering data doesn't change by geography.</p>
+        <div class="callout">
+          <div class="callout-lbl">Inclusivity Approach</div>
+          <p>The filter architecture was designed to be language-agnostic at the interaction level — filter logic (AND/OR operators, criteria fields, saved states) should function identically regardless of locale. Smart filter suggestions were scoped to English-language label matching in v1, with i18n infrastructure flagged for roadmap.</p>
+        </div>
+      </div>
+      <div>
+        <h3>Target Audience Segments</h3>
+        <br>
+        <div class="icard" style="margin-bottom:16px;">
+          <span class="icard-icon">🔬</span>
+          <h3>Data Analysts</h3>
+          <p>Primary power users. Create complex, multi-criteria filters across large datasets. Highest frequency of cross-product filter usage. Most acutely impacted by architectural fragmentation. Need filter reuse, library management, and team sharing.</p>
+        </div>
+        <div class="icard" style="margin-bottom:16px;">
+          <span class="icard-icon">📣</span>
+          <h3>Marketing Managers</h3>
+          <p>Moderate filter users. Apply existing filters to segment campaign data and CX insights. Value speed and clarity over configurability. Key audience for smart filter suggestions — they benefit most from AI-assisted filter creation.</p>
+        </div>
+        <div class="icard">
+          <span class="icard-icon">🏢</span>
+          <h3>Business Owners / Decision Makers</h3>
+          <p>Primarily filter consumers. Access filtered views and reports shared by analysts. Need filter outputs to be reproducible and auditable. Their trust in filtered data depends on governance — permissions, version control, sharing controls.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4 — CIVICS & REGULATIONS -->
+<section class="sec" id="civics">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">04 —</span> Civics &amp; Regulations</div>
+    <h2>Compliance Shaped the Filter System — Not Just the Visuals</h2>
+    <p style="max-width:720px;">Filter design in an enterprise B2B context carries regulatory weight that goes beyond accessibility. When filters surface personally identifiable data, segment employee populations, or expose customer records, the design of filter sharing and permissions is a compliance surface — not just a UX surface.</p>
+
+    <div class="compliance-wrap">
+      <div class="compliance-row" style="border-bottom:1px solid var(--border);">
+        <div><div class="compliance-lbl">Standard</div><div class="compliance-val">WCAG 2.1 AA</div><div class="compliance-body">All interactive filter components designed to AA standard. Focus states, keyboard navigability, ARIA labels on dynamic filter states, and screen reader compatibility for filter results.</div></div>
+        <div><div class="compliance-lbl">Scope</div><div class="compliance-val">All UI surfaces</div><div class="compliance-body">Filter builder, smart suggestion UI, Filter Manager, and sharing flow.</div></div>
+        <div><div class="compliance-lbl">Design Impact</div><div class="compliance-val" style="color:var(--accent);">Interaction patterns constrained to keyboard-first flows. Colour alone never used to communicate filter state.</div></div>
+      </div>
+      <div class="compliance-row" style="border-bottom:1px solid var(--border);">
+        <div><div class="compliance-lbl">Standard</div><div class="compliance-val">GDPR / DPDP</div><div class="compliance-body">Filters applied to datasets containing EU or Indian resident data require that segmentation actions be logged and auditable. Filter sharing must respect data access boundaries.</div></div>
+        <div><div class="compliance-lbl">Scope</div><div class="compliance-val">Sharing &amp; governance flows</div><div class="compliance-body">Saved filter sharing, team filter libraries, exported filter results.</div></div>
+        <div><div class="compliance-lbl">Design Impact</div><div class="compliance-val" style="color:var(--accent);">Inline permission controls at share action — not buried in settings. Explicit scope selection before filter is shared externally.</div></div>
+      </div>
+      <div class="compliance-row">
+        <div><div class="compliance-lbl">Standard</div><div class="compliance-val">RBAC (Role-Based Access)</div><div class="compliance-body">Enterprise clients required filter access to be governed by user role. An account manager should not be able to share filters that expose data outside their permission scope.</div></div>
+        <div><div class="compliance-lbl">Scope</div><div class="compliance-val">Filter Manager &amp; sharing</div><div class="compliance-body">Filter library visibility, sharing permissions, team/individual access controls.</div></div>
+        <div><div class="compliance-lbl">Design Impact</div><div class="compliance-val" style="color:var(--accent);">RBAC surfaced as a UX element — not admin configuration. Users see permission scope before sharing, not after a governance error.</div></div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-lbl">RBAC as UX, Not Admin</div>
+      <p>The PM's initial proposal was to handle filter permissions in account settings. I pushed back: at enterprise scale, governance errors in filter sharing can expose individual-level survey responses or employee data to the wrong audience — a potential compliance incident for the client. The friction of seeing permissions before sharing is lower than the cost of correcting a data exposure after. Permissions stayed inline at the share action.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 5 — MATHEMATICS & DATA -->
+<section class="sec" id="research">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">05 —</span> Mathematics &amp; Data</div>
+    <h2>What the Research Revealed</h2>
+    <div class="two-col">
+      <div>
+        <h3>Baseline Research — Pre-Design</h3>
+        <p>User interviews were conducted with data analysts, marketing managers, and business owners using Sogolytics products for data analysis and decision-making. Three recurring pain clusters emerged consistently across participant types:</p>
+        <div class="gap-list">
+          <div class="gap-row crit">
+            <div><div class="gap-name">Re-creation overhead</div><div class="gap-sol">Users building identical filters in multiple products because no cross-product transfer existed</div></div>
+            <span class="pill pill-r">Critical</span>
+            <span class="pill pill-r">All users</span>
+            <div style="font-size:12px;color:var(--text-2);">Highest-frequency pain point. Identified across all user segments in journey mapping.</div>
+          </div>
+          <div class="gap-row crit">
+            <div><div class="gap-name">Filter library disorder</div><div class="gap-sol">No way to organise, search, tag, or archive saved filters — libraries became unusable over time</div></div>
+            <span class="pill pill-r">Critical</span>
+            <span class="pill pill-r">Analysts</span>
+            <div style="font-size:12px;color:var(--text-2);">Analysts with 20+ saved filters described them as "a pile, not a library."</div>
+          </div>
+          <div class="gap-row crit">
+            <div><div class="gap-name">Complex criteria difficulty</div><div class="gap-sol">Setting up multi-criteria AND/OR logic was error-prone with no visual confirmation of filter scope</div></div>
+            <span class="pill pill-r">Critical</span>
+            <span class="pill pill-r">All users</span>
+            <div style="font-size:12px;color:var(--text-2);">Users described spending significant time troubleshooting filters that returned unexpected results.</div>
+          </div>
+          <div class="gap-row sig">
+            <div><div class="gap-name">No collaborative filter sharing</div><div class="gap-sol">Filters were personal-only — no team sharing, no permission model, no governance</div></div>
+            <span class="pill pill-a">Significant</span>
+            <span class="pill pill-a">Teams</span>
+            <div style="font-size:12px;color:var(--text-2);">Teams duplicated filter work individually because sharing wasn't available.</div>
+          </div>
+          <div class="gap-row sig">
+            <div><div class="gap-name">No intelligent suggestions</div><div class="gap-sol">Users discovered filter options by trial — no system guidance on relevant criteria</div></div>
+            <span class="pill pill-a">Significant</span>
+            <span class="pill pill-a">New/occasional users</span>
+            <div style="font-size:12px;color:var(--text-2);">Marketing managers and business owners particularly affected — lower filter familiarity.</div>
+          </div>
+          <div class="gap-row road">
+            <div><div class="gap-name">Mobile filter access</div><div class="gap-sol">No filter functionality on mobile — access-only view</div></div>
+            <span class="pill pill-n">Roadmap</span>
+            <span class="pill pill-n">Deferred</span>
+            <div style="font-size:12px;color:var(--text-2);">Explicitly deferred. Core architecture must be stable before mobile surface.</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3>Competitive Landscape</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Competitor</th><th>Filter Capability</th><th>Gap / Opportunity</th></tr></thead>
+            <tbody>
+              <tr><td>Tableau</td><td>High-power, technical filter system — steep learning curve for non-analysts</td><td>Accessibility gap for marketing managers and business owners</td></tr>
+              <tr><td>Power BI</td><td>Cross-report filter panels — but tied to single BI workspace model</td><td>No CX-native filter types; not designed for survey/experience data</td></tr>
+              <tr><td>Google Analytics</td><td>Segment-based filtering — strong for web analytics, limited for EX/CX hybrid</td><td>Audience: different ICP. No multi-product architecture.</td></tr>
+              <tr><td>Adobe Analytics</td><td>Enterprise-grade, high complexity. Requires technical training.</td><td>Inaccessible to non-technical users — same gap as Tableau</td></tr>
+              <tr><td>Looker</td><td>LookML-driven filters — powerful but developer-dependent</td><td>Entirely excluded the self-serve analyst segment</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          <div class="callout-lbl">Competitive Position</div>
+          <p>No competitor offered a unified cross-product filter architecture that was simultaneously accessible to non-technical users and powerful enough for analysts — within a CX/EX-native context. That white space was the product opportunity. The filter architecture wasn't competing with Tableau. It was completing the platform story Sogolytics was trying to tell.</p>
+        </div>
+        <span class="ph">Add specific user interview participant count and session duration when cleared for publication.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 6 — PHYSICS & MECHANICS -->
+<section class="sec" id="mechanics">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">06 —</span> Physics &amp; Mechanics</div>
+    <h2>How the Unified Filter System Works</h2>
+    <p style="max-width:720px;">The core design question was not "what should the filter UI look like?" — it was "what is the correct mental model for filtering across a multi-product platform, and how does every product surface inherit from that model?" The following is how the system was designed to function.</p>
+
+    <div class="divider"><span>Filter Architecture — System Walkthrough</span></div>
+
+    <div class="three-col" style="margin-bottom:40px;">
+      <div class="icard">
+        <span class="icard-icon">1️⃣</span>
+        <h3>Universal Filter Logic Layer</h3>
+        <p>A shared filter logic model defined at the platform level — not per-product. Criteria types (date range, demographic, response value, segment), operators (AND/OR/NOT), and nesting rules are standardised. Every product consumes the same model.</p>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">2️⃣</span>
+        <h3>Product-Contextual Criteria</h3>
+        <p>While the logic layer is shared, each product surfaces context-relevant criteria. SogoCX exposes CX-native fields (NPS score, CSAT band, touchpoint). SogoEX exposes employee-specific fields (tenure, department, engagement score). The engine is the same; the vocabulary adapts.</p>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">3️⃣</span>
+        <h3>Smart Filter Suggestions</h3>
+        <p>The intelligent suggestion layer analyses dataset structure and historical filter usage to surface relevant criteria. For a marketing manager opening SogoCX for the first time, the system suggests filters based on the dataset in view — not a blank canvas. Powered by the unified logic layer beneath it.</p>
+      </div>
+    </div>
+
+    <div class="three-col" style="margin-bottom:40px;">
+      <div class="icard">
+        <span class="icard-icon">4️⃣</span>
+        <h3>Filter Manager — The Library Layer</h3>
+        <p>A dedicated cross-product filter management surface. Users can organise filters into folders, tag them for retrieval, search across their library, archive unused filters, and share with team members. The library is product-aware — filters are tagged to their origin product but accessible platform-wide.</p>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">5️⃣</span>
+        <h3>Governed Sharing</h3>
+        <p>Inline permission controls at the share action. When sharing a filter, the user selects scope (view only / edit / team library) before confirming. RBAC constraints are enforced at this surface — users cannot share filters that expose data outside their permission boundary.</p>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">6️⃣</span>
+        <h3>Cross-Product Transfer</h3>
+        <p>Filters created in one product can be transferred to compatible products. A date-range + segment filter built in SogoSurvey can be applied in SogoCore with one action. Incompatible criteria are surfaced clearly — not silently dropped — so users understand what transferred and what didn't.</p>
+      </div>
+    </div>
+
+    <div class="divider"><span>Interaction Design — Critical Decisions</span></div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Interaction</th><th>Design Decision</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr style="border-left:3px solid var(--accent);">
+            <td>AND/OR Logic Builder <span class="pill pill-b" style="margin-left:8px;">Core Fix</span></td>
+            <td>Visual logic tree with live preview of result set scope</td>
+            <td>User interviews revealed that multi-criteria filters frequently returned unexpected results because users couldn't visualise what AND vs OR would do to their dataset. A silent text form was replaced with a visual logic tree — showing users how the filter scope changes as they add criteria.</td>
+          </tr>
+          <tr>
+            <td>Smart Filter Suggestions</td>
+            <td>Contextual suggestions based on dataset structure, not generic templates</td>
+            <td>Generic filter templates added noise. Suggestions surfaced by analysing the active dataset's available fields — so a user viewing an NPS dataset sees NPS-relevant suggestions, not a list of every possible filter type.</td>
+          </tr>
+          <tr>
+            <td>Filter Library Search</td>
+            <td>Full-text search across filter name, tags, and criteria content</td>
+            <td>Users described existing filter lists as unusable at scale. Folder organisation alone wasn't sufficient — users needed to search across content, not just labels.</td>
+          </tr>
+          <tr style="border-left:3px solid var(--emerald);">
+            <td>Cross-Product Transfer</td>
+            <td>Explicit transfer confirmation with criteria compatibility mapping</td>
+            <td>Silent criteria dropping when transferring between products would undermine user trust. Instead: users see which criteria transferred successfully, which were incompatible (and why), and can choose to proceed or adjust. Transparency over convenience.</td>
+          </tr>
+          <tr>
+            <td>Inline Permissions at Share</td>
+            <td>Permission scope visible before share is confirmed</td>
+            <td>See Section 04 — Civics. Governance errors in filter sharing have compliance consequences. The friction of an extra step is lower than the cost of an exposure incident.</td>
+          </tr>
+          <tr>
+            <td>Filter State Persistence</td>
+            <td>Active filter state persists on session exit and product switch</td>
+            <td>Users who switch products lose context without persistence. Applied filters are maintained across product navigation so analysts don't lose their working state when moving between surfaces.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 7 — CHEMISTRY & MATERIALS -->
+<section class="sec" id="materials">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">07 —</span> Chemistry &amp; Materials</div>
+    <h2>Tools, Technology, and Tradeoffs</h2>
+    <div class="two-col">
+      <div>
+        <h3>Design Stack</h3>
+        <div class="four-col" style="margin:28px 0 40px;">
+          <div class="icard" style="text-align:center; padding:20px 14px;">
+            <span style="font-size:28px; display:block; margin-bottom:10px;">🎨</span>
+            <div style="font-size:12px; font-weight:600;">Figma</div>
+            <div style="font-size:11px; color:var(--text-3);">Design + Prototype</div>
+          </div>
+          <div class="icard" style="text-align:center; padding:20px 14px;">
+            <span style="font-size:28px; display:block; margin-bottom:10px;">🧩</span>
+            <div style="font-size:12px; font-weight:600;">Design System</div>
+            <div style="font-size:11px; color:var(--text-3);">Existing tokens</div>
+          </div>
+          <div class="icard" style="text-align:center; padding:20px 14px;">
+            <span style="font-size:28px; display:block; margin-bottom:10px;">🗺️</span>
+            <div style="font-size:12px; font-weight:600;">FigJam</div>
+            <div style="font-size:11px; color:var(--text-3);">IA + Mapping</div>
+          </div>
+          <div class="icard" style="text-align:center; padding:20px 14px;">
+            <span style="font-size:28px; display:block; margin-bottom:10px;">📋</span>
+            <div style="font-size:12px; font-weight:600;">User Interviews</div>
+            <div style="font-size:11px; color:var(--text-3);">Research</div>
+          </div>
+        </div>
+        <h3>Constraints and How They Were Addressed</h3>
+        <p>The project operated within four significant constraints:</p>
+        <div class="icard" style="margin-bottom:14px;">
+          <span class="icard-icon">🧱</span>
+          <h3>Must work within the existing design system</h3>
+          <p>All new filter components were designed as extensions of existing design system tokens — not new patterns. This constrained some visual possibilities but accelerated engineering implementation and maintained UI consistency across the broader platform.</p>
+        </div>
+        <div class="icard" style="margin-bottom:14px;">
+          <span class="icard-icon">⏱️</span>
+          <h3>Limited development resources — 6 months</h3>
+          <p>The unified architecture approach was a larger upfront investment than per-product improvements. I built the business case with the PM: the architecture cost was a one-time investment; the alternative (five separate improvements) would accrue ongoing design and engineering debt for every new product added to the platform.</p>
+        </div>
+        <div class="icard">
+          <span class="icard-icon">🔗</span>
+          <h3>Integration with existing product infrastructure</h3>
+          <p>The filter logic layer had to be designed with engineering input from the start. Weekly cross-functional sessions with the engineering lead ensured the interaction model was technically feasible within existing data architecture — preventing design decisions that looked clean but couldn't be built.</p>
+        </div>
+      </div>
+      <div>
+        <div class="callout amber">
+          <div class="callout-lbl">Tradeoffs We Accepted</div>
+          <p>The unified architecture approach required deferring mobile filter access entirely. Shipping a solid desktop filter architecture in v1 was more valuable than a stretched version that also attempted mobile — which would have diluted the cross-product logic work. Mobile was explicitly roadmapped, not forgotten.</p>
+        </div>
+        <br>
+        <div class="callout amber">
+          <div class="callout-lbl">Tradeoff — Smart Filter Scope</div>
+          <p>Smart filter suggestions were scoped to label-based matching in v1 — not ML-powered inference. This was an intentional constraint: building ML-based suggestions on top of a newly unified architecture would have introduced too many variables. v1 smart suggestions needed to be explainable and auditable. ML inference was roadmapped for v2 once the architecture had real usage data to train on.</p>
+        </div>
+        <br>
+        <h3>What the Architecture Decision Enabled</h3>
+        <p>By investing in the logic layer first, the design created a foundation that future product teams can build on. Adding a new product to the Sogolytics platform no longer means building a new filter system from scratch — it means inheriting the architecture and adding product-contextual criteria on top of it. <strong>The design work compounds over time.</strong></p>
+        <div class="callout green">
+          <div class="callout-lbl">FAANG-Level Framing</div>
+          <p>At platform scale, every design decision is also a policy for future designers and engineers who haven't joined yet. The filter architecture defined what "a filter" means at Sogolytics — consistently, across every surface. That's the leverage point of systems thinking over screen thinking.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 8 — BIOLOGY & SYSTEMS THINKING -->
+<section class="sec" id="architecture">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">08 —</span> Biology &amp; Systems Thinking</div>
+    <h2>The Filter Architecture as a Platform Organism</h2>
+    <p style="max-width:720px; margin-bottom:44px;">The filter system doesn't live in a product. It lives beneath all of them. Understanding how the architecture connects across the platform — and where the value loops are — was the design work that the screen-level work depended on.</p>
+
+    <div class="eco-map">
+      <div class="eco-center">
+        <span style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--text-3); display:block; margin-bottom:14px;">Platform Layer</span>
+        <div class="eco-center-badge">Unified Filter Architecture</div>
+        <div style="font-size:12px; color:var(--text-2); margin-top:10px;">Shared logic layer · Smart suggestions engine · Filter Manager · Governance model</div>
+      </div>
+      <div class="eco-arrow">↓ inherited by each product ↓</div>
+      <div class="eco-products">
+        <div class="eco-product">
+          <div class="eco-name">SogoSurvey</div>
+          <div class="eco-desc">Response filtering, completion segments</div>
+        </div>
+        <div class="eco-product">
+          <div class="eco-name">SogoCX</div>
+          <div class="eco-desc">NPS/CSAT/touchpoint filters</div>
+        </div>
+        <div class="eco-product">
+          <div class="eco-name">SogoEX</div>
+          <div class="eco-desc">Department, tenure, engagement filters</div>
+        </div>
+        <div class="eco-product">
+          <div class="eco-name">SogoCore</div>
+          <div class="eco-desc">Dataset-level analytical filters</div>
+        </div>
+        <div class="eco-product">
+          <div class="eco-name">SogoConnect</div>
+          <div class="eco-desc">Integration-level data mapping filters</div>
+        </div>
+        <div class="eco-product">
+          <div class="eco-name">SogoTicket</div>
+          <div class="eco-desc">Ticket queue / status filters</div>
+        </div>
+      </div>
+      <div class="eco-connector">Filter Manager — cross-product library, sharing, governance, analytics</div>
+    </div>
+
+    <div class="divider"><span>Value Loops</span></div>
+    <div class="three-col">
+      <div class="icard">
+        <span class="icard-icon">🔄</span>
+        <h3>Reuse Loop</h3>
+        <p>A filter built once in SogoCX is available in SogoSurvey. Usage data from reused filters informs smart suggestions — the system learns which filter combinations are valuable and surfaces them proactively. Reuse creates the training signal for intelligence.</p>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">🤝</span>
+        <h3>Collaboration Loop</h3>
+        <p>Team-shared filter libraries reduce duplicated analysis work. When an analyst shares a high-value filter to the team library, it becomes available to marketing managers and business owners — democratising analytical capability without requiring everyone to be an expert filter builder.</p>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">🔒</span>
+        <h3>Trust Loop</h3>
+        <p>Governed sharing creates auditable filter provenance. Decision-makers consuming filtered reports can see who built the filter, when, and what criteria it includes. Trust in filtered data compounds — once stakeholders trust a filter source, they act on its outputs faster and with more confidence.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-lbl">Where the System Was Breaking</div>
+      <p>Before the redesign, every loop above was broken. Filters couldn't be reused, so no usage signal existed for smart suggestions. Filters couldn't be shared, so collaboration was impossible. Filter provenance was opaque, so trust in filtered outputs was low. The architecture wasn't missing a feature — it was missing the connective tissue that makes a platform behave like a system instead of a collection of tools.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 9 — PSYCHOLOGY & HUMAN BEHAVIOR -->
+<section class="sec" id="psychology">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">09 —</span> Psychology &amp; Human Behavior</div>
+    <h2>How Users Think About Filtering — And Where That Model Breaks</h2>
+
+    <div class="divider"><span>B2B Dual-Persona Journey Map — Filter Creation Flow</span></div>
+
+    <div class="journey-wrap">
+      <table class="journey-table">
+        <thead>
+          <tr>
+            <th style="min-width:130px;"></th>
+            <th>Awareness / Assigned</th>
+            <th>Filter Setup</th>
+            <th>Analysis</th>
+            <th>Sharing / Handoff</th>
+            <th>Re-use / Iteration</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-lbl">Analyst Actions</td>
+            <td class="friction-lo">Opens dataset in product. Recognises need to filter data for specific segment.</td>
+            <td class="friction-hi">Attempts to configure multi-criteria filter. Struggles with AND/OR logic visualisation. Re-creates a filter built in another product.</td>
+            <td>Applies filter. Reviews output. Unsure if filter logic is behaving as intended.</td>
+            <td class="friction-med">Wants to share filtered view with manager. No built-in sharing. Exports static report instead.</td>
+            <td class="friction-hi">Returns to same analysis next week. Filter not saved. Re-creates from memory.</td>
+          </tr>
+          <tr>
+            <td class="row-lbl">Analyst Pain ↓</td>
+            <td class="friction-lo">Low</td>
+            <td class="friction-hi">🔴 HIGH — logic builder opaque, no visual feedback, cross-product duplication</td>
+            <td class="friction-med">🟡 MEDIUM — no confirmation of filter scope accuracy</td>
+            <td class="friction-med">🟡 MEDIUM — no native sharing, workarounds required</td>
+            <td class="friction-hi">🔴 HIGH — no persistence, no library — same work repeated</td>
+          </tr>
+          <tr>
+            <td class="row-lbl">Manager Actions</td>
+            <td>Receives static report from analyst.</td>
+            <td>—</td>
+            <td>Reviews exported data. Has questions about filter criteria used.</td>
+            <td class="friction-hi">Needs updated view but analyst is unavailable. Cannot modify or re-run filter independently.</td>
+            <td class="friction-hi">Next cycle: same request to analyst. Same delay. No self-service path.</td>
+          </tr>
+          <tr>
+            <td class="row-lbl">Manager Pain ↓</td>
+            <td class="friction-lo">Low</td>
+            <td class="friction-lo">N/A</td>
+            <td class="friction-med">🟡 MEDIUM — filter opacity creates trust gap in data</td>
+            <td class="friction-hi">🔴 HIGH — dependency on analyst creates bottleneck</td>
+            <td class="friction-hi">🔴 HIGH — cycle repeats; no improvement in access over time</td>
+          </tr>
+          <tr>
+            <td class="row-lbl">Design Intervention</td>
+            <td class="friction-lo">—</td>
+            <td class="intervention"><span class="intervention-lbl">Primary Intervention</span>Visual logic builder · Smart suggestions · Cross-product transfer</td>
+            <td class="intervention"><span class="intervention-lbl">Secondary</span>Live filter scope preview · Confirmation of criteria applied</td>
+            <td class="intervention"><span class="intervention-lbl">Intervention</span>Governed inline sharing · Team filter library</td>
+            <td class="intervention"><span class="intervention-lbl">Intervention</span>Filter Manager · Persistent filter state · Saved library</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout green">
+      <div class="callout-lbl">Journey Map Insight</div>
+      <p>The highest-friction stages were not where I initially expected. Early assumptions pointed to "Filter Setup" as the dominant pain point. The journey map revealed equally severe friction at "Re-use / Iteration" — users hitting the same wall every time they returned to a dataset. Fixing setup without fixing persistence and library management would have improved first-time filter creation while leaving the weekly pain untouched. Both had to be solved together.</p>
+    </div>
+
+    <div class="divider"><span>Design Psychology Principles Applied</span></div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Principle</th><th>Application in Filter Architecture</th></tr></thead>
+        <tbody>
+          <tr style="border-left:3px solid var(--accent); background:var(--accent-bg);">
+            <td>Immediate Feedback <span class="pill pill-b" style="margin-left:8px;">Core Fix</span></td>
+            <td>The AND/OR logic builder provides a live preview of filter scope — showing users how many records match their current criteria as they build. Eliminates the guessing game of "will this filter do what I think it will?"</td>
+          </tr>
+          <tr>
+            <td>Progressive Disclosure</td>
+            <td>Advanced filter options (nested logic, formula-based criteria) are available but hidden by default. New and occasional users see a simplified interface; power users can expand to full configuration without a separate mode switch.</td>
+          </tr>
+          <tr>
+            <td>Recognition Over Recall</td>
+            <td>Smart suggestions surface relevant filter criteria based on dataset context. Users select from intelligently surfaced options rather than recalling field names from memory — reducing cognitive load at the point of highest friction.</td>
+          </tr>
+          <tr>
+            <td>Segmentation Flexibility</td>
+            <td>The AND/OR/NOT operator model is exposed visually, not hidden behind text. Users can see and modify the logical relationship between criteria without understanding query syntax.</td>
+          </tr>
+          <tr>
+            <td>Habit Formation via Library</td>
+            <td>The Filter Manager is designed to reward consistent filter usage — saved filters, usage history, and team sharing create a virtuous cycle where the more you use the system, the more valuable it becomes.</td>
+          </tr>
+          <tr>
+            <td>Trust Through Transparency</td>
+            <td>Cross-product filter transfer surfaces incompatible criteria explicitly. The system never silently drops criteria that can't transfer — it shows the user what happened and why, preserving analytical trust.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 10 — STORYTELLING & VISUAL AESTHETICS -->
+<section class="sec" id="storytelling">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">10 —</span> Storytelling &amp; Visual Aesthetics</div>
+    <h2>The Emotional Arc of This Work</h2>
+    <div class="two-col">
+      <div>
+        <h3>The Story This Project Tells</h3>
+        <p>This is a story about a designer who looked at a screen problem, saw a platform problem, and had the conviction to reframe the work before drawing a single wireframe. It's about the strategic courage to invest in architecture — which produces no immediately visible deliverable — in service of a system that outlasts any single design decision made on top of it.</p>
+        <p>For users, it's a story about reclaiming time. Every hour spent re-creating a filter that should have transferred, searching a library with no search function, or waiting for an analyst to share a view that should be self-service — that's the friction this work was designed to remove. Not once, but permanently, because it was removed at the right level.</p>
+        <div class="callout">
+          <div class="callout-lbl">What the Viewer Should Feel</div>
+          <p>Confidence. Not "this is a beautiful filter UI" — but "this person understands how platforms work, how design decisions compound at scale, and how to make a case for the right kind of investment." That's the emotional signature of principal-level design work.</p>
+        </div>
+        <h3>Visual Harmony Rules</h3>
+        <div class="icard" style="margin-bottom:12px;">
+          <span class="icard-icon">🧱</span>
+          <h3>Structure over decoration</h3>
+          <p>The visual system communicates architecture — hierarchy, relationships, logic flows — not aesthetic preference. Every visual decision should make the system legible, not just attractive.</p>
+        </div>
+        <div class="icard" style="margin-bottom:12px;">
+          <span class="icard-icon">📐</span>
+          <h3>Precision as personality</h3>
+          <p>Data-dense interfaces earn trust through precision. Consistent spacing, tight type scales, and no decorative elements that don't carry information. The enterprise user's mental model of "professional tool" is violated by anything that feels cosmetic.</p>
+        </div>
+        <div class="icard">
+          <span class="icard-icon">⚡</span>
+          <h3>Status at a glance</h3>
+          <p>At any point in the filter creation or management flow, users should be able to answer three questions without effort: What filter am I building? What will it do? Where will it live? The visual language must support rapid status reads.</p>
+        </div>
+      </div>
+      <div>
+        <div class="manifesto-card" style="margin-bottom:28px;">
+          <div class="manifesto-lbl">2-Line Manifesto</div>
+          <div class="manifesto-text">
+            <p>I design systems that work harder than the screen can show — because the right architecture absorbs complexity before users ever encounter it.</p>
+            <p class="sub">Hire me to solve the problem behind the problem — the one that makes every screen-level fix a temporary fix.</p>
+          </div>
+        </div>
+        <h3>Cinematic Mood</h3>
+        <div class="icard" style="margin-bottom:14px;">
+          <span class="icard-icon">🎬</span>
+          <h3>Genre: Precision Documentary</h3>
+          <p>The visual feel of a Bloomberg Terminal meets a well-designed SaaS product — disciplined, data-dense, authoritative. No gradients for ambiance. No hero imagery for warmth. Every element earns its place by carrying information or establishing hierarchy.</p>
+        </div>
+        <div class="icard">
+          <span class="icard-icon">🌑</span>
+          <h3>Tone: Controlled Restraint</h3>
+          <p>Dark background with precise accent colour. Type that communicates rank and function through weight and scale alone. The design doesn't try to be likeable. It tries to be trustworthy. In enterprise B2B, those are different things.</p>
+        </div>
+        <br>
+        <div class="callout">
+          <div class="callout-lbl">Tools Used</div>
+          <p>Figma (design and prototype) · FigJam (journey mapping and IA workshops) · DM Sans + Playfair Display (typography system) · Sogolytics design system tokens</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 11 — STAR CARD & IMPACT -->
+<section class="sec" id="outcome">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">11 —</span> Projects &amp; Impact</div>
+    <h2>Structured Evidence &amp; Outcomes</h2>
+
+    <div class="divider"><span>Before → After</span></div>
+    <div class="ba-grid">
+      <div class="ba-col">
+        <div class="ba-label before">Before — State of Filters Across Products</div>
+        <div class="ba-item"><span class="ba-glyph">✕</span><span>Five independent filter systems with no shared logic, interaction model, or persistence rules</span></div>
+        <div class="ba-item"><span class="ba-glyph">✕</span><span>Users manually re-created identical filters in each product they worked in</span></div>
+        <div class="ba-item"><span class="ba-glyph">✕</span><span>AND/OR logic was opaque — multi-criteria filters frequently returned unexpected results</span></div>
+        <div class="ba-item"><span class="ba-glyph">✕</span><span>No filter library management — saved filters accumulated with no search, tagging, or organisation</span></div>
+        <div class="ba-item"><span class="ba-glyph">✕</span><span>Filter sharing required manual workarounds (static exports) — no native sharing or governance</span></div>
+        <div class="ba-item"><span class="ba-glyph">✕</span><span>Smart filter suggestions impossible — no unified data model to build intelligence on top of</span></div>
+      </div>
+      <div class="ba-col">
+        <div class="ba-label after">After — Unified Filter Architecture</div>
+        <div class="ba-item"><span class="ba-glyph" style="color:var(--emerald);">✓</span><span>Single filter logic layer shared across all products — one mental model, every surface</span></div>
+        <div class="ba-item"><span class="ba-glyph" style="color:var(--emerald);">✓</span><span>Cross-product filter transfer with explicit compatibility mapping — no silent data loss</span></div>
+        <div class="ba-item"><span class="ba-glyph" style="color:var(--emerald);">✓</span><span>Visual AND/OR logic builder with live result set preview — filter scope visible in real time</span></div>
+        <div class="ba-item"><span class="ba-glyph" style="color:var(--emerald);">✓</span><span>Dedicated Filter Manager — searchable, taggable, folder-organised library with archive</span></div>
+        <div class="ba-item"><span class="ba-glyph" style="color:var(--emerald);">✓</span><span>Governed inline sharing with RBAC-aware permission controls at point of share</span></div>
+        <div class="ba-item"><span class="ba-glyph" style="color:var(--emerald);">✓</span><span>Smart filter suggestion engine — context-aware, dataset-driven, v2-ready for ML inference</span></div>
+      </div>
+    </div>
+
+    <div class="divider"><span>Qualitative Evidence</span></div>
+    <div class="three-col" style="margin-bottom:40px;">
+      <div class="icard">
+        <span class="icard-icon">🧪</span>
+        <h3>Usability Testing</h3>
+        <p>Prototype testing with participants from the primary user segment. Task: build a multi-criteria filter combining AND/OR logic across two criteria types. Key finding: visual logic builder with live preview reduced task abandonment compared to the original text-form approach.</p>
+        <span class="ph">Add participant count and task completion delta when cleared for publication.</span>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">📐</span>
+        <h3>Architecture Complexity Reduction</h3>
+        <p>The cross-product architecture consolidated five independent filter models into one. Any new product added to the platform inherits the architecture — zero new filter development overhead. The design investment was explicitly framed as a one-time cost with compounding returns.</p>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">💬</span>
+        <h3>Stakeholder &amp; PM Validation</h3>
+        <p>The reframe from "improve filter UI per product" to "design one filter architecture" was accepted by the PM after a structured business case was made. The architecture approach was validated as the correct investment level for a platform undergoing enterprise repositioning.</p>
+      </div>
+    </div>
+
+    <div class="star-card">
+      <div class="star-head">
+        <div class="star-head-title">STAR Card — Sogolytics Unified Filter Architecture</div>
+        <span class="pill pill-b">Card 01 of 01</span>
+      </div>
+      <div class="star-rows">
+        <div class="star-row">
+          <div class="star-key">Situation</div>
+          <div class="star-val">A B2B experience management platform with five products had built five independent filter systems. As the platform repositioned toward enterprise, power users who worked across multiple products encountered inconsistent filter behaviour, zero cross-product transfer, and no filter management infrastructure. The platform narrative of "unified experience management" was directly undermined by fragmented filter UX at the core of every data analysis workflow.</div>
+        </div>
+        <div class="star-row">
+          <div class="star-key">Task</div>
+          <div class="star-val">Embedded as the sole designer on a cross-functional squad (PM + engineers), I was tasked with improving the filter creation experience across all products and introducing smart filters. I identified that the brief, as written, would produce screen-level improvements on top of an architectural problem — and that smart filters built on a fragmented foundation would fail at scale. My task expanded to include reframing the problem and building the case for an architecture-first approach.</div>
+        </div>
+        <div class="star-row">
+          <div class="star-key">Action</div>
+          <div class="star-val">
+            <strong>Reframed the problem</strong> from "improve five filter UIs" to "design one filter architecture that every product inherits." Built the business case with the PM by modelling the long-term cost of the alternative — ongoing design and engineering debt for every new product added to the platform.<br><br>
+            <strong>Conducted user research</strong> through interviews with data analysts, marketing managers, and business owners — identifying three critical pain clusters: re-creation overhead, filter library disorder, and AND/OR logic opacity.<br><br>
+            <strong>Designed the unified filter logic layer</strong> — shared criteria types, operators, and nesting rules standardised at platform level, with product-contextual vocabulary on top.<br><br>
+            <strong>Designed the Filter Manager</strong> — a dedicated cross-product library surface with search, tagging, folder organisation, archiving, team sharing, and inline RBAC-aware permission controls.<br><br>
+            <strong>Designed the smart filter suggestion engine</strong> — context-aware, dataset-driven, scoped to v1 label-based matching with ML inference roadmapped for v2 once the architecture had usage data.<br><br>
+            <strong>Designed the visual AND/OR logic builder</strong> with live result set preview — replacing the opaque text form that caused filter logic errors.
+          </div>
+        </div>
+        <div class="star-row">
+          <div class="star-key">Result</div>
+          <div class="star-val">
+            <strong>Delivered a cross-product filter architecture</strong> that unified five independent systems into one shared logic layer — eliminating the re-creation overhead that was the top pain point across all user segments.<br><br>
+            <strong>Prototype testing</strong> showed meaningful reduction in AND/OR logic task abandonment with the visual builder vs. the original text-form approach. <em class="warn">[Exact delta withheld — NDA]</em><br><br>
+            <strong>Governance model accepted by PM</strong> — inline permission controls at share action adopted over the original account-settings approach, creating a compliance-ready sharing flow for enterprise clients in regulated industries.<br><br>
+            <strong>Architecture investment validated</strong> as the correct scope: any new product added to the Sogolytics platform now inherits the filter system rather than building a new one — a compounding design return that grows with every product launch.
+          </div>
+        </div>
+        <div class="star-row">
+          <div class="star-key">Tools</div>
+          <div class="star-val">Figma · FigJam · Sogolytics Design System · User Interviews · Journey Mapping · Usability Testing</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 12 — REFLECTION -->
+<section class="sec" id="reflection">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">12 —</span> Reflection</div>
+    <h2>What I'd Defend, and What I'd Do Differently</h2>
+    <div class="two-col">
+      <div>
+        <h3>What I'd Defend</h3>
+        <div class="icard" style="margin-bottom:16px;">
+          <span class="icard-icon">🏛️</span>
+          <h3>The architecture reframe</h3>
+          <p>The decision to stop and question the brief before executing it was the highest-value design action on this project. A 10-year designer's job is not to execute a brief — it's to validate whether the brief is solving the right problem. The reframe added scope initially, but it removed years of accumulating design debt. I'd make the same call every time.</p>
+        </div>
+        <div class="icard" style="margin-bottom:16px;">
+          <span class="icard-icon">🔒</span>
+          <h3>Inline permissions at share</h3>
+          <p>The PM's preference for account-settings permissions was understandable from a simplicity standpoint. But in regulated industries — which Sogolytics serves — the cost of a permission error isn't UX friction, it's a compliance incident. Governance decisions belong at the action surface, not in a settings page the user visited three months ago.</p>
+        </div>
+        <div class="icard">
+          <span class="icard-icon">🛑</span>
+          <h3>Deferring mobile to v2</h3>
+          <p>Attempting mobile filter access alongside a platform architecture redesign would have stretched both work items past their quality threshold. A stable v1 architecture that works completely on desktop was more valuable than a half-complete architecture that also barely worked on mobile. Scope discipline is a design competency, not a concession.</p>
+        </div>
+      </div>
+      <div>
+        <h3>What I'd Do Differently</h3>
+        <div class="icard" style="margin-bottom:16px;">
+          <span class="icard-icon">🔁</span>
+          <h3>Earlier engineering alignment on the logic layer</h3>
+          <p>I brought engineering into the architecture conversation, but later than ideal. Several interaction decisions in the logic builder had to be revisited when they encountered data model constraints. In retrospect, a 2-hour technical design spike with the engineering lead in week 1 would have saved multiple revision cycles in month 3. Architecture work needs engineering input from the first session.</p>
+        </div>
+        <div class="icard" style="margin-bottom:16px;">
+          <span class="icard-icon">📊</span>
+          <h3>Established a measurement framework before design began</h3>
+          <p>The absence of hard outcome metrics is a gap I'd close on the next project. I would push to define measurable success criteria — filter re-creation frequency, cross-product transfer usage, filter library retention rates — before the first wireframe. Not because the design needed the metrics to be right, but because those metrics are the business case for the next iteration.</p>
+        </div>
+        <div class="icard">
+          <span class="icard-icon">🎓</span>
+          <h3>Pushed for a phased rollout over a full launch</h3>
+          <p>A full-platform filter architecture launch made it difficult to isolate which components were driving behaviour change. Phased rollout by product — SogoCX first, then SogoSurvey — would have provided real usage data that informed subsequent product implementations. Full launch masked what was working.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:52px;">
+      <div class="callout-lbl">The Story in One Paragraph</div>
+      <p>The filter architecture project began as a request to improve some screens and ended as a platform-level systems decision that will outlast any single designer's tenure at the company. The design work that mattered most was never visible in a prototype: it was the reframing conversation with the PM, the business case for architecture investment over screen improvement, and the governance decision that put compliance-critical permissions where users actually encounter them. Every screen-level design decision on this project was downstream of those choices. That's the design work that senior practitioners do — and the work I'll keep doing at whatever scale I'm given.</p>
+    </div>
+
+    <div class="divider"><span>Future Roadmap</span></div>
+    <div class="three-col">
+      <div class="icard">
+        <span class="icard-icon">🤖</span>
+        <h3>ML-Powered Smart Suggestions (v2)</h3>
+        <p>Once the unified architecture has accumulated usage data, the smart suggestion engine can move from label-based matching to ML-powered inference — learning which filter combinations produce high-value insights for specific user types and suggesting them proactively.</p>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">📱</span>
+        <h3>Mobile Filter Access</h3>
+        <p>A stable v1 desktop architecture creates the foundation for mobile. The interaction model needs rethinking for touch — particularly the AND/OR logic builder — but the underlying architecture transfers completely. Design, not re-architecture.</p>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">📈</span>
+        <h3>Filter Analytics Layer</h3>
+        <p>Usage data on which filters are most applied, shared, and reused creates a flywheel for smart suggestions and surfaces organisational patterns in how teams analyse data — a meta-insight layer built on top of the filter architecture without requiring new data collection.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION — BRAND SYSTEM -->
+<section class="sec" id="brand">
+  <div class="wrap">
+    <div class="eyebrow">Portfolio Brand System</div>
+    <h2>Design Tokens &amp; Visual Language</h2>
+
+    <div class="divider"><span>Colour System</span></div>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="swatch-block" style="background:#07090D;"></div><div class="swatch-info"><div class="swatch-name">Background</div><div class="swatch-hex">#07090D</div></div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#0D1018;"></div><div class="swatch-info"><div class="swatch-name">Surface</div><div class="swatch-hex">#0D1018</div></div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#3B82F6;"></div><div class="swatch-info"><div class="swatch-name">Accent Blue</div><div class="swatch-hex">#3B82F6</div></div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#10B981;"></div><div class="swatch-info"><div class="swatch-name">Emerald</div><div class="swatch-hex">#10B981</div></div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#F59E0B;"></div><div class="swatch-info"><div class="swatch-name">Amber</div><div class="swatch-hex">#F59E0B</div></div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#EF4444;"></div><div class="swatch-info"><div class="swatch-name">Red</div><div class="swatch-hex">#EF4444</div></div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#EEF0F4;"></div><div class="swatch-info"><div class="swatch-name">Text Primary</div><div class="swatch-hex">#EEF0F4</div></div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#8895A7;"></div><div class="swatch-info"><div class="swatch-name">Text Secondary</div><div class="swatch-hex">#8895A7</div></div></div>
+    </div>
+
+    <div class="divider"><span>Type System</span></div>
+    <div style="background:var(--surface); border:1px solid var(--border); border-radius: 2px; overflow:hidden;">
+      <div style="display:grid; grid-template-columns:100px 1fr 180px; border-bottom:1px solid var(--border);">
+        <div style="padding:16px 20px; background:var(--surface-2); font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);">Display</div>
+        <div style="padding:16px 20px;"><span style="font-family:'Playfair Display', serif; font-weight:700; font-size:24px;">Designing Filter Architecture</span></div>
+        <div style="padding:16px 20px; font-family:'DM Mono',monospace; font-size:10px; color:var(--text-3); text-align:right;">Playfair Display 800 · clamp(34,4.2vw,62)</div>
+      </div>
+      <div style="display:grid; grid-template-columns:100px 1fr 180px; border-bottom:1px solid var(--border);">
+        <div style="padding:16px 20px; background:var(--surface-2); font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);">Section</div>
+        <div style="padding:16px 20px;"><span style="font-family:'Playfair Display', serif; font-weight:700; font-size:19px;">Unified Logic Layer</span></div>
+        <div style="padding:16px 20px; font-family:'DM Mono',monospace; font-size:10px; color:var(--text-3); text-align:right;">Playfair Display 700 · 19px</div>
+      </div>
+      <div style="display:grid; grid-template-columns:100px 1fr 180px; border-bottom:1px solid var(--border);">
+        <div style="padding:16px 20px; background:var(--surface-2); font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);">Body</div>
+        <div style="padding:16px 20px;"><span style="font-size:14px; color:var(--text-2);">The architecture wasn't missing a feature — it was missing the connective tissue that makes a platform behave like a system.</span></div>
+        <div style="padding:16px 20px; font-family:'DM Mono',monospace; font-size:10px; color:var(--text-3); text-align:right;">DM Sans 400 · 16px</div>
+      </div>
+      <div style="display:grid; grid-template-columns:100px 1fr 180px;">
+        <div style="padding:16px 20px; background:var(--surface-2); font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);">Label</div>
+        <div style="padding:16px 20px;"><span style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:var(--accent);">Systems Architecture · B2B SaaS · Enterprise</span></div>
+        <div style="padding:16px 20px; font-family:'DM Mono',monospace; font-size:10px; color:var(--text-3); text-align:right;">DM Mono 400 · 9–10px</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-left">Sogolytics · Filter Architecture · UX Case Study</div>
+  <div class="footer-right">Employer and sensitive performance metrics anonymised at their request. Full context available under mutual NDA.</div>
+</footer>
+
+<script>
+// Progress bar
+window.addEventListener('scroll', () => {
+  const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+  document.getElementById('progress-bar').style.width = scrolled + '%';
+});
+
+// Active nav
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.style.color = '');
+      const active = document.querySelector(`.nav-links a[href="#${e.target.id}"]`);
+      if (active) active.style.color = 'var(--accent)';
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

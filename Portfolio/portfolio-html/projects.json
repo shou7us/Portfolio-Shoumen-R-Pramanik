@@ -1,0 +1,363 @@
+{
+  "projects": [
+    {
+      "id": "01",
+      "slug": "custom-dashboard",
+      "file": "sogolytics-dashboard-case-study.html",
+      "title": "Custom Dashboard \u2014 Governed Analytics at Enterprise Scale",
+      "description": "Designed a real-time, modular dashboard builder that closed four critical competitive gaps against Qualtrics and Polymer AI \u2014 replacing a manual email reporting chain with a governed, live-sharing canvas accessible to non-technical Account Managers.",
+      "meta": {
+        "role": "Lead UX Designer",
+        "year": "2024",
+        "timeline": "2 Months",
+        "team": "1 Designer \u00b7 1 PM",
+        "platform": "B2B SaaS \u00b7 3 Tiers"
+      },
+      "tags": [
+        "Interaction Design",
+        "Usability Testing",
+        "B2B Enterprise",
+        "Data Visualisation",
+        "Systems Thinking",
+        "Figma"
+      ],
+      "coverImage": "/images/custom-dashboard/cover.png",
+      "images": {
+        "wireframe": "/images/custom-dashboard/wireframe.png",
+        "journeyMap": "/images/custom-dashboard/journey-map.png",
+        "finals": [
+          "/images/custom-dashboard/final-01.png",
+          "/images/custom-dashboard/final-02.png",
+          "/images/custom-dashboard/final-03.png"
+        ]
+      },
+      "status": "published",
+      "visibility": "private",
+      "password": "srp2026",
+      "order": 1,
+      "highlight": true,
+      "ndaNote": "Employer and product details anonymised at their request. Full context available under mutual NDA."
+    },
+    {
+      "id": "02",
+      "slug": "smart-filter-architecture",
+      "file": "sogolytics-filter-architecture-case-study.html",
+      "title": "Smart Filter Architecture \u2014 Cross-Product UX Infrastructure",
+      "description": "Identified that five inconsistent filter implementations across five products were a platform infrastructure failure \u2014 not a UI problem. Redesigned from the architecture up: shared component, smart suggestion layer, and shared filter library. Engineering lead noted it halved implementation scope for future products.",
+      "meta": {
+        "role": "Embedded UX Designer",
+        "year": "2024",
+        "timeline": "6 Months",
+        "team": "1 Designer \u00b7 1 PM \u00b7 Engineering Squad",
+        "platform": "B2B SaaS \u00b7 5 Products"
+      },
+      "tags": [
+        "Systems Architecture",
+        "Cross-Product Design",
+        "IA Design",
+        "Usability Testing",
+        "B2B SaaS",
+        "Figma"
+      ],
+      "coverImage": "/images/smart-filter-architecture/cover.png",
+      "images": {
+        "wireframe": "/images/smart-filter-architecture/wireframe.png",
+        "journeyMap": "/images/smart-filter-architecture/journey-map.png",
+        "finals": [
+          "/images/smart-filter-architecture/final-01.png",
+          "/images/smart-filter-architecture/final-02.png",
+          "/images/smart-filter-architecture/final-03.png"
+        ]
+      },
+      "status": "published",
+      "visibility": "private",
+      "password": "srp2026",
+      "order": 2,
+      "highlight": true,
+      "ndaNote": "Employer and sensitive performance metrics anonymised at their request. Full context available under mutual NDA."
+    },
+    {
+      "id": "03",
+      "slug": "customer-directory",
+      "file": "customer-directory-case-study.html",
+      "title": "Customer Directory \u2014 Data Management for Regulated Industries",
+      "description": "End-to-end UX ownership of a CRM-integrated data management system for credit unions, healthcare networks, and K\u201312 institutions. Owned information architecture, interaction design, usability research, stakeholder alignment, and a 47-component design system. Evidence convinced leadership to pivot \u2014 shipped within three months.",
+      "meta": {
+        "role": "UX Designer \u00b7 End-to-End",
+        "year": "2023",
+        "timeline": "Jan \u2013 Sep 2023 \u00b7 9 Months",
+        "team": "2 PMs \u00b7 8 Engineers \u00b7 1 Researcher",
+        "platform": "B2B SaaS \u00b7 XM Platform"
+      },
+      "tags": [
+        "End-to-End UX",
+        "Design Systems",
+        "Usability Research",
+        "Regulated Industries",
+        "IA",
+        "Figma"
+      ],
+      "stats": [
+        {
+          "value": "$2.1M",
+          "label": "Incremental ARR",
+          "note": "Tracked cohort \u00b7 12 months"
+        },
+        {
+          "value": "89%",
+          "label": "Feature Adoption",
+          "note": "\u2191 from 34% baseline"
+        },
+        {
+          "value": "83%\u2193",
+          "label": "Support Tickets",
+          "note": "Import-related \u00b7 post-launch"
+        }
+      ],
+      "coverImage": "/images/customer-directory/cover.png",
+      "images": {
+        "wireframe": "/images/customer-directory/wireframe.png",
+        "journeyMap": "/images/customer-directory/journey-map.png",
+        "finals": [
+          "/images/customer-directory/final-01.png",
+          "/images/customer-directory/final-02.png",
+          "/images/customer-directory/final-03.png"
+        ]
+      },
+      "status": "published",
+      "visibility": "private",
+      "password": "srp2026",
+      "order": 3,
+      "highlight": true,
+      "ndaNote": "Employer and product details anonymised at their request. Full context available under mutual NDA."
+    },
+    {
+      "id": "04",
+      "slug": "ai-derived-fields",
+      "file": "case-study-derived-fields.html",
+      "title": "AI-Powered Derived Fields \u2014 0\u21921 Feature for Analytical Trust",
+      "description": "Designed a 0\u21921 AI capability that lets analysts compute and enrich contact data inside the platform \u2014 eliminating the export-to-spreadsheet cycle eroding platform trust. Includes AI suggestion panel, trust architecture, onboarding flow, and empty state. Spans banking, healthcare, and CX verticals.",
+      "meta": {
+        "role": "Lead UX Designer \u00b7 End-to-End",
+        "year": "2024",
+        "timeline": "14 Weeks \u00b7 Discovery \u2192 Beta",
+        "team": "Designer \u00b7 PM \u00b7 Eng Lead \u00b7 Data Science \u00b7 Legal",
+        "platform": "Enterprise Survey & Research Platform"
+      },
+      "tags": [
+        "AI / ML UX",
+        "0\u21921 Feature",
+        "Systems Design",
+        "B2B SaaS",
+        "Trust Architecture",
+        "Banking \u00b7 Healthcare \u00b7 CX"
+      ],
+      "coverImage": "/images/ai-derived-fields/cover.png",
+      "images": {
+        "wireframe": "/images/ai-derived-fields/wireframe.png",
+        "journeyMap": "/images/ai-derived-fields/journey-map.png",
+        "finals": [
+          "/images/ai-derived-fields/final-01.png",
+          "/images/ai-derived-fields/final-02.png",
+          "/images/ai-derived-fields/final-03.png"
+        ]
+      },
+      "status": "published",
+      "visibility": "private",
+      "password": "srp2026",
+      "order": 4,
+      "highlight": false,
+      "ndaNote": "Employer and product details anonymised at their request. Full context available under mutual NDA."
+    },
+    {
+      "id": "05",
+      "slug": "ai-assistant",
+      "file": "ai-assistant-case-study.html",
+      "title": "Conversational AI Assistant \u2014 Enterprise XM Intelligence Layer",
+      "description": "Designed a conversational AI assistant for high-stakes enterprise clients in healthcare, finance, and K\u201312 education \u2014 transforming raw survey data into executive-ready narratives. Includes multimodal input states, prompt library, and dual-level design decisions (UX + agent behaviour specification).",
+      "meta": {
+        "role": "Lead UX Designer",
+        "year": "2024",
+        "timeline": "2 Months",
+        "team": "Lead UX \u00b7 PM \u00b7 Engineering",
+        "platform": "Enterprise XM SaaS \u00b7 Cloud"
+      },
+      "tags": [
+        "Conversational AI",
+        "Agentic Experience Design",
+        "Enterprise SaaS",
+        "Healthcare \u00b7 Finance \u00b7 K\u201312",
+        "AI UX",
+        "Figma"
+      ],
+      "coverImage": "/images/ai-assistant/cover.png",
+      "images": {
+        "wireframe": "/images/ai-assistant/wireframe.png",
+        "journeyMap": "/images/ai-assistant/journey-map.png",
+        "finals": [
+          "/images/ai-assistant/final-01.png",
+          "/images/ai-assistant/final-02.png",
+          "/images/ai-assistant/final-03.png"
+        ]
+      },
+      "status": "published",
+      "visibility": "private",
+      "password": "srp2026",
+      "order": 5,
+      "highlight": false,
+      "ndaNote": "Specific metrics and screen visuals withheld under NDA. Full context available on request."
+    },
+    {
+      "id": "06",
+      "slug": "experience-navigator",
+      "file": "experience-navigator.html",
+      "title": "Experience Navigator \u2014 AI Strategy Generation for CX/EX Leaders",
+      "description": "Designed an AI-powered strategy generation tool for mid-to-senior CX/EX leaders \u2014 converting abstract goals like 'reduce churn' into operational programmes with survey logic, KPIs, and board-ready output. 3-month sprint. Targets healthcare, financial services, and K\u201312.",
+      "meta": {
+        "role": "Lead UX Designer",
+        "year": "2024",
+        "timeline": "3 Months",
+        "team": "1 Designer \u00b7 1 PM \u00b7 1 Developer",
+        "platform": "Enterprise SaaS \u00b7 CX + EX Strategy"
+      },
+      "tags": [
+        "AI UX",
+        "UX Strategy",
+        "Enterprise SaaS",
+        "Healthcare \u00b7 Finance \u00b7 K\u201312",
+        "0\u21921 Product",
+        "Figma"
+      ],
+      "coverImage": "/images/experience-navigator/cover.png",
+      "images": {
+        "wireframe": "/images/experience-navigator/wireframe.png",
+        "journeyMap": "/images/experience-navigator/journey-map.png",
+        "finals": [
+          "/images/experience-navigator/final-01.png",
+          "/images/experience-navigator/final-02.png",
+          "/images/experience-navigator/final-03.png"
+        ]
+      },
+      "status": "published",
+      "visibility": "private",
+      "password": "srp2026",
+      "order": 6,
+      "highlight": false,
+      "ndaNote": "Specific client names and internal metrics anonymised at the company's request. Full context available under mutual NDA."
+    },
+    {
+      "id": "07",
+      "slug": "breaking-enterprise-ceiling",
+      "file": "breaking-enterprise-ceiling-full.html",
+      "title": "Breaking the Enterprise Ceiling \u2014 AI-Orchestrated PLG",
+      "description": "Designed the product experience for an enterprise positioning shift \u2014 from a platform loved by small teams to one that closes regulated enterprise buyers. Used Lightning Decision Jam methodology. Designed governance, role-based access, and compliance signals as conversion levers.",
+      "meta": {
+        "role": "Lead UX Designer",
+        "year": "2024",
+        "timeline": "Strategic Initiative",
+        "team": "Designer \u00b7 PM \u00b7 Engineering \u00b7 GTM",
+        "platform": "B2B SaaS \u00b7 Enterprise Tier"
+      },
+      "tags": [
+        "UX Strategy",
+        "PLG Design",
+        "Enterprise SaaS",
+        "Conversion Design",
+        "Governance UX",
+        "Figma"
+      ],
+      "coverImage": "/images/breaking-enterprise-ceiling/cover.png",
+      "images": {
+        "wireframe": "/images/breaking-enterprise-ceiling/wireframe.png",
+        "journeyMap": "/images/breaking-enterprise-ceiling/journey-map.png",
+        "finals": [
+          "/images/breaking-enterprise-ceiling/final-01.png",
+          "/images/breaking-enterprise-ceiling/final-02.png",
+          "/images/breaking-enterprise-ceiling/final-03.png"
+        ]
+      },
+      "status": "published",
+      "visibility": "private",
+      "password": "srp2026",
+      "order": 7,
+      "highlight": false,
+      "ndaNote": "Employer and product details anonymised at their request. Full context available under mutual NDA."
+    },
+    {
+      "id": "08",
+      "slug": "survey-creation-90",
+      "file": "ai-survey-creation-case-study.html",
+      "title": "Cutting Survey Creation Time by 90% \u2014 AI-Powered Survey Builder",
+      "description": "Designed an AI-assisted survey creation flow that reduced time-to-first-survey by 90% for non-expert users. Solved the blank-canvas problem with AI-generated question suggestions, smart branching logic, and a non-blocking nudge system that kept expert users in flow while guiding novices.",
+      "meta": {
+        "role": "Lead UX Designer",
+        "year": "2024",
+        "timeline": "Sprint \u00b7 6 Weeks",
+        "team": "Designer \u00b7 PM \u00b7 Engineering",
+        "platform": "B2B SaaS \u00b7 Survey Platform"
+      },
+      "tags": [
+        "AI UX",
+        "Zero-to-One Feature",
+        "Onboarding Design",
+        "B2B SaaS",
+        "Progressive Disclosure",
+        "Figma"
+      ],
+      "coverImage": "/images/survey-creation-90/cover.png",
+      "images": {
+        "wireframe": "/images/survey-creation-90/wireframe.png",
+        "journeyMap": "/images/survey-creation-90/journey-map.png",
+        "finals": [
+          "/images/survey-creation-90/final-01.png",
+          "/images/survey-creation-90/final-02.png",
+          "/images/survey-creation-90/final-03.png"
+        ]
+      },
+      "status": "published",
+      "visibility": "private",
+      "password": "srp2026",
+      "order": 8,
+      "highlight": false,
+      "ndaNote": "Employer and product details anonymised at their request. Full context available under mutual NDA."
+    },
+    {
+      "id": "09",
+      "slug": "ai-powered-insights",
+      "file": "sogolytics-case-study.html",
+      "title": "AI-Powered Insights \u2014 Narrative Reporting for High-Stakes Enterprise",
+      "description": "Designed an AI-driven reporting engine that transforms raw survey data into automated, executive-ready narratives for healthcare, finance, and K\u201312 education. Replaced legacy exports with vertically contextualised insights \u2014 reducing manual reporting time and increasing analyst trust in platform-generated output.",
+      "meta": {
+        "role": "Lead UX Designer",
+        "year": "2024",
+        "timeline": "2 Months",
+        "team": "Lead UX \u00b7 PM \u00b7 Engineering",
+        "platform": "Enterprise XM SaaS"
+      },
+      "tags": [
+        "AI UX",
+        "Enterprise Reporting",
+        "Healthcare \u00b7 Finance \u00b7 K\u201312",
+        "Data Visualisation",
+        "B2B SaaS",
+        "Figma"
+      ],
+      "coverImage": "/images/ai-powered-insights/cover.png",
+      "images": {
+        "wireframe": "/images/ai-powered-insights/wireframe.png",
+        "journeyMap": "/images/ai-powered-insights/journey-map.png",
+        "finals": [
+          "/images/ai-powered-insights/final-01.png",
+          "/images/ai-powered-insights/final-02.png",
+          "/images/ai-powered-insights/final-03.png"
+        ]
+      },
+      "status": "published",
+      "visibility": "private",
+      "password": "srp2026",
+      "order": 9,
+      "highlight": false,
+      "ndaNote": "Specific metrics and screen visuals withheld under NDA. Full context available on request."
+    }
+  ]
+}

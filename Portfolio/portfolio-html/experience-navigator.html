@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script>
+  // Client-side protection against direct URLs
+  (function(){
+    let unlocked = false;
+    for (let i = 0; i < sessionStorage.length; i++) {
+      let key = sessionStorage.key(i);
+      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
+        unlocked = true; break;
+      }
+    }
+    if (!unlocked) { window.location.href = 'index.html'; }
+  })();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Experience Navigator — UX Case Study</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ec;
+    --bg2: #f5f2ec;
+    --surface: #f5f2ec;
+    --surface-hover: rgba(0,0,0,0.03);
+    --border: #d9d4cc;
+    --amber: #c94c2e;
+    --amber-light: #e8705a;
+    --amber-glow: rgba(201, 76, 46, 0.1);
+    --amber-dim: rgba(201, 76, 46, 0.1);
+    --text-primary: #0d0f14;
+    --text-secondary: #4a4642;
+    --text-muted: #4a4642;
+    --green: #2d7a4e;
+    --green-bg: rgba(45, 122, 78, 0.1);
+    --red: #c94c2e;
+    --red-bg: rgba(201, 76, 46, 0.1);
+    --blue: #2563eb;
+    --blue-bg: rgba(37, 99, 235, 0.1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── SCROLLBAR ─────────────────────────────── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--amber); border-radius: 4px; }
+
+  /* ── PROGRESS BAR ───────────────────────────── */
+  #progress {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: var(--accent);
+    width: 0%; z-index: 1000; transition: width 0.1s;
+    
+  }
+
+  /* ── NOISE OVERLAY ──────────────────────────── */
+  
+
+  /* ── AMBIENT ORBS ───────────────────────────── */
+  
+  
+  
+   50% { transform: scale(1.08); } }
+
+  /* ── NAV ────────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 0 2rem; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: #f5f2ec;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s;
+  }
+  .nav-brand { display: flex; align-items: center; gap: 0.6rem; }
+  .nav-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); flex-shrink: 0; }
+  .nav-title { font-size: 0.8rem; color: var(--text-muted); font-weight: 400; }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.2s; position: relative; }
+  .nav-links a::after { content: ''; position: absolute; bottom: -3px; left: 0; width: 0; height: 1px; background: var(--amber); transition: width 0.25s; }
+  .nav-links a:hover { color: var(--amber); }
+  .nav-links a:hover::after { width: 100%; }
+
+
+
+  /* ── LAYOUT ─────────────────────────────────── */
+  .container { max-width: 860px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1; }
+  .wide-container { max-width: 1100px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1; }
+  section { padding: 5rem 0; }
+
+  /* ── HERO ───────────────────────────────────── */
+  #hero {
+    min-height: 100vh; display: flex; align-items: center;
+    padding-top: 64px;
+  }
+  .hero-inner { padding: 4rem 0 2rem; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--amber-dim); border: 1px solid rgba(217,119,6,0.3);
+    border-radius: 2px; padding: 0.3rem 1rem; margin-bottom: 1.5rem;
+  }
+  .eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); }
+  .eyebrow span { font-size: 0.7rem; font-weight: 600; color: var(--amber); letter-spacing: 0.1em; text-transform: uppercase; }
+  h1.display {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 1.1; margin-bottom: 1.5rem;
+    font-weight: 900;
+  }
+  .display-line2 { color: var(--text-secondary); display: block; }
+  .display-accent { color: var(--amber); display: block; }
+  .hero-sub { color: var(--text-secondary); font-size: 1.1rem; max-width: 540px; margin-bottom: 2.5rem; }
+  .btn-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--amber); color: #0F172A; padding: 0.75rem 1.75rem;
+    border-radius: 2px; font-weight: 700; font-size: 0.9rem; text-decoration: none;
+    border: none; cursor: pointer; transition: all 0.2s;
+    
+  }
+  .btn-primary:hover { transform: translateY(-2px);  background: var(--amber-light); }
+  .btn-ghost {
+    background: transparent; color: var(--amber); padding: 0.75rem 1.75rem;
+    border-radius: 2px; font-weight: 600; font-size: 0.9rem; text-decoration: none;
+    border: 1px solid rgba(217,119,6,0.5); cursor: pointer; transition: all 0.2s;
+  }
+  .btn-ghost:hover { background: var(--amber-dim); border-color: var(--amber); }
+
+  /* ── STATS BAR ──────────────────────────────── */
+  .stats-bar {
+    background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 2rem; display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 1rem; margin-top: 3rem; border-radius: 2px;
+  }
+  .stat-item { text-align: center; padding: 0.5rem; }
+  .stat-item + .stat-item { border-left: 1px solid var(--border); }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--amber); display: block; }
+  .stat-label { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* ── SECTION HEADERS ────────────────────────── */
+  .section-eyebrow {
+    display: inline-block; font-size: 0.7rem; font-weight: 700; color: var(--amber);
+    letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.75rem;
+    padding: 0.25rem 0.75rem; background: var(--amber-dim);
+    border-radius: 4px;
+  }
+  h2.section-title {
+    font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+  .section-sub { color: var(--text-secondary); font-size: 1rem; max-width: 600px; margin-bottom: 2.5rem; }
+
+  /* ── GLASS CARD ─────────────────────────────── */
+  .glass {
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 2px;
+    transition: all 0.25s;
+  }
+  .glass:hover { background: var(--surface-hover);  border-color: rgba(217,119,6,0.3); }
+
+  /* ── AMBER CALLOUT ──────────────────────────── */
+  .callout {
+    border-left: 4px solid var(--amber); background: rgba(217,119,6,0.06);
+    border-radius: 0 2px 2px 0; padding: 1.25rem 1.5rem;
+    color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7;
+  }
+  .callout strong { color: var(--amber); }
+
+  /* ── PROBLEM FRAMING ────────────────────────── */
+  .problem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+  .problem-card { padding: 1.5rem; border-radius: 2px; border: 1px solid var(--border); background: var(--surface); }
+  .problem-card-header { font-size: 0.65rem; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .problem-card-header .icon { font-size: 1.1rem; }
+  .problem-item { display: flex; gap: 0.5rem; margin-bottom: 0.6rem; font-size: 0.85rem; color: var(--text-secondary); }
+  .problem-item::before { content: '◆'; color: var(--amber); font-size: 0.5rem; margin-top: 0.35rem; flex-shrink: 0; }
+  .placeholder-badge { background: rgba(217,119,6,0.15); border: 1px dashed rgba(217,119,6,0.5); border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.78rem; color: #92400E; margin-top: 0.5rem; }
+
+  /* ── JOURNEY MAP ────────────────────────────── */
+  .journey-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin: 1.5rem 0; }
+  .journey-table th { background: #f5f2ec; color: var(--text-muted); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.75rem 1rem; text-align: left; border: 1px solid var(--border); }
+  .journey-table td { padding: 0.85rem 1rem; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+  .journey-table tr:nth-child(even) td { background: rgba(0,0,0,0.04); }
+  .journey-table .row-label { color: var(--amber); font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .friction-cell { background: rgba(217,119,6,0.08) !important; border: 1px solid rgba(217,119,6,0.3) !important; color: var(--text-primary) !important; }
+  .friction-label { display: block; font-size: 0.7rem; color: var(--amber); font-style: italic; margin-top: 0.3rem; }
+
+  /* ── INSIGHTS ───────────────────────────────── */
+  .insight-card {
+    border-left: 4px solid var(--amber); background: rgba(217,119,6,0.04);
+    border-radius: 0 2px 2px 0; padding: 1.5rem 1.75rem;
+    margin-bottom: 1.25rem; position: relative; overflow: hidden;
+    transition: background 0.2s;
+  }
+  .insight-card:hover { background: rgba(217,119,6,0.07); }
+  .insight-num {
+    position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%);
+    font-family: 'Playfair Display', serif; font-size: 5rem; font-weight: 900;
+    color: var(--amber); opacity: 0.07; line-height: 1; pointer-events: none;
+  }
+  .insight-label { font-size: 0.65rem; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+  .insight-row { margin-bottom: 0.6rem; }
+  .insight-key { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 0.2rem; }
+  .insight-val { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; }
+  .insight-val.implication { color: var(--text-primary); font-weight: 500; }
+
+  /* ── DECISION TABLE ─────────────────────────── */
+  .decision-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .decision-table th { background: #f5f2ec; color: var(--text-muted); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.85rem 1rem; text-align: left; border: 1px solid var(--border); }
+  .decision-table td { padding: 1rem; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+  .chosen-row td { background: rgba(217,119,6,0.06) !important; }
+  .chosen-row td:first-child { border-left: 4px solid var(--amber); color: var(--text-primary); font-weight: 600; }
+  .chosen-row td:last-child { color: var(--green, #2d7a4e); }
+  .chosen-badge { display: inline-block; background: var(--amber); color: #0F172A; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 4px; margin-left: 0.5rem; vertical-align: middle; }
+
+  /* ── PIPELINE ───────────────────────────────── */
+  .pipeline { display: flex; flex-direction: column; align-items: flex-start; gap: 0; margin: 1.5rem 0; }
+  .pipe-step { display: flex; align-items: center; gap: 1rem; }
+  .pipe-circle { width: 36px; height: 36px; border-radius: 50%; background: var(--amber-dim); border: 2px solid rgba(217,119,6,0.4); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
+  .pipe-text { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+  .pipe-sub { font-size: 0.78rem; color: var(--text-muted); }
+  .pipe-line { width: 2px; height: 28px; background: rgba(217,119,6,0.25); margin-left: 17px; }
+  .pipe-split { display: flex; gap: 1rem; margin-left: 53px; margin-top: 0; }
+  .pipe-branch { flex: 1; border-radius: 2px; padding: 1rem 1.25rem; }
+  .pipe-met { background: var(--green-bg); border: 1px solid rgba(16,185,129,0.25); }
+  .pipe-missed { background: var(--red-bg); border: 1px solid rgba(248,113,113,0.25); }
+  .branch-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+  .branch-met { color: var(--green); }
+  .branch-missed { color: var(--red); }
+  .branch-body { font-size: 0.83rem; color: var(--text-secondary); }
+
+  /* ── STEPPER ────────────────────────────────── */
+  .stepper { display: flex; align-items: center; gap: 0; margin: 1.5rem 0; flex-wrap: wrap; }
+  .step-item { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; flex: 1; min-width: 80px; }
+  .step-circle { width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(217,119,6,0.4); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; color: var(--amber); background: var(--amber-dim); transition: all 0.2s; cursor: pointer; }
+  .step-circle.active { background: var(--amber); color: #0F172A; border-color: var(--amber);  }
+  .step-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 600; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; }
+  .step-connector { flex: 0 0 32px; height: 2px; background: rgba(217,119,6,0.2); margin-bottom: 1.2rem; }
+
+  /* ── STREAMING DEMO ─────────────────────────── */
+  .stream-sections { display: flex; flex-direction: column; gap: 0.5rem; }
+  .stream-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; border-radius: 2px; background: var(--surface); border: 1px solid var(--border); transition: all 0.3s; }
+  .stream-item.done { border-color: rgba(217,119,6,0.25); }
+  .stream-item.active { border-color: var(--amber); background: var(--amber-dim); }
+  .stream-icon { font-size: 0.9rem; width: 24px; text-align: center; }
+  .stream-name { flex: 1; font-size: 0.82rem; font-weight: 500; color: var(--text-secondary); }
+  .stream-item.done .stream-name { color: var(--text-primary); }
+  .stream-bar { width: 80px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+  .stream-fill { height: 100%; background: var(--amber); border-radius: 2px; transition: width 1s ease; }
+  .stream-cursor { display: inline-block; animation: blink 1s infinite; color: var(--amber); }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+  /* ── TABLES ─────────────────────────────────── */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .data-table th { background: #f5f2ec; color: var(--text-primary); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.85rem 1rem; text-align: left; border: 1px solid var(--border); }
+  .data-table td { padding: 0.85rem 1rem; border: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+  .data-table tr:nth-child(even) td { background: rgba(0,0,0,0.04); }
+  td.cell-green { background: var(--green-bg) !important; color: var(--green, #2d7a4e); font-weight: 600; }
+  td.cell-red { background: var(--red-bg) !important; color: #FCA5A5; }
+  td.cell-amber { background: rgba(217,119,6,0.08) !important; color: #FCD34D; }
+  td.cell-placeholder { background: rgba(217,119,6,0.05) !important; border: 1px dashed rgba(217,119,6,0.3) !important; color: #92400E; font-style: italic; font-size: 0.78rem; }
+
+  /* ── COMP TABLE ─────────────────────────────── */
+  .comp-gap { color: var(--amber); font-weight: 600; }
+
+  /* ── TAM ────────────────────────────────────── */
+  .tam-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin: 2rem 0; }
+  .tam-card { border-radius: 2px; padding: 1.75rem; position: relative; overflow: hidden; }
+  .tam-card.tam { background: #1E2535; border: 1px solid rgba(255,255,255,0.1); }
+  .tam-card.sam { background: var(--paper); border: 1px solid rgba(255,255,255,0.08); }
+  .tam-card.som { background: var(--amber); border: none; }
+  .tam-tier { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.25rem; }
+  .tam-card.tam .tam-tier, .tam-card.sam .tam-tier { color: var(--ink); }
+  .tam-card.som .tam-tier { color: rgba(15,23,42,0.6); }
+  .tam-size { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; line-height: 1.1; }
+  .tam-card.tam .tam-size, .tam-card.sam .tam-size { color: var(--ink); }
+  .tam-card.som .tam-size { color: #0F172A; }
+  .tam-desc { font-size: 0.82rem; line-height: 1.6; }
+  .tam-card.tam .tam-desc, .tam-card.sam .tam-desc { color: var(--ink); }
+  .tam-card.som .tam-desc { color: rgba(15,23,42,0.75); }
+  .first-mover { display: inline-block; background: rgba(15,23,42,0.2); color: #0F172A; font-size: 0.65rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 4px; margin-top: 0.75rem; }
+
+  /* ── OPPORTUNITY ────────────────────────────── */
+  .opp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .opp-card { padding: 1.75rem; border-radius: 2px; background: var(--surface); border: 1px solid var(--border); }
+  .opp-badge { display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 4px; margin-bottom: 1rem; }
+  .opp-1 .opp-badge { background: rgba(217,119,6,0.15); color: var(--amber); }
+  .opp-2 .opp-badge { background: rgba(96,165,250,0.15); color: var(--blue); }
+  .opp-3 .opp-badge { background: rgba(167,139,250,0.15); color: #A78BFA; }
+  .opp-title { font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.75rem; }
+  .opp-body { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 1rem; }
+  .opp-constraint { font-size: 0.8rem; color: var(--amber); font-style: italic; border-top: 1px solid var(--border); padding-top: 0.75rem; }
+  .opp-constraint strong { font-style: normal; display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.25rem; color: var(--text-muted); }
+
+  /* ── IMPACT ─────────────────────────────────── */
+  .impact-hero { text-align: center; padding: 3rem 2rem; background: var(--amber-dim); border: 1px solid rgba(217,119,6,0.25); border-radius: 2px; margin-bottom: 2rem; }
+  .impact-number { font-family: 'Playfair Display', serif; font-size: clamp(4rem, 10vw, 7rem); font-weight: 900; color: var(--amber); line-height: 1; display: block; }
+  .impact-label { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin: 0.5rem 0; }
+  .impact-sub { font-size: 0.9rem; color: var(--text-secondary); }
+  .qual-panel { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--text-muted); border-radius: 0 2px 2px 0; padding: 1.5rem; margin-top: 1.5rem; }
+  .qual-title { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+  .qual-item { display: flex; gap: 0.6rem; margin-bottom: 0.6rem; font-size: 0.88rem; color: var(--text-secondary); }
+  .qual-item::before { content: '•'; color: var(--amber); flex-shrink: 0; }
+
+  /* ── REFLECTION ─────────────────────────────── */
+  .reflect-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .reflect-card { padding: 1.75rem; border-radius: 2px; }
+  .reflect-worked { background: var(--green-bg); border: 1px solid rgba(16,185,129,0.2); border-top: 3px solid var(--green); }
+  .reflect-improve { background: rgba(217,119,6,0.05); border: 1px solid rgba(217,119,6,0.15); border-top: 3px solid var(--amber); }
+  .reflect-next { background: var(--blue-bg); border: 1px solid rgba(96,165,250,0.2); border-top: 3px solid var(--blue); }
+  .reflect-header { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+  .reflect-worked .reflect-header { color: var(--green); }
+  .reflect-improve .reflect-header { color: var(--amber); }
+  .reflect-next .reflect-header { color: var(--blue); }
+  .reflect-body { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7; }
+
+  /* ── PLACEHOLDER TRACKER ────────────────────── */
+  .placeholder-tracker { background: rgba(217,119,6,0.04); border: 1px solid rgba(217,119,6,0.2); border-radius: 2px; padding: 2rem; }
+  .placeholder-tracker h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--amber); margin-bottom: 1.5rem; }
+  .ph-item { display: flex; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: flex-start; }
+  .ph-num { width: 24px; height: 24px; border-radius: 50%; background: var(--amber-dim); border: 1px solid rgba(217,119,6,0.4); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 800; color: var(--amber); flex-shrink: 0; margin-top: 0.1rem; }
+  .ph-content { flex: 1; }
+  .ph-section { font-size: 0.72rem; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.2rem; }
+  .ph-desc { font-size: 0.85rem; color: var(--text-secondary); }
+
+  /* ── SECTION DIVIDER ────────────────────────── */
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(217,119,6,0.2), transparent); margin: 1rem 0; }
+
+  /* ── IMAGE PLACEHOLDERS ─────────────────────── */
+  .img-placeholder {
+    width: 100%; border-radius: 2px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(217,119,6,0.06) 100%);
+    border: 1.5px dashed rgba(217,119,6,0.35);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.6rem; position: relative; overflow: hidden; cursor: pointer;
+    transition: all 0.25s;
+  }
+  .img-placeholder:hover { border-color: var(--amber); background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(217,119,6,0.1) 100%); }
+  .img-placeholder::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(217,119,6,0.03) 8px, rgba(217,119,6,0.03) 9px);
+  }
+  .img-placeholder-icon { font-size: 1.75rem; opacity: 0.5; position: relative; z-index: 1; }
+  .img-placeholder-label { font-size: 0.72rem; font-weight: 700; color: var(--amber); opacity: 0.7; text-transform: uppercase; letter-spacing: 0.1em; position: relative; z-index: 1; }
+  .img-placeholder-sub { font-size: 0.68rem; color: var(--text-muted); position: relative; z-index: 1; }
+  .img-placeholder-tag {
+    position: absolute; top: 0.75rem; right: 0.75rem;
+    background: rgba(217,119,6,0.15); border: 1px solid rgba(217,119,6,0.3);
+    color: var(--amber); font-size: 0.6rem; font-weight: 700;
+    padding: 0.2rem 0.5rem; border-radius: 4px; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .img-placeholder.tall { height: 420px; }
+  .img-placeholder.medium { height: 300px; }
+  .img-placeholder.short { height: 200px; }
+  .img-placeholder.wide { height: 260px; }
+  .img-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .img-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  @media (max-width: 640px) {
+    .img-2col, .img-3col { grid-template-columns: 1fr; }
+  }
+  .fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── FOOTER ─────────────────────────────────── */
+  footer { padding: 3rem 2rem; text-align: center; border-top: 1px solid var(--border); }
+  .footer-name { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--amber); margin-bottom: 0.5rem; }
+  .footer-sub { font-size: 0.82rem; color: var(--text-muted); }
+
+  /* ── RESPONSIVE ─────────────────────────────── */
+  @media (max-width: 900px) {
+    .problem-grid { grid-template-columns: 1fr 1fr; }
+    .tam-grid, .opp-grid, .reflect-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .problem-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .stats-bar { grid-template-columns: 1fr 1fr; }
+    .pipe-split { flex-direction: column; }
+    h1.display { font-size: 2.2rem; }
+    .impact-number { font-size: 4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-brand">
+    <span class="nav-name">[YOUR NAME]</span>
+    <span class="nav-dot"></span>
+    <span class="nav-title">UX Designer</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="index.html" style="color: var(--accent); font-weight: 700;">← Home</a></li>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#insights">Insights</a></li>
+    <li><a href="#solution">Solution</a></li>
+    <li><a href="#impact">Impact</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+
+
+<!-- HERO -->
+<section id="hero">
+  <div class="container">
+    <div class="hero-inner fade-in">
+      <div class="eyebrow"><span class="eyebrow-dot"></span><span>UX Case Study · Enterprise SaaS · Virginia · Healthcare · Finance · K–12</span></div>
+      <h1 class="display">
+        Eliminating the
+        <span class="display-line2">Strategic Execution</span>
+        <span class="display-accent">Gap</span>
+      </h1>
+      <p class="hero-sub">Designing an AI-powered experience strategy builder that converts a business goal into a fully operational CX/EX programme in 2 minutes.</p>
+      <div class="btn-row">
+        <a href="#overview" class="btn-primary">Read Case Study</a>
+        <a href="#contact" class="btn-ghost">Get in Touch</a>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-item"><span class="stat-num">UX</span><span class="stat-label">Designer (Lead)</span></div>
+        <div class="stat-item"><span class="stat-num">3</span><span class="stat-label">Person Team</span></div>
+        <div class="stat-item"><span class="stat-num">3mo</span><span class="stat-label">Sprint</span></div>
+        <div class="stat-item"><span class="stat-num">~99%</span><span class="stat-label">Time Reduction</span></div>
+      </div>
+
+      <!-- HERO IMAGE -->
+      <div style="margin-top:2.5rem;">
+        <div class="img-placeholder tall">
+          <div class="img-placeholder-tag">Add Screenshot</div>
+          <div class="img-placeholder-icon">🖥️</div>
+          <div class="img-placeholder-label">Product Hero Shot</div>
+          <div class="img-placeholder-sub">Full product view — strategy output page or wizard step</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-eyebrow">01 — Project Overview</span>
+      <h2 class="section-title">From abstract goal to operational programme</h2>
+      <p class="section-sub">Experience Navigator is an AI-powered strategy generation tool built for mid-to-senior CX and EX leaders who are accountable for business outcomes but lack the time and specialist depth to build cross-functional programmes from scratch.</p>
+      <p style="color:var(--text-secondary); margin-bottom:2rem;">The core problem was what I framed as the <strong style="color:var(--amber)">Strategic Execution Gap</strong> — organisations routinely set high-level goals like "reduce churn" or "improve onboarding" but have no systematic way to convert those intentions into operational plans, survey logic, and measurable KPIs. I led UX across a 3-person team (1 designer, 1 PM, 1 developer) over a 3-month sprint, designing the end-to-end experience from goal input to a fully generated, section-by-section strategy output.</p>
+
+      <!-- COMPANY CONTEXT -->
+      <div style="background: rgba(0,0,0,0.04); border:1px solid var(--border); border-radius: 2px; padding:1.75rem; margin-bottom:1.5rem;">
+        <div style="font-size:0.65rem; font-weight:700; color:var(--amber); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:1.25rem;">Company Context</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1.25rem;">
+          <div>
+            <div style="font-size:0.68rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Company</div>
+            <div style="font-size:0.92rem; color:var(--text-primary); font-weight:600;">SaaS Experience Management Platform</div>
+            <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.2rem;">Headquartered in Virginia, USA</div>
+          </div>
+          <div>
+            <div style="font-size:0.68rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Target Market</div>
+            <div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.1rem;">
+              <span style="background:rgba(96,165,250,0.12); color:var(--blue); border:1px solid rgba(96,165,250,0.25); border-radius: 5px; font-size:0.72rem; font-weight:600; padding:0.2rem 0.6rem;">🏥 Healthcare</span>
+              <span style="background:rgba(16,185,129,0.12); color:var(--green); border:1px solid rgba(16,185,129,0.25); border-radius: 5px; font-size:0.72rem; font-weight:600; padding:0.2rem 0.6rem;">💳 Financial Services</span>
+              <span style="background:rgba(167,139,250,0.12); color:#A78BFA; border:1px solid rgba(167,139,250,0.25); border-radius: 5px; font-size:0.72rem; font-weight:600; padding:0.2rem 0.6rem;">🎓 K–12 Education</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.68rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Client Type</div>
+            <div style="font-size:0.92rem; color:var(--text-primary); font-weight:600;">Enterprise Clients</div>
+            <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.2rem;">Including credit unions &amp; regional financial institutions</div>
+          </div>
+          <div>
+            <div style="font-size:0.68rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.35rem;">Product Category</div>
+            <div style="font-size:0.92rem; color:var(--text-primary); font-weight:600;">CX + EX Strategy Generation</div>
+            <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.2rem;">AI-native · No prior XM expertise required</div>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border); margin-top:1.25rem; padding-top:1.25rem;">
+          <div style="font-size:0.68rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.75rem;">Design Context</div>
+          <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.7;">Enterprise clients in healthcare, financial services, and K–12 education share a critical constraint: they carry high compliance exposure, operate with lean internal CX/EX teams, and face board-level scrutiny on any technology investment. A credit union CX director presenting a new feedback programme has no margin for a strategy that looks generic or unproven. Experience Navigator was designed with this enterprise credibility bar in mind — every output section, from vertical-specific pillars to ROI signals, was shaped to hold up in a room with a board, a Chief Experience Officer, or a compliance team.</p>
+        </div>
+      </div>
+
+      <div class="callout"><strong>NDA note:</strong> Specific client names and internal metrics anonymised at the company's request. Full context available under mutual NDA.</div>
+
+      <!-- OVERVIEW IMAGE -->
+      <div style="margin-top:2rem;" class="img-2col">
+        <div class="img-placeholder medium">
+          <div class="img-placeholder-tag">Add Screenshot</div>
+          <div class="img-placeholder-icon">🏢</div>
+          <div class="img-placeholder-label">Platform Overview</div>
+          <div class="img-placeholder-sub">Product home screen or dashboard</div>
+        </div>
+        <div class="img-placeholder medium">
+          <div class="img-placeholder-tag">Add Screenshot</div>
+          <div class="img-placeholder-icon">📐</div>
+          <div class="img-placeholder-label">Early Prototype / Vibe Code</div>
+          <div class="img-placeholder-sub">Initial concept built to validate the interaction model</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section id="problem" style="padding-top:2rem;">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-eyebrow">02 — Problem Framing</span>
+      <h2 class="section-title">Where teams consistently break down</h2>
+      <div class="problem-grid">
+        <div class="problem-card">
+          <div class="problem-card-header"><span class="icon">😤</span> User Pain Points</div>
+          <div class="problem-item">"Blank page syndrome" when starting CX/EX programmes</div>
+          <div class="problem-item">Generic templates produce generic strategies</div>
+          <div class="problem-item">Months of manual research to reach an actionable plan</div>
+        </div>
+        <div class="problem-card">
+          <div class="problem-card-header"><span class="icon">🎯</span> Business Goals</div>
+          <div class="problem-item">Convert abstract goals into ready-to-use programmes</div>
+          <div class="problem-item">Serve non-technical users (VPs, HR) without data science background</div>
+          <div class="problem-item">Eliminate the gap between strategy and execution</div>
+        </div>
+        <div class="problem-card">
+          <div class="problem-card-header"><span class="icon">⚡</span> Constraints</div>
+          <div class="problem-item">3-month timeline · 1 designer, 1 dev</div>
+          <div class="problem-item">Enterprise clients in regulated industries (healthcare, finance, K–12) require compliance-safe, board-ready outputs</div>
+          <div class="problem-item">Credit union clients have lean CX teams — no data science or XM specialists on staff</div>
+          <div class="problem-item">AI output must feel trustworthy and authoritative, not experimental</div>
+          <div class="problem-item">Survey JSON must be immediately actionable, not advisory-only</div>
+        </div>
+        <div class="problem-card">
+          <div class="problem-card-header"><span class="icon">📊</span> Success Metrics</div>
+          <div class="placeholder-badge">⚠ Fill: task completion rate in testing</div>
+          <div class="placeholder-badge">⚠ Fill: time-to-strategy vs. traditional</div>
+          <div class="problem-item" style="margin-top:0.75rem;">Strategy felt "vertical-specific" not generic</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- JOURNEY -->
+<section id="journey" style="padding-top:2rem;">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-eyebrow">03 — User Journey Map</span>
+      <h2 class="section-title">Designing for the manager under pressure</h2>
+      <p class="section-sub">The product serves a B2B dual persona — the buyer (VP/C-suite) and the daily user (CX/EX manager). I designed for the manager's journey, with output format shaped to help them get buy-in upward.</p>
+      <div style="overflow-x:auto;">
+        <table class="journey-table">
+          <thead>
+            <tr>
+              <th style="width:120px;">Stage</th>
+              <th>Awareness</th>
+              <th>Goal Setting</th>
+              <th>Strategy Gen</th>
+              <th>Review & Act</th>
+              <th>Programme Launch</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-label">Manager Actions</td>
+              <td>Hears about tool via PM</td>
+              <td>Selects industry, vertical, goal</td>
+              <td>Watches strategy build section by section</td>
+              <td class="friction-cell">Reviews 10 sections, edits as needed</td>
+              <td>Shares output with stakeholders</td>
+            </tr>
+            <tr>
+              <td class="row-label">Manager Pain ↓</td>
+              <td>Sceptical — "another AI gimmick"</td>
+              <td>Worried choice won't produce relevant output</td>
+              <td>Anxious — "Will this be actually useful?"</td>
+              <td class="friction-cell">↓↓↓ HIGH — Does output hold up in meeting?<span class="friction-label">← Highest friction point</span></td>
+              <td>↓</td>
+            </tr>
+            <tr>
+              <td class="row-label">Opportunity</td>
+              <td>—</td>
+              <td>—</td>
+              <td>Live streaming builds trust in real-time</td>
+              <td class="friction-cell" style="color:var(--amber)!important; font-weight:600;">Exec Summary + ROI as closer ← HERE</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout" style="margin-top:1.5rem;"><strong>Key tension I designed against:</strong> The highest-friction moment is not generation — it's the review. A VP seeing a wall of AI text loses trust immediately. The section-by-section streaming + collapsible survey cards directly addressed this by making the output feel curated, not dumped.</div>
+    </div>
+  </div>
+</section>
+
+<!-- INSIGHTS -->
+<section id="insights">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-eyebrow">04 — Key Insights</span>
+      <h2 class="section-title">What the research revealed</h2>
+      <div style="margin-top:2rem;">
+        <div class="insight-card">
+          <div class="insight-num">01</div>
+          <div class="insight-label">Insight 1 — The Translation Problem</div>
+          <div class="insight-row"><span class="insight-key">Observation</span><span class="insight-val">Teams don't fail at strategy — they fail at translation. The gap between a PDF strategy and a running survey is where programmes die.</span></div>
+          <div class="insight-row"><span class="insight-key">User need</span><span class="insight-val">To receive not just a plan, but the operational artefacts (survey logic, KPIs, distribution timing) in a single output.</span></div>
+          <div class="insight-row"><span class="insight-key">Product implication</span><span class="insight-val implication">The design must present strategy and execution together — not sequentially, not in separate tools.</span></div>
+        </div>
+        <div class="insight-card">
+          <div class="insight-num">02</div>
+          <div class="insight-label">Insight 2 — Vertical Blindness</div>
+          <div class="insight-row"><span class="insight-key">Observation</span><span class="insight-val">Generic CX/EX strategies erode user trust instantly. HR leaders recognise "boilerplate" on sight.</span></div>
+          <div class="insight-row"><span class="insight-key">User need</span><span class="insight-val">To see their specific industry, vertical, and company scope reflected in every output section — not just the title.</span></div>
+          <div class="insight-row"><span class="insight-key">Product implication</span><span class="insight-val implication">Wizard inputs must act as deep context parameters, not just filters. Industry + vertical + scope must visibly shape the language, KPIs, and competitive benchmarks in the output.</span></div>
+        </div>
+        <div class="insight-card">
+          <div class="insight-num">03</div>
+          <div class="insight-label">Insight 3 — The Buy-in Blocker</div>
+          <div class="insight-row"><span class="insight-key">Observation</span><span class="insight-val">Stakeholder buy-in is blocked not by bad strategy, but by unclear ROI timelines.</span></div>
+          <div class="insight-row"><span class="insight-key">User need</span><span class="insight-val">To walk into a board conversation with a quantified, time-anchored investment case — not a slide saying "CX matters."</span></div>
+          <div class="insight-row"><span class="insight-key">Product implication</span><span class="insight-val implication">ROI & Investment must be a first-class output section. Positioned last — after credibility is built — to function as the closer.</span></div>
+        </div>
+        <div class="insight-card">
+          <div class="insight-num">04</div>
+          <div class="insight-label">Insight 4 — The Closed Loop Gap</div>
+          <div class="insight-row"><span class="insight-key">Observation</span><span class="insight-val">Survey logic is where most CX tools stop — they give you the survey but not what to do when results come in.</span></div>
+          <div class="insight-row"><span class="insight-key">User need</span><span class="insight-val">A closed feedback loop: metric → threshold → action if met → follow-up survey if missed.</span></div>
+          <div class="insight-row"><span class="insight-key">Product implication</span><span class="insight-val implication">Survey recommendations must be branching, not flat. Each survey card must contain the "if/then" logic that tells a manager what to do next — without a data scientist.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DECISIONS -->
+<section id="decisions">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-eyebrow">05 — Decision Framework</span>
+      <h2 class="section-title">How I chose sequential streaming</h2>
+      <p class="section-sub">The most consequential design decision was how to structure the output.</p>
+      <div style="overflow-x:auto; margin-bottom:2rem;">
+        <table class="decision-table">
+          <thead><tr><th>Option</th><th>Pros</th><th>Cons</th><th>Decision Rationale</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>A: Single large output<br><small style="color:var(--text-muted)">Generate all at once</small></td>
+              <td>Feels "complete" on first view</td>
+              <td>Overwhelming — kills trust before user reads</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>B: Tab-based sections<br><small style="color:var(--text-muted)">User clicks each tab</small></td>
+              <td>Clean navigation · familiar pattern</td>
+              <td>No sense of completeness · user doesn't know what they're getting</td>
+              <td>—</td>
+            </tr>
+            <tr class="chosen-row">
+              <td>C: Sequential streaming<br><small>10 agents, section by section</small><span class="chosen-badge">CHOSEN</span></td>
+              <td>Builds anticipation · trust builds as each section completes · feels like expert work in real time</td>
+              <td>User can't jump ahead · requires patience</td>
+              <td style="color: var(--green, #2d7a4e);">Streaming transforms AI output from "black box result" to "watch it think." Each section completing is a micro-trust signal. For sceptical VPs, this matters.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-family:'Playfair Display',serif; color:var(--amber); font-size:1.1rem; margin-bottom:1rem;">Survey Flow Card — Branching Logic Decision</h3>
+      <p style="color:var(--text-secondary); margin-bottom:1.5rem; font-size:0.95rem;">I chose a vertical pipeline layout over a flat list because CX managers need to see the <em>sequence</em>, not just the components. The colour-coded met/missed states made the "if/then" logic scannable without reading every word.</p>
+
+      <div class="glass" style="padding:1.75rem; max-width:460px;">
+        <div style="font-size:0.7rem; color:var(--amber); font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:1.25rem;">Survey Flow Card Pipeline</div>
+        <div class="pipeline">
+          <div class="pipe-step"><div class="pipe-circle">📋</div><div><div class="pipe-text">Survey</div><div class="pipe-sub">Name · questions · format</div></div></div>
+          <div class="pipe-line"></div>
+          <div class="pipe-step"><div class="pipe-circle">📡</div><div><div class="pipe-text">Distribution</div><div class="pipe-sub">Method · timing · channels</div></div></div>
+          <div class="pipe-line"></div>
+          <div class="pipe-step"><div class="pipe-circle">📊</div><div><div class="pipe-text">Metric to Track</div><div class="pipe-sub">Target · frequency · alert threshold</div></div></div>
+          <div class="pipe-line"></div>
+          <div class="pipe-step"><div class="pipe-circle">◆</div><div><div class="pipe-text">Decision Gate</div><div class="pipe-sub">Is the metric target met?</div></div></div>
+          <div class="pipe-line"></div>
+        </div>
+        <div class="pipe-split">
+          <div class="pipe-branch pipe-met"><div class="branch-label branch-met">✓ MET</div><div class="branch-body">Advance action triggered · programme continues</div></div>
+          <div class="pipe-branch pipe-missed"><div class="branch-label branch-missed">✗ MISSED → Follow-up</div><div class="branch-body">Root-cause survey · specific hypothesis · new timing</div></div>
+        </div>
+      </div>
+
+      <!-- DECISION IMAGE -->
+      <div style="margin-top:2rem;" class="img-3col">
+        <div class="img-placeholder short">
+          <div class="img-placeholder-tag">Add Image</div>
+          <div class="img-placeholder-icon">✏️</div>
+          <div class="img-placeholder-label">Early Sketches</div>
+          <div class="img-placeholder-sub">Output structure explorations</div>
+        </div>
+        <div class="img-placeholder short">
+          <div class="img-placeholder-tag">Add Image</div>
+          <div class="img-placeholder-icon">🔲</div>
+          <div class="img-placeholder-label">Wireframe — Option A</div>
+          <div class="img-placeholder-sub">Single output variant</div>
+        </div>
+        <div class="img-placeholder short">
+          <div class="img-placeholder-tag">Add Image</div>
+          <div class="img-placeholder-icon">🔲</div>
+          <div class="img-placeholder-label">Wireframe — Option C</div>
+          <div class="img-placeholder-sub">Streaming variant (chosen)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section id="solution">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-eyebrow">06 — Solution Overview</span>
+      <h2 class="section-title">Three experience layers</h2>
+      <p class="section-sub">The product comprises three distinct experience layers, each solving a different moment in the user's journey.</p>
+
+      <!-- LAYER 1 -->
+      <div class="glass" style="padding:2rem; margin-bottom:1.5rem; position:relative; overflow:hidden;">
+        <div style="position:absolute; right:1.5rem; top:1rem; font-family:'Playfair Display',serif; font-size:5rem; font-weight:900; color:var(--amber); opacity:0.06; line-height:1;">01</div>
+        <h3 style="color:var(--amber); font-size:1.1rem; font-weight:700; margin-bottom:0.5rem;">The 6-Step Wizard — Input Layer</h3>
+        <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1.5rem;">A progressive disclosure wizard that asks exactly the questions needed to contextualise AI output — no more. Step sequence was deliberate: Operational Scope placed before Objective because scope determines which objectives are realistic.</p>
+        <div class="stepper">
+          <div class="step-item"><div class="step-circle">CX</div><div class="step-label">Type</div></div>
+          <div class="step-connector"></div>
+          <div class="step-item"><div class="step-circle">🏭</div><div class="step-label">Industry</div></div>
+          <div class="step-connector"></div>
+          <div class="step-item"><div class="step-circle active">⚙</div><div class="step-label">Vertical</div></div>
+          <div class="step-connector"></div>
+          <div class="step-item"><div class="step-circle">B2B</div><div class="step-label">Model</div></div>
+          <div class="step-connector"></div>
+          <div class="step-item"><div class="step-circle">🌐</div><div class="step-label">Scope</div></div>
+          <div class="step-connector"></div>
+          <div class="step-item"><div class="step-circle">📉</div><div class="step-label">Objective</div></div>
+        </div>
+        <div style="margin-top:1.5rem;" class="img-placeholder wide">
+          <div class="img-placeholder-tag">Add Screenshot</div>
+          <div class="img-placeholder-icon">🧭</div>
+          <div class="img-placeholder-label">Wizard UI — Step Selection Screen</div>
+          <div class="img-placeholder-sub">Show active step, industry/vertical picker, or objective selection</div>
+        </div>
+      </div>
+
+      <!-- LAYER 2 -->
+      <div class="glass" style="padding:2rem; margin-bottom:1.5rem; position:relative; overflow:hidden;">
+        <div style="position:absolute; right:1.5rem; top:1rem; font-family:'Playfair Display',serif; font-size:5rem; font-weight:900; color:var(--amber); opacity:0.06; line-height:1;">02</div>
+        <h3 style="color:var(--amber); font-size:1.1rem; font-weight:700; margin-bottom:0.5rem;">The Streaming Engine — Process Layer</h3>
+        <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1.5rem;">Rather than a loading screen, generation is a visible, section-by-section build. The section order follows a logic arc: context → strategy → execution → evidence → risk → ROI. This mirrors how a consultant would present a strategy, making output feel authored, not generated.</p>
+        <div class="stream-sections" id="streamDemo"></div>
+        <div style="margin-top:1.5rem;" class="img-placeholder wide">
+          <div class="img-placeholder-tag">Add Screenshot</div>
+          <div class="img-placeholder-icon">⚡</div>
+          <div class="img-placeholder-label">Strategy Output — Mid-Generation</div>
+          <div class="img-placeholder-sub">Show streaming state with completed + in-progress sections</div>
+        </div>
+      </div>
+
+      <!-- LAYER 3 -->
+      <div class="glass" style="padding:2rem; position:relative; overflow:hidden;">
+        <div style="position:absolute; right:1.5rem; top:1rem; font-family:'Playfair Display',serif; font-size:5rem; font-weight:900; color:var(--amber); opacity:0.06; line-height:1;">03</div>
+        <h3 style="color:var(--amber); font-size:1.1rem; font-weight:700; margin-bottom:0.5rem;">The Survey Flow Card — Output Layer</h3>
+        <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1.5rem;">The most complex component I designed. Cards are collapsible by default — users scan all three surveys before diving into any. The colour-coded accent system (amber, blue, green per survey) gives each card a distinct identity in the visual stack.</p>
+        <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+          <div style="flex:1; min-width:160px; background:rgba(217,119,6,0.08); border:1px solid rgba(217,119,6,0.3); border-radius: 2px; padding:0.85rem; font-size:0.78rem; color:var(--text-secondary);">
+            <div style="color:var(--amber); font-weight:700; font-size:0.7rem; text-transform:uppercase; margin-bottom:0.4rem;">Survey 1</div>
+            NPS Pulse Survey · 5 questions · Monthly
+          </div>
+          <div style="flex:1; min-width:160px; background:rgba(96,165,250,0.08); border:1px solid rgba(96,165,250,0.3); border-radius: 2px; padding:0.85rem; font-size:0.78rem; color:var(--text-secondary);">
+            <div style="color:var(--blue); font-weight:700; font-size:0.7rem; text-transform:uppercase; margin-bottom:0.4rem;">Survey 2</div>
+            CSAT Diagnostic · 8 questions · Quarterly
+          </div>
+          <div style="flex:1; min-width:160px; background:var(--green-bg); border:1px solid rgba(16,185,129,0.3); border-radius: 2px; padding:0.85rem; font-size:0.78rem; color:var(--text-secondary);">
+            <div style="color:var(--green); font-weight:700; font-size:0.7rem; text-transform:uppercase; margin-bottom:0.4rem;">Survey 3</div>
+            Exit Intent · 6 questions · Triggered
+          </div>
+        </div>
+        <div style="margin-top:1.5rem;" class="img-2col">
+          <div class="img-placeholder medium">
+            <div class="img-placeholder-tag">Add Screenshot</div>
+            <div class="img-placeholder-icon">📋</div>
+            <div class="img-placeholder-label">Survey Flow Card — Expanded</div>
+            <div class="img-placeholder-sub">Full card with met/missed branches visible</div>
+          </div>
+          <div class="img-placeholder medium">
+            <div class="img-placeholder-tag">Add Screenshot</div>
+            <div class="img-placeholder-icon">📱</div>
+            <div class="img-placeholder-label">Survey Flow Card — Collapsed View</div>
+            <div class="img-placeholder-sub">All 3 cards stacked, default scan state</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPETITIVE -->
+<section id="competitive">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-eyebrow">07 — Competitive Analysis</span>
+      <h2 class="section-title">Five incumbents, one white space</h2>
+      <div style="overflow-x:auto; margin-bottom:1.5rem;">
+        <table class="data-table">
+          <thead><tr><th>Competitor</th><th>What They Do Well</th><th>Where They Stop</th><th>Gap to Exploit</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Qualtrics XM</strong></td><td>Enterprise survey infrastructure + analytics depth</td><td>Gives you tools, not strategy. Assumes you already know what to measure</td><td class="comp-gap">No goal-to-strategy conversion. Requires in-house XM expertise</td></tr>
+            <tr><td><strong>Medallia</strong></td><td>Real-time signal capture across touchpoints</td><td>Feedback capture only. What to do with signals = manual work</td><td class="comp-gap">No playbooks, no branching logic, no manager guidance</td></tr>
+            <tr><td><strong>Culture Amp</strong></td><td>Strong EX benchmarks + manager dashboards</td><td>Survey templates are horizontal — no vertical specificity</td><td class="comp-gap">Vertical-generic. A fintech EX strategy looks like a retail one</td></tr>
+            <tr><td><strong>ChatGPT / Generic AI</strong></td><td>Fast freeform strategy drafting on demand</td><td>No structure, no survey logic, no KPI framework, no competitive context</td><td class="comp-gap">Output is unverifiable, unstructured, cannot be acted on directly</td></tr>
+            <tr><td><strong>McKinsey / BCG</strong></td><td>Deep vertical strategy with competitive benchmarking</td><td>$500K+ engagements. 6–12 month timelines. Not scalable</td><td class="comp-gap">Accessible only to enterprises — SMB and mid-market shut out</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout"><strong>White Space:</strong> No existing tool converts a business objective into a vertical-specific, fully operational programme — including survey logic, branching thresholds, manager playbooks, competitive benchmarks, and ROI signals — in a single session. The entire category assumes users arrive with strategic clarity they rarely have.</div>
+    </div>
+  </div>
+</section>
+
+<!-- GAP ANALYSIS -->
+<section id="gap" style="padding-top:2rem;">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-eyebrow">08 — Gap Analysis</span>
+      <h2 class="section-title">Where the market leaves users stranded</h2>
+      <div style="overflow-x:auto; margin-bottom:1.5rem;">
+        <table class="data-table">
+          <thead><tr><th>Capability</th><th>Market Today</th><th>User Reality</th><th>Experience Navigator</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Goal → Strategy conversion</strong></td><td class="cell-red">✗ Not available anywhere</td><td>Done manually in PowerPoint, weeks</td><td class="cell-green">✓ 6-input wizard generates in 2 min</td></tr>
+            <tr><td><strong>Vertical-specific output</strong></td><td class="cell-amber">⚠ Partial (benchmarks only)</td><td>Teams adapt generic templates — rarely fits</td><td class="cell-green">✓ Industry + vertical shape every section</td></tr>
+            <tr><td><strong>Survey + branching logic</strong></td><td class="cell-red">✗ Flat surveys only</td><td>If/then logic built manually by ops teams</td><td class="cell-green">✓ Met/missed branches per survey card</td></tr>
+            <tr><td><strong>Manager playbooks</strong></td><td class="cell-red">✗ None</td><td>Managers receive data, no guidance</td><td class="cell-green">✓ Explicit "if met / if missed" actions</td></tr>
+            <tr><td><strong>ROI & competitive benchmarks</strong></td><td class="cell-amber">⚠ Consulting only</td><td>Stakeholders block investment without clear return</td><td class="cell-green">✓ ROI signals generated per vertical</td></tr>
+            <tr><td><strong>SMB / mid-market access</strong></td><td class="cell-red">✗ Enterprise only</td><td>Small teams have no XM specialists</td><td class="cell-green">✓ No data science expertise required</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout"><strong>Design implication:</strong> The gap analysis confirmed the product had to be a strategy generator, not a survey builder. Positioning it at the strategy layer meant it made every existing survey tool more useful — a complementary wedge, not a frontal attack.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TAM -->
+<section id="tam">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-eyebrow">09 — Market Sizing</span>
+      <h2 class="section-title">A category gap, not a feature gap</h2>
+      <div class="tam-grid">
+        <div class="tam-card tam">
+          <div class="tam-tier">TAM — Total Addressable Market</div>
+          <div class="tam-size">~$16–18B</div>
+          <div class="tam-desc">Global CX + EX Management Software Market · Growing at ~12% CAGR driven by AI integration · Qualtrics, Medallia, Culture Amp, Glint, Peakon</div>
+        </div>
+        <div class="tam-card sam">
+          <div class="tam-tier">SAM — Serviceable Addressable Market</div>
+          <div class="tam-size">~$4–5B</div>
+          <div class="tam-desc">Mid-market CX/EX teams (50–5,000 employees) without dedicated research or XM specialist on staff. Underserved by enterprise-first platforms.</div>
+        </div>
+        <div class="tam-card som">
+          <div class="tam-tier">SOM — Serviceable Obtainable Market</div>
+          <div class="tam-size">~$400–600M</div>
+          <div class="tam-desc">AI-native strategy generation for CX/EX. No direct competitor. Adjacent: AI copilots inside Qualtrics/Medallia (not yet live).</div>
+          <div class="first-mover">✦ First Mover</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:0.5rem;"><strong>Design relevance:</strong> The SAM definition shaped two decisions. First, the wizard required zero prior XM knowledge. Second, output had to be board-ready on export — mid-market managers don't have a design team to reformat AI output. What generates must present.</div>
+    </div>
+  </div>
+</section>
+
+<!-- OPPORTUNITY -->
+<section id="opportunity" style="padding-top:2rem;">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-eyebrow">10 — Opportunity</span>
+      <h2 class="section-title">Three layers of value, designed sequentially</h2>
+      <p style="color:var(--text-secondary); margin-bottom:2rem;">No tool currently occupies the space between "I have a business goal" and "I have a running feedback programme." That space is currently filled by consultants, PowerPoint decks, and months of internal alignment work.</p>
+      <div class="opp-grid">
+        <div class="opp-card opp-1">
+          <div class="opp-badge">0–6 Months</div>
+          <div class="opp-title">Layer 1 — The Immediate Unlock</div>
+          <div class="opp-body">Serve the manager who has a board meeting in two weeks. The 2-minute generation time is the primary value proposition — not AI sophistication, but time compression.</div>
+          <div class="opp-constraint"><strong>Design constraint I built against</strong>Wizard must stay at 6 steps. Complexity at input = abandonment before generation.</div>
+        </div>
+        <div class="opp-card opp-2">
+          <div class="opp-badge">6–18 Months</div>
+          <div class="opp-title">Layer 2 — The Retention Hook</div>
+          <div class="opp-body">Distribution timing, metric tracking, and follow-up survey logic are embedded in each Survey Flow Card — natural expansion path into programme management.</div>
+          <div class="opp-constraint"><strong>Design constraint I built against</strong>Survey cards must contain enough operational detail to run the programme directly from the output.</div>
+        </div>
+        <div class="opp-card opp-3">
+          <div class="opp-badge">18+ Months</div>
+          <div class="opp-title">Layer 3 — The Platform Play</div>
+          <div class="opp-body">Consultant-facing tier — faster first-draft generation per engagement, shareable outputs, multi-client workspace. Higher WTP, lower churn than mid-market manager.</div>
+          <div class="opp-constraint"><strong>Design constraint I built against</strong>Output format must be clean enough to share externally — no raw JSON visible, no AI disclaimers in generated content.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section id="impact">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-eyebrow">11 — Impact Metrics</span>
+      <h2 class="section-title">What changed</h2>
+      <div class="impact-hero">
+        <span class="impact-number" id="countNum">0%</span>
+        <div class="impact-label">Reduction in time to actionable CX/EX strategy</div>
+        <div class="impact-sub">From 20–40 hours (manual) → ~2 minutes (generated)</div>
+      </div>
+
+      <!-- IMPACT IMAGE -->
+      <div style="margin-bottom:1.5rem;" class="img-2col">
+        <div class="img-placeholder medium">
+          <div class="img-placeholder-tag">Add Screenshot</div>
+          <div class="img-placeholder-icon">⏮️</div>
+          <div class="img-placeholder-label">Before — Manual Process</div>
+          <div class="img-placeholder-sub">Template, spreadsheet, or blank doc showing the old way</div>
+        </div>
+        <div class="img-placeholder medium">
+          <div class="img-placeholder-tag">Add Screenshot</div>
+          <div class="img-placeholder-icon">⏭️</div>
+          <div class="img-placeholder-label">After — Generated Output</div>
+          <div class="img-placeholder-sub">Full strategy output with sections completed</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto; margin-bottom:1.5rem;">
+        <table class="data-table">
+          <thead><tr><th>Metric</th><th>Before</th><th>After / Change</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Time to actionable strategy</strong></td><td>20–40 hours (manual)</td><td class="cell-green">~2 minutes  ↓ ~99%</td></tr>
+            <tr><td><strong>Survey workflow completeness</strong></td><td>Manual build (flat only)</td><td class="cell-green">Fully generated with branching logic, thresholds & follow-ups</td></tr>
+            <tr><td class="cell-placeholder">⚠ Fill: usability test metric</td><td class="cell-placeholder">[value]</td><td class="cell-placeholder">[value]  ↑/↓ ___%</td></tr>
+            <tr><td class="cell-placeholder">⚠ Fill: stakeholder feedback metric</td><td class="cell-placeholder">[value]</td><td class="cell-placeholder">[value]  ↑/↓ ___%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="qual-panel">
+        <div class="qual-title">Qualitative Impact</div>
+        <div class="qual-item">Vertical-specific output eliminated "boilerplate" perception among mid-market managers</div>
+        <div class="qual-item">Survey Flow Cards gave non-technical managers a closed feedback loop without requiring a data analyst</div>
+        <div class="qual-item" style="color:#92400E; font-style:italic;">⚠ PLACEHOLDER: Add a specific user or stakeholder quote here before publishing</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REFLECTION -->
+<section id="reflection">
+  <div class="container">
+    <div class="fade-in">
+      <span class="section-eyebrow">12 — Reflection</span>
+      <h2 class="section-title">Honest retrospective</h2>
+      <div class="reflect-grid">
+        <div class="reflect-card reflect-worked">
+          <div class="reflect-header">✓ What Worked</div>
+          <div class="reflect-body">Using vibe coding (rapid AI-assisted prototyping) to validate the core interaction model before committing to a Figma spec. Building a working prototype first meant the PM and developer debated specifics — not abstract concept questions. That velocity created alignment faster than a presentation deck would have.</div>
+        </div>
+        <div class="reflect-card reflect-improve">
+          <div class="reflect-header">→ What I'd Improve</div>
+          <div class="reflect-body">The wizard currently treats all 6 inputs equally. In practice, Vertical and Objective are the two variables that most shape output quality. I'd redesign the wizard to give these two more weight — perhaps a two-stage flow where they are selected first, with the others as refinement options.</div>
+        </div>
+        <div class="reflect-card reflect-next">
+          <div class="reflect-header">◆ What This Opens Next</div>
+          <div class="reflect-body">The current product generates strategy. The natural next problem is strategy adoption — how do you help a VP track whether the 12-month roadmap is being executed across a team? That's a dashboarding and accountability layer that sits above this tool, and it's the product problem I'd want to tackle next.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PLACEHOLDER TRACKER -->
+<section id="placeholders" style="padding-top:2rem;">
+  <div class="container fade-in">
+    <div class="placeholder-tracker">
+      <h3>⚠ Placeholders to Fill Before Publishing</h3>
+      <div class="ph-item"><div class="ph-num">1</div><div class="ph-content"><div class="ph-section">Problem Framing — Success Metrics</div><div class="ph-desc">Any usability test completion rates or time-to-task benchmarks</div></div></div>
+      <div class="ph-item"><div class="ph-num">2</div><div class="ph-content"><div class="ph-section">Impact Metrics — Row 3</div><div class="ph-desc">Primary usability or task completion metric from real testing</div></div></div>
+      <div class="ph-item"><div class="ph-num">3</div><div class="ph-content"><div class="ph-section">Impact Metrics — Row 4</div><div class="ph-desc">Stakeholder reaction or PM feedback (specific, not general)</div></div></div>
+      <div class="ph-item"><div class="ph-num">4</div><div class="ph-content"><div class="ph-section">Qualitative Impact — User Quote</div><div class="ph-desc">A specific quote from a user or stakeholder about the output</div></div></div>
+      <div class="ph-item"><div class="ph-num">5</div><div class="ph-content"><div class="ph-section">Hero / Nav — Your Name & Title</div><div class="ph-desc">Replace [YOUR NAME] throughout with your actual name</div></div></div>
+      <div class="ph-item" style="border-bottom:none;"><div class="ph-num">6</div><div class="ph-content"><div class="ph-section">TAM Figures</div><div class="ph-desc">Replace with PM's internal market sizing if different from public estimates</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="container">
+    <div class="fade-in" style="text-align:center; padding:2rem 0 1rem;">
+      <span class="section-eyebrow">Get in Touch</span>
+      <h2 class="section-title" style="margin:0.5rem auto 1rem; max-width:480px;">Let's build something that actually gets used.</h2>
+      <p style="color:var(--text-secondary); margin-bottom:2rem; font-size:1rem;">Open to senior UX roles, AI product teams, and FAANG opportunities.</p>
+      <div class="btn-row" style="justify-content:center;">
+        <a href="/cdn-cgi/l/email-protection#cbb2a4beb98baea6aaa2a7e5a8a4a6" class="btn-primary"><span class="__cf_email__" data-cfemail="4e37213b3c0e2b232f2722602d2123">[email&#160;protected]</span></a>
+        <a href="#" class="btn-ghost">LinkedIn →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-name">[YOUR NAME]</div>
+  <div class="footer-sub">UX Designer · AI Products · FAANG-Targeted Portfolio · 2024</div>
+</footer>
+
+<script>
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const d = document.documentElement;
+    const pct = (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100;
+    document.getElementById('progress').style.width = pct + '%';
+  });
+
+  // Fade in on scroll — unobserve after firing to prevent re-triggers
+  const fadeObs = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        fadeObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.fade-in').forEach(el => fadeObs.observe(el));
+
+  // Count up animation — fires once, then disconnects
+  const countEl = document.getElementById('countNum');
+  if (countEl) {
+    let counted = false;
+    const countObs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !counted) {
+        counted = true;
+        countObs.disconnect();
+        let start = null;
+        const dur = 1800;
+        const tick = (ts) => {
+          if (!start) start = ts;
+          const prog = Math.min((ts - start) / dur, 1);
+          const ease = 1 - Math.pow(1 - prog, 3);
+          countEl.textContent = Math.floor(ease * 99) + '%';
+          if (prog < 1) requestAnimationFrame(tick);
+          else countEl.textContent = '~99%';
+        };
+        requestAnimationFrame(tick);
+      }
+    }, { threshold: 0.5 });
+    countObs.observe(countEl);
+  }
+
+  // Build streaming demo (static render, no looping interval)
+  const streamData = [
+    { icon: '✦', name: 'Executive Summary' },
+    { icon: '🔍', name: 'Strategic Context' },
+    { icon: '⚙️', name: 'Strategy Framework' },
+    { icon: '📋', name: 'Survey Recommendations' },
+    { icon: '🏆', name: 'Competitive Analysis' },
+    { icon: '⚡', name: 'Quick Wins' },
+    { icon: '🗺️', name: '12-Month Roadmap' },
+    { icon: '📊', name: 'KPIs & Metrics' },
+    { icon: '🛡️', name: 'Risks & Mitigation' },
+    { icon: '💰', name: 'Investment & ROI' },
+  ];
+  const streamContainer = document.getElementById('streamDemo');
+  if (streamContainer) {
+    streamData.forEach((s) => {
+      const el = document.createElement('div');
+      el.className = 'stream-item';
+      el.innerHTML = '<span class="stream-icon">' + s.icon + '</span>'
+        + '<span class="stream-name">' + s.name + '</span>'
+        + '<div class="stream-bar"><div class="stream-fill" style="width:0%"></div></div>';
+      streamContainer.appendChild(el);
+    });
+
+    // Animate once when scrolled into view, then disconnect
+    let streamed = false;
+    const streamObs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !streamed) {
+        streamed = true;
+        streamObs.disconnect();
+        const items = streamContainer.querySelectorAll('.stream-item');
+        let idx = 0;
+        const next = () => {
+          if (idx >= items.length) return;
+          items[idx].classList.add('done');
+          const fill = items[idx].querySelector('.stream-fill');
+          if (fill) fill.style.width = '100%';
+          idx++;
+          if (idx < items.length) setTimeout(next, 260);
+        };
+        setTimeout(next, 200);
+      }
+    }, { threshold: 0.2 });
+    streamObs.observe(streamContainer);
+  }
+
+  // Stepper click
+  document.querySelectorAll('.step-circle').forEach((c) => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.step-circle').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+</script><script>
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const d = document.documentElement;
+    const pct = (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100;
+    document.getElementById('progress').style.width = pct + '%';
+  });
+
+  // Fade in observer
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+
+
+
+  // Count up animation for impact number
+  const countEl = document.getElementById('countNum');
+  let counted = false;
+  const countObs = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !counted) {
+      counted = true;
+      let start = 0; const end = 99; const dur = 1800;
+      const step = (timestamp) => {
+        if (!start) start = timestamp;
+        const prog = Math.min((timestamp - start) / dur, 1);
+        const ease = 1 - Math.pow(1 - prog, 3);
+        countEl.textContent = Math.floor(ease * end) + '%';
+        if (prog < 1) requestAnimationFrame(step);
+        else countEl.textContent = '~99%';
+      };
+      requestAnimationFrame(step);
+    }
+  }, { threshold: 0.5 });
+  countObs.observe(countEl);
+
+  // Streaming demo animation
+  const streamData = [
+    { icon: '✦', name: 'Executive Summary', done: true },
+    { icon: '🔍', name: 'Strategic Context', done: true },
+    { icon: '⚙️', name: 'Strategy Framework', done: true },
+    { icon: '📋', name: 'Survey Recommendations', active: true },
+    { icon: '🏆', name: 'Competitive Analysis', done: false },
+    { icon: '⚡', name: 'Quick Wins', done: false },
+    { icon: '🗺️', name: '12-Month Roadmap', done: false },
+    { icon: '📊', name: 'KPIs & Metrics', done: false },
+    { icon: '🛡️', name: 'Risks & Mitigation', done: false },
+    { icon: '💰', name: 'Investment & ROI', done: false },
+  ];
+  const container = document.getElementById('streamDemo');
+  streamData.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'stream-item' + (s.done ? ' done' : '') + (s.active ? ' active' : '');
+    el.innerHTML = `<span class="stream-icon">${s.icon}</span>
+      <span class="stream-name">${s.name}${s.active ? ' <span class="stream-cursor">▋</span>' : ''}</span>
+      <div class="stream-bar"><div class="stream-fill" style="width:${s.done ? 100 : s.active ? 60 : 0}%"></div></div>`;
+    container.appendChild(el);
+  });
+
+  // Animate stream bars on scroll
+  let streamed = false;
+  const streamObs = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !streamed) {
+      streamed = true;
+      let i = 0;
+      const items = container.querySelectorAll('.stream-item');
+      const interval = setInterval(() => {
+        if (i < items.length) {
+          items[i].classList.add('done');
+          items[i].classList.remove('active');
+          const fill = items[i].querySelector('.stream-fill');
+          if (fill) fill.style.width = '100%';
+          if (i + 1 < items.length) {
+            items[i+1].classList.add('active');
+          }
+          i++;
+        } else clearInterval(interval);
+      }, 400);
+    }
+  }, { threshold: 0.3 });
+  streamObs.observe(container);
+
+  // Stepper interaction
+  d

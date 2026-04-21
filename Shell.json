@@ -1,0 +1,42 @@
+{
+  "Default": {
+    "value": "{Shell . 500}",
+    "type": "color"
+  },
+  "Hover": {
+    "value": "{Shell . 800}",
+    "type": "color"
+  },
+  "Active": {
+    "value": "{Shell . 900}",
+    "type": "color"
+  },
+  "Border -- Default": {
+    "value": "{Shell . 50}",
+    "type": "color"
+  },
+  "Text Color -- Btn": {
+    "value": "{Base . 900}",
+    "type": "color"
+  },
+  "Border -- Hover": {
+    "value": "{Shell . 200}",
+    "type": "color"
+  },
+  "Border -- Active": {
+    "value": "{Shell . 200}",
+    "type": "color"
+  },
+  "Secondary -- Hover": {
+    "value": "{Shell . 50}",
+    "type": "color"
+  },
+  "Secondary -- Active": {
+    "value": "{Shell .  100}",
+    "type": "color"
+  },
+  "Tertiary -- Text Color": {
+    "value": "{Base . 900}",
+    "type": "color"
+  }
+}

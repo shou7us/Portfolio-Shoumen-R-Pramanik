@@ -1,0 +1,25 @@
+{
+  "tokenSetOrder": [
+    "global",
+    "color",
+    "Color Primitives/Mode 1",
+    "Theme/Shell",
+    "Theme/Core",
+    "Theme/CX",
+    "Theme/Assessement",
+    "Alias/Mode 1",
+    "Component--Status/Success",
+    "Component--Status/Error",
+    "Component--Status/EX",
+    "Typography primitives/Mode 1",
+    "Space/Mode 1",
+    "Radius/Mode 1",
+    "Depth/Mode 1",
+    "Stroke/Mode 1",
+    "Icon/Mode 1",
+    "Component Token/sm",
+    "Component Token/md",
+    "Component Token/lg",
+    "Component Token/x-sm"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "0": {
+    "value": "0rem",
+    "type": "dimension"
+  },
+  "100": {
+    "value": "0.25rem",
+    "type": "dimension"
+  },
+  "200": {
+    "value": "0.5rem",
+    "type": "dimension"
+  },
+  "400": {
+    "value": "1rem",
+    "type": "dimension"
+  },
+  "800": {
+    "value": "2rem",
+    "type": "dimension"
+  },
+  "1200": {
+    "value": "3rem",
+    "type": "dimension"
+  },
+  "Negative 200": {
+    "value": "-0.5rem",
+    "type": "dimension"
+  },
+  "Negative 400": {
+    "value": "-1rem",
+    "type": "dimension"
+  },
+  "Negative 1200": {
+    "value": "-3rem",
+    "type": "dimension"
+  },
+  "Negative 025": {
+    "value": "-0.062rem",
+    "type": "dimension"
+  },
+  "Negative 800": {
+    "value": "-2rem",
+    "type": "dimension"
+  },
+  "Negative 100": {
+    "value": "-0.25rem",
+    "type": "dimension"
+  },
+  "025": {
+    "value": "0.062rem",
+    "type": "dimension"
+  }
+}

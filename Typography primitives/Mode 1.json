@@ -1,0 +1,54 @@
+{
+  "Family Sans": {
+    "value": "Proxima Nova",
+    "type": "text"
+  },
+  "Scale 04": {
+    "value": "2.625rem",
+    "type": "dimension"
+  },
+  "Scale 03": {
+    "value": "1rem",
+    "type": "dimension"
+  },
+  "Scale 10": {
+    "value": "1.5rem",
+    "type": "dimension"
+  },
+  "Scale 07": {
+    "value": "2rem",
+    "type": "dimension"
+  },
+  "Scale 05": {
+    "value": "3.625rem",
+    "type": "dimension"
+  },
+  "Scale 02": {
+    "value": "0.875rem",
+    "type": "dimension"
+  },
+  "Scale 06": {
+    "value": "4.875rem",
+    "type": "dimension"
+  },
+  "Weight Semibold": {
+    "value": "37.5rem",
+    "type": "dimension"
+  },
+  "Weight Light": {
+    "value": "25rem",
+    "type": "dimension"
+  },
+  "Scale 09": {
+    "value": "1.125rem",
+    "type": "dimension"
+  },
+  "Scale 01": {
+    "value": "0.75rem",
+    "type": "dimension"
+  },
+  "Weight Medium": {
+    "value": "31.25rem",
+    "type": "dimension"
+  }
+}

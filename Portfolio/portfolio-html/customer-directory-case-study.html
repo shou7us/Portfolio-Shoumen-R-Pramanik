@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script>
+  // Client-side protection against direct URLs
+  (function(){
+    let unlocked = false;
+    for (let i = 0; i < sessionStorage.length; i++) {
+      let key = sessionStorage.key(i);
+      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
+        unlocked = true; break;
+      }
+    }
+    if (!unlocked) { window.location.href = 'index.html'; }
+  })();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Directory — UX Case Study</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ec;
+    --surface: #f5f2ec;
+    --surface-2: #f0ebe1;
+    --border: #d9d4cc;
+    --accent: #c94c2e;
+    --accent-dim: rgba(201, 76, 46, 0.1);
+    --red: #c94c2e;
+    --red-dim: rgba(201, 76, 46, 0.1);
+    --amber: #c94c2e;
+    --amber-dim: rgba(201, 76, 46, 0.1);
+    --green: #2d7a4e;
+    --green-dim: rgba(201, 76, 46, 0.1);
+    --text: #0d0f14;
+    --text-muted: #4a4642;
+    --text-dim: #6b6560;
+    --mono: 'DM Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Playfair Display', Georgia, serif; font-size: 17px; line-height: 1.75; overflow-x: hidden; }
+  
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 32px; position: relative; z-index: 1; }
+
+  /* ════════════════════════════════
+     IMAGE PLACEHOLDER SYSTEM
+  ════════════════════════════════ */
+  .img-block { margin: 36px 0; }
+  .img-placeholder {
+    position: relative;
+    background: #0a0a18;
+    border: 2px dashed rgba(91,110,245,0.35);
+    border-radius: 2px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 14px; padding: 36px 24px;
+    transition: border-color 0.25s, background 0.25s;
+    overflow: hidden;
+  }
+  .img-placeholder::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(91,110,245,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .img-placeholder:hover { border-color: var(--accent); background: rgba(91,110,245,0.04); }
+  .ph-badge {
+    position: absolute; top: 14px; left: 14px;
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: rgba(91,110,245,0.15); color: var(--accent);
+    border: 1px solid rgba(91,110,245,0.25);
+    padding: 3px 10px; border-radius: 4px;
+  }
+  .ph-dims {
+    position: absolute; top: 14px; right: 14px;
+    font-family: var(--mono); font-size: 10px; color: rgba(91,110,245,0.4);
+    letter-spacing: 0.06em;
+  }
+  .ph-icon { font-size: 28px; opacity: 0.6; }
+  .ph-title {
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase;
+    text-align: center;
+  }
+  .ph-desc {
+    font-family: var(--mono); font-size: 11px; color: #7070a0;
+    text-align: center; line-height: 1.7; max-width: 380px;
+  }
+  .ph-spec {
+    font-family: var(--mono); font-size: 11px;
+    color: rgba(91,110,245,0.5); background: rgba(91,110,245,0.08);
+    border: 1px solid rgba(91,110,245,0.15);
+    border-radius: 4px; padding: 4px 12px;
+    text-align: center; letter-spacing: 0.05em;
+  }
+  .img-caption {
+    font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+    text-align: center; margin-top: 10px; letter-spacing: 0.05em;
+    padding: 0 8px;
+  }
+  /* aspect ratios */
+  .ph-16-7  { aspect-ratio: 16/7; }
+  .ph-16-6  { aspect-ratio: 16/6; }
+  .ph-4-3   { aspect-ratio: 4/3; }
+  .ph-2-1   { aspect-ratio: 2/1; }
+  .ph-3-4   { aspect-ratio: 3/4; }
+  .ph-3-2   { aspect-ratio: 3/2; }
+
+  /* ════════ NAV ════════ */
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid transparent; transition: all 0.3s ease; }
+  nav.scrolled { background: #f5f2ec; border-bottom-color: var(--border); }
+  .nav-left { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+  .nav-right { display: flex; align-items: center; gap: 24px; }
+  .nav-right a { font-family: 'Playfair Display', serif; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; letter-spacing: 0.04em; text-transform: uppercase; transition: color 0.2s; }
+  .nav-right a:hover { color: var(--text); }
+  .nav-badge { background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent); font-family: var(--mono); font-size: 11px; padding: 4px 10px; border-radius: 2px; letter-spacing: 0.05em; }
+
+  /* ════════ HERO ════════ */
+  .hero { padding: 140px 0 64px; position: relative; overflow: hidden; }
+  .hero::after { content: ''; position: absolute; top: -200px; right: -300px; width: 700px; height: 700px; background: radial-gradient(circle, rgba(91,110,245,0.07) 0%, transparent 70%); pointer-events: none; }
+  .hero-label { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+  .hero-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+  .hero h1 { font-family: 'Playfair Display', serif; font-weight: 800; font-size: clamp(30px, 5vw, 52px); line-height: 1.1; letter-spacing: -0.03em; color: var(--text); margin-bottom: 24px; max-width: 760px; }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero-sub { font-size: 17px; color: var(--text-muted); max-width: 580px; line-height: 1.7; margin-bottom: 36px; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 40px; }
+  .chip { font-family: var(--mono); font-size: 11px; padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-muted); background: var(--surface); letter-spacing: 0.04em; }
+  .chip.accent { border-color: rgba(91,110,245,0.3); color: var(--accent); background: var(--accent-dim); }
+  .stat-bar { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; background: var(--surface); margin-bottom: 48px; }
+  .stat-cell { padding: 24px; border-right: 1px solid var(--border); position: relative; }
+  .stat-cell:last-child { border-right: none; }
+  .stat-cell::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); }
+  .stat-num { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 30px; color: var(--accent); letter-spacing: -0.02em; line-height: 1; margin-bottom: 6px; }
+  .stat-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+  .stat-sub { font-size: 12px; color: var(--text-dim); font-family: var(--mono); }
+
+  /* ════════ SECTIONS ════════ */
+  section { padding: 72px 0; border-top: 1px solid var(--border); }
+  .section-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .section-label::after { content: ''; flex: 0 0 20px; height: 1px; background: var(--accent); opacity: 0.4; }
+  h2 { font-family: 'Playfair Display', serif; font-weight: 700; font-size: clamp(22px, 3vw, 30px); letter-spacing: -0.025em; color: var(--text); margin-bottom: 20px; line-height: 1.2; }
+  h3 { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 16px; letter-spacing: -0.01em; color: var(--text); margin-bottom: 12px; }
+  p { color: var(--text-muted); margin-bottom: 20px; }
+  p:last-child { margin-bottom: 0; }
+  .callout { border-left: 3px solid var(--accent); background: var(--accent-dim); border-radius: 0 2px 2px 0; padding: 18px 22px; margin: 28px 0; font-size: 15px; color: var(--text-muted); font-style: italic; }
+  .callout.amber { border-color: var(--amber); background: var(--amber-dim); }
+  .callout.green { border-color: var(--green); background: var(--green-dim); }
+
+  /* ════════ PROBLEM GRID ════════ */
+  .problem-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 28px; }
+  .problem-card { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 22px; }
+  .problem-card-header { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+  .problem-card ul { list-style: none; }
+  .problem-card li { font-size: 14px; color: var(--text-muted); padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; gap: 8px; font-family: 'Playfair Display', serif; }
+  .problem-card li::before { content: '—'; color: var(--accent); flex-shrink: 0; }
+  .problem-card li:last-child { border-bottom: none; }
+
+  /* ════════ PERSONA ════════ */
+  .persona-split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 28px; }
+  .persona-card { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; }
+  .persona-card.primary { border-color: rgba(91,110,245,0.3); }
+  .persona-header { padding: 14px 18px; background: var(--surface-2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .persona-header h3 { font-size: 14px; margin: 0; }
+  .pct-badge { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 4px; }
+  .pct-badge.primary { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(91,110,245,0.3); }
+  .pct-badge.secondary { background: var(--surface); color: var(--text-dim); border: 1px solid var(--border); }
+  .persona-row { padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .persona-row:last-child { border-bottom: none; }
+  .persona-title { font-family: 'Playfair Display', serif; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .persona-quote { font-size: 13px; font-style: italic; color: var(--text-muted); }
+  .persona-freq { font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+
+  /* ════════ JOURNEY MAP ════════ */
+  .journey-wrap { overflow-x: auto; margin-top: 28px; }
+  .journey-table { width: 100%; border-collapse: collapse; min-width: 680px; }
+  .journey-table th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .journey-table td { padding: 14px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; color: var(--text-muted); vertical-align: top; }
+  .journey-table tr.row-header td:first-child { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 13px; color: var(--text); white-space: nowrap; }
+  .jcell-red { background: var(--red-dim); border: 1px solid rgba(245,85,107,0.2); border-radius: 6px; color: #f5556b; font-family: var(--mono); font-size: 11px; font-weight: 500; padding: 8px 10px; line-height: 1.4; display: inline-block; }
+  .jcell-empty { color: var(--text-dim); font-style: italic; font-size: 12px; }
+
+  /* ════════ INSIGHTS ════════ */
+  .insights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 28px; }
+  .insight-card { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 22px; position: relative; overflow: hidden; }
+  .insight-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+  .insight-num { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 10px; }
+  .insight-obs { font-size: 14px; color: var(--text); margin-bottom: 8px; font-weight: 500; font-family: 'Playfair Display', serif; }
+  .insight-need { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; font-style: italic; }
+  .insight-impl { font-size: 12px; font-family: var(--mono); color: var(--accent); background: var(--accent-dim); border-radius: 4px; padding: 8px 10px; line-height: 1.5; }
+
+  /* ════════ PIVOT ════════ */
+  .pivot-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0; }
+  .pivot-metric { background: var(--red-dim); border: 1px solid rgba(245,85,107,0.2); border-radius: 2px; padding: 16px; text-align: center; }
+  .pivot-metric-num { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 28px; color: var(--red); line-height: 1; margin-bottom: 6px; }
+  .pivot-metric-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .pivot-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+  .pivot-step { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 20px; }
+  .step-num { width: 28px; height: 28px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; font-weight: 700; color: white; margin-bottom: 12px; }
+  .step-title { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .step-body { font-size: 13px; color: var(--text-muted); line-height: 1.6; font-family: 'Playfair Display', serif; }
+
+  /* ════════ DECISION TABLE ════════ */
+  .decision-wrap { overflow-x: auto; margin-top: 28px; }
+  .decision-table { width: 100%; border-collapse: collapse; min-width: 620px; }
+  .decision-table th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+  .decision-table td { padding: 14px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-muted); vertical-align: top; font-family: 'Playfair Display', serif; }
+  .decision-table tr.chosen { background: var(--accent-dim); }
+  .decision-table tr.chosen td:first-child { border-left: 3px solid var(--accent); color: var(--text); font-family: 'Playfair Display', serif; font-weight: 600; font-size: 14px; }
+  .chosen-badge { display: inline-block; font-family: var(--mono); font-size: 10px; background: var(--accent); color: white; padding: 2px 7px; border-radius: 3px; margin-left: 8px; font-weight: 600; }
+
+  /* ════════ PRINCIPLES ════════ */
+  .principles-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 28px; }
+  .principle-card { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 22px; display: flex; gap: 14px; }
+  .principle-icon { width: 36px; height: 36px; flex-shrink: 0; background: var(--accent-dim); border: 1px solid rgba(91,110,245,0.2); border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .principle-title { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .principle-body { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ════════ FEATURE DEEP DIVES ════════ */
+  .feature-split { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items: start; margin-top: 28px; }
+  .feature-examples { list-style: none; margin: 14px 0; }
+  .feature-examples li { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-size: 13px; color: var(--text-muted); font-style: italic; margin-bottom: 8px; font-family: 'Playfair Display', serif; }
+  .feature-decisions { list-style: none; margin-top: 14px; }
+  .feature-decisions li { font-size: 14px; color: var(--text-muted); padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; gap: 10px; font-family: 'Playfair Display', serif; }
+  .feature-decisions li::before { content: '→'; color: var(--accent); flex-shrink: 0; }
+  .feature-decisions li:last-child { border-bottom: none; }
+
+  /* ════════ CONSTRAINT ════════ */
+  .constraint-split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 28px; }
+  .constraint-card { border-radius: 2px; padding: 22px; border-left: 3px solid; }
+  .constraint-card.problem { border-color: var(--amber); background: var(--amber-dim); }
+  .constraint-card.solution { border-color: var(--accent); background: var(--accent-dim); }
+  .constraint-card-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px; font-weight: 600; }
+  .constraint-card.problem .constraint-card-label { color: var(--amber); }
+  .constraint-card.solution .constraint-card-label { color: var(--accent); }
+
+  /* ════════ IMPACT ════════ */
+  .impact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 28px 0; }
+  .impact-card { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 18px; position: relative; overflow: hidden; }
+  .impact-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+  .impact-big { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 28px; color: var(--accent); letter-spacing: -0.02em; line-height: 1; margin-bottom: 6px; }
+  .impact-label { font-family: var(--mono); font-size: 10px; color: var(--text); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+  .impact-sub { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+  .wins-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 40px; }
+  .win-card { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 18px; }
+  .win-icon { font-size: 20px; margin-bottom: 10px; }
+  .win-body { font-size: 13px; color: var(--text-muted); line-height: 1.6; font-family: 'Playfair Display', serif; }
+  .win-stat { font-family: var(--mono); font-size: 11px; color: var(--accent); margin-top: 10px; }
+
+  /* ════════ PULL QUOTE ════════ */
+  .pull-quote { text-align: center; padding: 60px 40px; position: relative; }
+  .pull-quote::before { content: '\201C'; font-family: 'Playfair Display', serif; font-size: 96px; color: var(--accent); opacity: 0.22; line-height: 0; position: absolute; top: 48px; left: 50%; transform: translateX(-50%); }
+  .pull-quote blockquote { font-family: 'Playfair Display', serif; font-weight: 700; font-size: clamp(18px, 2.5vw, 23px); font-style: italic; color: var(--text); max-width: 580px; margin: 0 auto 14px; line-height: 1.4; }
+  .pull-quote cite { font-family: var(--mono); font-size: 12px; color: var(--text-muted); letter-spacing: 0.1em; font-style: normal; }
+
+  /* ════════ CUTS ════════ */
+  .cuts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+  .cut-card { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 22px; }
+  .cut-title { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 10px; display: flex; align-items: flex-start; gap: 8px; }
+  .cut-x { color: var(--red); flex-shrink: 0; }
+  .cut-body { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; font-family: 'Playfair Display', serif; }
+  .cut-evidence { font-family: var(--mono); font-size: 11px; color: var(--text-dim); border-top: 1px solid var(--border); padding-top: 10px; }
+
+  /* ════════ REFLECTION ════════ */
+  .reflection-stack { display: flex; flex-direction: column; gap: 2px; margin-top: 28px; }
+  .reflection-item { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid rgba(91,110,245,0.3); border-radius: 0 2px 2px 0; padding: 18px 18px 18px 22px; display: grid; grid-template-columns: 32px 1fr; gap: 14px; align-items: start; transition: border-color 0.2s; }
+  .reflection-item:hover { border-left-color: var(--accent); }
+  .reflection-item:first-child { border-radius: 2px 2px 2px 0; }
+  .reflection-item:last-child { border-radius: 0 2px 2px 2px; }
+  .r-num { width: 32px; height: 32px; background: var(--accent-dim); border: 1px solid rgba(91,110,245,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  .r-title { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .r-body { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+  .tools-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .tool-badge { font-family: var(--mono); font-size: 12px; padding: 7px 13px; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); letter-spacing: 0.04em; }
+
+  /* ════════ COMPETITIVE ANALYSIS ════════ */
+  .comp-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 28px 0 36px; }
+  .comp-intro-card { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 20px; }
+  .comp-intro-card-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+  .comp-intro-card p { font-size: 14px; line-height: 1.6; margin: 0; }
+
+  /* Competitor cards */
+  .comp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 32px 0; }
+  .comp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .comp-card:hover { border-color: rgba(91,110,245,0.3); }
+  .comp-card-header {
+    padding: 16px 20px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .comp-name { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--text); }
+  .comp-type { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; }
+  .comp-threat {
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    padding: 3px 9px; border-radius: 4px; letter-spacing: 0.06em; text-transform: uppercase; flex-shrink: 0;
+  }
+  .comp-threat.high { background: rgba(245,85,107,0.12); color: var(--red); border: 1px solid rgba(245,85,107,0.2); }
+  .comp-threat.med  { background: rgba(245,166,35,0.12); color: var(--amber); border: 1px solid rgba(245,166,35,0.2); }
+  .comp-threat.low  { background: rgba(61,214,140,0.1); color: var(--green); border: 1px solid rgba(61,214,140,0.2); }
+  .comp-body { padding: 18px 20px; }
+  .comp-row { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; font-family: 'Playfair Display', serif; }
+  .comp-row:last-child { border-bottom: none; }
+  .comp-row-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; flex-shrink: 0; width: 88px; padding-top: 2px; }
+  .comp-row-val { color: var(--text-muted); line-height: 1.5; }
+  .comp-row-val strong { color: var(--text); font-weight: 500; font-family: 'Playfair Display', serif; font-size: 13px; }
+  .comp-gap {
+    margin: 0 20px 18px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(91,110,245,0.15);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    line-height: 1.5;
+  }
+  .comp-gap::before { content: '→ Gap: '; font-weight: 600; }
+
+  /* Comparison matrix */
+  .comp-matrix-wrap { overflow-x: auto; margin: 32px 0; }
+  .comp-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+  }
+  .comp-matrix th {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-dim); padding: 12px 14px; text-align: left;
+    border-bottom: 1px solid var(--border); background: var(--surface-2);
+  }
+  .comp-matrix th:first-child { width: 180px; }
+  .comp-matrix td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; vertical-align: middle; }
+  .comp-matrix tr.us-row { background: var(--accent-dim); }
+  .comp-matrix tr.us-row td:first-child { border-left: 3px solid var(--accent); font-family: 'Playfair Display', serif; font-weight: 700; color: var(--accent); font-size: 13px; }
+  .comp-matrix td:first-child { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 13px; color: var(--text); }
+  .dot { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; }
+  .dot.yes  { background: rgba(61,214,140,0.15); color: var(--green); }
+  .dot.no   { background: rgba(245,85,107,0.12); color: var(--red); }
+  .dot.part { background: rgba(245,166,35,0.12); color: var(--amber); }
+  .dot-label { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-left: 6px; }
+
+  /* Design opportunity callout */
+  .opp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+  .opp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+    border-radius: 0 0 2px 2px;
+    padding: 20px;
+  }
+  .opp-num { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 8px; }
+  .opp-title { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .opp-body { font-size: 13px; color: var(--text-muted); line-height: 1.6; font-family: 'Playfair Display', serif; }
+  .opp-outcome { font-family: var(--mono); font-size: 11px; color: var(--accent); margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+
+  @media (max-width: 700px) {
+    .comp-grid, .comp-intro, .opp-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ════════ FOOTER ════════ */
+  footer { padding: 48px 32px; border-top: 1px solid var(--border); text-align: center; position: relative; z-index: 1; }
+  footer p { font-family: var(--mono); font-size: 12px; color: var(--text-dim); margin: 0; }
+
+  /* ════════ ANIMATION ════════ */
+  /* Default: visible. JS adds body.js-ready to enable scroll entrance animations */
+  .fade-up { opacity: 1; transform: translateY(0); transition: opacity 0.6s ease, transform 0.6s ease; }
+  body.js-ready .fade-up { opacity: 0; transform: translateY(20px); }
+  body.js-ready .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+  /* ════════ RESPONSIVE ════════ */
+  @media (max-width: 700px) {
+    .problem-grid, .persona-split, .insights-grid, .principles-grid, .pivot-steps, .wins-grid, .cuts-grid, .feature-split, .constraint-split, .impact-grid { grid-template-columns: 1fr; }
+    .stat-bar { grid-template-columns: 1fr; }
+    .stat-cell { border-right: none; border-bottom: 1px solid var(--border); }
+    .stat-cell:last-child { border-bottom: none; }
+    .pivot-metrics { grid-template-columns: 1fr 1fr; }
+    .hero { padding: 110px 0 56px; }
+    .pull-quote { padding: 44px 16px; }
+    nav { padding: 14px 18px; }
+    .wrap { padding: 0 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fade-up { opacity: 1; transform: none; transition: none; }
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<a href="#main-content" style="position:absolute;left:-9999px;" onfocus="this.style.cssText='position:fixed;top:16px;left:16px;background:var(--accent);color:white;padding:10px 16px;border-radius: 2px;z-index:9999;width:auto;height:auto;'">Skip to main content</a>
+
+<nav id="main-nav">
+  <a href="#" class="nav-left">[YOUR NAME]</a>
+  <div class="nav-right">
+    <a href="index.html" style="color: var(--accent); font-weight: 700;">← Home</a>
+    <a href="#overview">Overview</a>
+    <a href="#competitive">Competitive</a>
+    <a href="#research">Research</a>
+    <a href="#pivot">Pivot</a>
+    <a href="#impact">Impact</a>
+    <span class="nav-badge">Open to roles</span>
+  </div>
+</nav>
+
+<main id="main-content">
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<div class="hero">
+  <div class="wrap">
+    <div class="hero-label">UX Case Study · B2B SaaS Experience Management</div>
+    <h1>Scrapping <em>$180K</em> of engineering work — and shipping the product that was actually needed</h1>
+    <p class="hero-sub">Six weeks into development, I discovered we were building for the wrong users. Evidence convinced leadership to pivot. The redesigned product shipped within three months.</p>
+    <div class="hero-meta">
+      <span class="chip">Role: UX Designer (end-to-end)</span>
+      <span class="chip">Company: [B2B SaaS Experience Management Platform]</span>
+      <span class="chip">Timeline: Jan – Sep 2023 · 9 months</span>
+      <span class="chip accent">Team: 2 PMs · 8 Eng · 1 Researcher</span>
+    </div>
+    <div class="stat-bar">
+      <div class="stat-cell"><div class="stat-num">$2.1M</div><div class="stat-label">Incremental ARR</div><div class="stat-sub">Tracked cohort · 12 months</div></div>
+      <div class="stat-cell"><div class="stat-num">89%</div><div class="stat-label">Feature Adoption</div><div class="stat-sub">↑ from 34% baseline</div></div>
+      <div class="stat-cell"><div class="stat-num">83%↓</div><div class="stat-label">Support Tickets</div><div class="stat-sub">Import-related · post-launch</div></div>
+    </div>
+
+    <!-- ┌─────────────────────────────────────────────────────────────┐ -->
+    <!-- │  📸 IMAGE 1 — Hero Cover (Final product UI)                  │ -->
+    <!-- └─────────────────────────────────────────────────────────────┘ -->
+    <div class="img-block fade-up">
+      <div class="img-placeholder ph-16-7" role="img" aria-label="Hero cover image — replace with final product screenshot">
+        <span class="ph-badge">📸 Image 1 of 11</span>
+        <span class="ph-dims">16 : 7</span>
+        <div class="ph-icon">🖼️</div>
+        <div class="ph-title">Hero Cover — Final Product UI</div>
+        <div class="ph-desc">Your best-looking final screen. The Customer Directory dashboard, a key workflow, or the import confirmation step. Sets the visual tone for the whole case study.</div>
+        <div class="ph-spec">Figma export · PNG or WebP · 1600 × 700 px recommended</div>
+      </div>
+      <p class="img-caption">Customer Directory — shipped interface, September 2023</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ OVERVIEW ══════════════════ -->
+<section id="overview">
+  <div class="wrap">
+    <div class="section-label">Project Overview</div>
+    <h2>A CRM-integrated data management system for regulated industries</h2>
+    <p>The Customer Directory was built for credit unions, healthcare networks, and K–12 institutions — letting these organisations manage contact lists, build segments, and trigger targeted surveys. I owned all design decisions end-to-end: information architecture, interaction design, usability research, stakeholder alignment, and a 47-component design system.</p>
+    <p>The project's defining challenge wasn't UI complexity. It was identifying who we were actually designing for — before we shipped the wrong answer at scale.</p>
+
+    <div class="problem-grid fade-up">
+      <div class="problem-card"><div class="problem-card-header">⚠ User Pain Points</div><ul><li>3.2 hrs lost per survey launch to data prep outside the platform</li><li>Non-technical users forced to think like database admins</li><li>73% of support tickets from import failures</li></ul></div>
+      <div class="problem-card"><div class="problem-card-header">↑ Business Goals</div><ul><li>Grow ARR in credit union, healthcare, and K–12 verticals</li><li>Reduce churn through feature stickiness</li><li>Accelerate plan upgrade rate</li></ul></div>
+      <div class="problem-card"><div class="problem-card-header">⊘ Constraints</div><ul><li>Q3 launch deadline</li><li>6 weeks + $180K already invested in v1</li><li>90-day activity history cap (infrastructure)</li><li>Must serve IT admins without blocking non-technical users</li></ul></div>
+      <div class="problem-card"><div class="problem-card-header">◎ Success Metrics</div><ul><li>&gt;70% primary user feature adoption</li><li>Reduce import-related support tickets</li><li>Reduce survey launch time by &gt;40%</li><li>&gt;60 SUS on core flows</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ COMPETITIVE ANALYSIS ══════════════════ -->
+<section id="competitive">
+  <div class="wrap">
+    <div class="section-label">Competitive Analysis</div>
+    <h2>The market solves the wrong problem for the wrong user</h2>
+    <p>Before committing to a direction, I audited five direct and adjacent competitors across the same three verticals — credit unions, healthcare, and K–12. The goal wasn't to find features to copy, but to identify where the category was failing primary users and where an opinionated design decision could create durable differentiation.</p>
+
+    <div class="comp-intro fade-up">
+      <div class="comp-intro-card">
+        <div class="comp-intro-card-label">Research Method</div>
+        <p>Hands-on product walkthroughs for each competitor's import and contact management flow. Evaluated against three primary user tasks: (1) upload a CSV, (2) build a filtered segment, (3) trigger a survey on a contact action. Scored independently, then cross-referenced with interview data from 32 user sessions.</p>
+      </div>
+      <div class="comp-intro-card">
+        <div class="comp-intro-card-label">Lens of Analysis</div>
+        <p>Not feature completeness — that's a trap. The lens was: <em>can a non-technical marketing coordinator at a credit union complete these three tasks without IT help, within 30 minutes, on day one?</em> That single bar surfaced more meaningful differentiation than any feature matrix.</p>
+      </div>
+    </div>
+
+    <!-- ┌─────────────────────────────────────────────────────────────┐ -->
+    <!-- │  📸 IMAGE (COMP) — Competitive audit screenshots           │ -->
+    <!-- └─────────────────────────────────────────────────────────────┘ -->
+    <div class="img-block fade-up">
+      <div class="img-placeholder ph-16-6" role="img" aria-label="Competitive audit — replace with side-by-side competitor screenshots">
+        <span class="ph-badge">📸 Competitive Audit</span>
+        <span class="ph-dims">16 : 6</span>
+        <div class="ph-icon">🔍</div>
+        <div class="ph-title">Competitive Audit — Import Flow Screenshots</div>
+        <div class="ph-desc">Side-by-side screenshots of the import or contact setup flow from 3–4 competitors. Annotated with pain points from testing. Shows the category gap at a glance.</div>
+        <div class="ph-spec">Annotated Figma frame or Miro board export · PNG · 1600 × 600 px recommended</div>
+      </div>
+      <p class="img-caption">Import flow audit across 5 competitors — annotated in Figma</p>
+    </div>
+
+    <!-- COMPETITOR CARDS -->
+    <h3 style="margin-bottom:4px;">Five competitors. One consistent failure.</h3>
+    <p style="margin-bottom:0;">Every platform in the category optimised for IT buyers — the people who evaluate and purchase. None optimised for the marketing coordinator who shows up every Tuesday.</p>
+
+    <div class="comp-grid fade-up">
+
+      <div class="comp-card">
+        <div class="comp-card-header">
+          <div><div class="comp-name">Mailchimp</div><div class="comp-type">Email Marketing + Contact Management</div></div>
+          <span class="comp-threat high">High Ref.</span>
+        </div>
+        <div class="comp-body">
+          <div class="comp-row"><span class="comp-row-label">Import UX</span><span class="comp-row-val"><strong>Best in class.</strong> Drag-and-drop CSV, auto-column detection, plain-language field mapping. Primary users already know this flow.</span></div>
+          <div class="comp-row"><span class="comp-row-label">Segments</span><span class="comp-row-val">Static filters only. No auto-update. Users rebuild lists manually each campaign.</span></div>
+          <div class="comp-row"><span class="comp-row-label">Survey Triggers</span><span class="comp-row-val">Not natively supported. Requires Zapier or third-party integration.</span></div>
+          <div class="comp-row"><span class="comp-row-label">Verticals</span><span class="comp-row-val">Horizontal — not optimised for credit unions, healthcare, or K–12 compliance needs.</span></div>
+        </div>
+        <div class="comp-gap">Import mental model is already in primary users' heads. Borrow it — don't fight it.</div>
+      </div>
+
+      <div class="comp-card">
+        <div class="comp-card-header">
+          <div><div class="comp-name">HubSpot CRM</div><div class="comp-type">CRM + Marketing Automation</div></div>
+          <span class="comp-threat med">Med Ref.</span>
+        </div>
+        <div class="comp-body">
+          <div class="comp-row"><span class="comp-row-label">Import UX</span><span class="comp-row-val">Functional but complex. Field mapping requires knowledge of HubSpot's object model. Onboarding takes hours, not minutes.</span></div>
+          <div class="comp-row"><span class="comp-row-label">Segments</span><span class="comp-row-val">Smart lists auto-update. Powerful — but filter builder is technical and overwhelming for non-CRM users.</span></div>
+          <div class="comp-row"><span class="comp-row-label">Survey Triggers</span><span class="comp-row-val">Workflow automation available at higher tiers. Complex to configure without RevOps support.</span></div>
+          <div class="comp-row"><span class="comp-row-label">Verticals</span><span class="comp-row-val">Horizontal. No industry-specific templates. Compliance features require add-ons.</span></div>
+        </div>
+        <div class="comp-gap">Smart lists are the right idea. The UX requires a CRM administrator — not a marketing coordinator.</div>
+      </div>
+
+      <div class="comp-card">
+        <div class="comp-card-header">
+          <div><div class="comp-name">Qualtrics XM</div><div class="comp-type">Enterprise Experience Management</div></div>
+          <span class="comp-threat high">Direct Comp.</span>
+        </div>
+        <div class="comp-body">
+          <div class="comp-row"><span class="comp-row-label">Import UX</span><span class="comp-row-val">Schema-first. IT-dependent setup. Primary users cannot self-serve on day one without administrator help.</span></div>
+          <div class="comp-row"><span class="comp-row-label">Segments</span><span class="comp-row-val">Highly configurable but requires training. Primary users in our interviews cited Qualtrics as "too complex to use independently."</span></div>
+          <div class="comp-row"><span class="comp-row-label">Survey Triggers</span><span class="comp-row-val">Powerful event-based triggering — but configuration is handled by IT or a dedicated XM admin role.</span></div>
+          <div class="comp-row"><span class="comp-row-label">Verticals</span><span class="comp-row-val">Healthcare and higher-ed verticals with compliance modules. Priced for enterprise — inaccessible for mid-market.</span></div>
+        </div>
+        <div class="comp-gap">Enterprise power, enterprise gatekeeping. Mid-market primary users are unserved and frustrated.</div>
+      </div>
+
+      <div class="comp-card">
+        <div class="comp-card-header">
+          <div><div class="comp-name">SurveyMonkey (Momentive)</div><div class="comp-type">Survey Platform + Contacts</div></div>
+          <span class="comp-threat med">Direct Comp.</span>
+        </div>
+        <div class="comp-body">
+          <div class="comp-row"><span class="comp-row-label">Import UX</span><span class="comp-row-val">Simple CSV upload. Minimal field mapping — but also minimal intelligence. No auto-detection of industry-specific fields.</span></div>
+          <div class="comp-row"><span class="comp-row-label">Segments</span><span class="comp-row-val">Basic tag and group filtering only. No dynamic auto-update. Every segment is a static snapshot.</span></div>
+          <div class="comp-row"><span class="comp-row-label">Survey Triggers</span><span class="comp-row-val">Manual sends only. No conditional or event-based automation at standard tiers.</span></div>
+          <div class="comp-row"><span class="comp-row-label">Verticals</span><span class="comp-row-val">Horizontal. Lacks the contact management depth required for regulated verticals.</span></div>
+        </div>
+        <div class="comp-gap">Accessible import, shallow everything else. Users outgrow it fast — and have nowhere better to go in the mid-market.</div>
+      </div>
+
+    </div>
+
+    <!-- FEATURE MATRIX -->
+    <h3 style="margin-top:48px;margin-bottom:16px;">Category feature matrix — primary user lens</h3>
+    <div class="comp-matrix-wrap fade-up">
+      <table class="comp-matrix" aria-label="Competitive feature comparison matrix">
+        <thead>
+          <tr>
+            <th scope="col">Platform</th>
+            <th scope="col">Non-technical import</th>
+            <th scope="col">Auto field detection</th>
+            <th scope="col">Dynamic segments</th>
+            <th scope="col">Event-based triggers</th>
+            <th scope="col">Industry templates</th>
+            <th scope="col">Sample data preview</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td scope="row">Mailchimp</td>
+            <td><span class="dot yes" aria-label="Yes">✓</span></td>
+            <td><span class="dot part" aria-label="Partial">~</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+          </tr>
+          <tr>
+            <td scope="row">HubSpot CRM</td>
+            <td><span class="dot part" aria-label="Partial">~</span></td>
+            <td><span class="dot part" aria-label="Partial">~</span></td>
+            <td><span class="dot yes" aria-label="Yes">✓</span></td>
+            <td><span class="dot yes" aria-label="Yes">✓</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+          </tr>
+          <tr>
+            <td scope="row">Qualtrics XM</td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+            <td><span class="dot yes" aria-label="Yes">✓</span></td>
+            <td><span class="dot yes" aria-label="Yes">✓</span></td>
+            <td><span class="dot part" aria-label="Partial">~</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+          </tr>
+          <tr>
+            <td scope="row">SurveyMonkey</td>
+            <td><span class="dot yes" aria-label="Yes">✓</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+          </tr>
+          <tr>
+            <td scope="row">Constant Contact</td>
+            <td><span class="dot yes" aria-label="Yes">✓</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+            <td><span class="dot part" aria-label="Partial">~</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+            <td><span class="dot no" aria-label="No">✕</span></td>
+          </tr>
+          <tr class="us-row">
+            <td scope="row">Customer Directory ← Us</td>
+            <td><span class="dot yes" aria-label="Yes">✓</span></td>
+            <td><span class="dot yes" aria-label="Yes">✓</span></td>
+            <td><span class="dot yes" aria-label="Yes">✓</span></td>
+            <td><span class="dot yes" aria-label="Yes">✓</span></td>
+            <td><span class="dot yes" aria-label="Yes">✓</span></td>
+            <td><span class="dot yes" aria-label="Yes">✓</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:10px;text-align:right;">
+        ✓ Fully supported &nbsp;·&nbsp; ~ Partial / requires workaround &nbsp;·&nbsp; ✕ Not available
+      </p>
+    </div>
+
+    <!-- DESIGN OPPORTUNITIES -->
+    <h3 style="margin-top:48px;margin-bottom:8px;">Three design opportunities the market left open</h3>
+    <p>The competitive audit didn't just validate the problem — it gave each design decision a competitive rationale.</p>
+
+    <div class="opp-grid fade-up">
+      <div class="opp-card">
+        <div class="opp-num">OPPORTUNITY 01</div>
+        <div class="opp-title">No one auto-detects industry-specific fields</div>
+        <div class="opp-body">Every competitor puts field mapping on the user. Mailchimp is the most accessible — but even it doesn't recognise "Member ID" or "Patient Name" as special. Intelligent detection of vertical-specific patterns was an uncontested design space.</div>
+        <div class="opp-outcome">→ Became: Intelligent Detection principle</div>
+      </div>
+      <div class="opp-card">
+        <div class="opp-num">OPPORTUNITY 02</div>
+        <div class="opp-title">Dynamic segments exist — but require CRM training</div>
+        <div class="opp-body">HubSpot and Qualtrics have smart lists. But their filter builders assume CRM fluency. No competitor offered auto-updating segments with a conversational, plain-language UI accessible to a non-technical daily operator.</div>
+        <div class="opp-outcome">→ Became: Smart Segments feature</div>
+      </div>
+      <div class="opp-card">
+        <div class="opp-num">OPPORTUNITY 03</div>
+        <div class="opp-title">Nobody lets you try before IT unlocks the gate</div>
+        <div class="opp-body">Every platform requires real data before a user can experience value. For regulated industries with IT gatekeeping, this is a critical abandonment point. No competitor offered a realistic sample data preview for the user's specific vertical context.</div>
+        <div class="opp-outcome">→ Became: Preview Mode (highest-leverage feature)</div>
+      </div>
+    </div>
+
+    <div class="callout fade-up" style="margin-top:32px;">
+      The competitive analysis didn't change the problem statement — it sharpened it. Every gap traced back to the same root: the market was designing for IT buyers, not daily operators. That finding reinforced the research direction and gave the pivot a competitive frame, not just a usability one.
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ RESEARCH ══════════════════ -->
+<section id="research">
+  <div class="wrap">
+    <div class="section-label">User Research</div>
+    <h2>87% of daily usage came from users we weren't designing for</h2>
+    <p>Through 32 interviews and contextual observations across three verticals, I identified a critical persona split the product team had never explicitly mapped.</p>
+
+    <!-- ┌─────────────────────────────────────────────────────────────┐ -->
+    <!-- │  📸 IMAGE 2 — Research synthesis / affinity map              │ -->
+    <!-- └─────────────────────────────────────────────────────────────┘ -->
+    <div class="img-block fade-up">
+      <div class="img-placeholder ph-16-6" role="img" aria-label="Research synthesis — replace with Miro or Dovetail export">
+        <span class="ph-badge">📸 Image 2 of 11</span>
+        <span class="ph-dims">16 : 6</span>
+        <div class="ph-icon">🔬</div>
+        <div class="ph-title">Research Synthesis — Affinity Map or Theme Clusters</div>
+        <div class="ph-desc">Miro board with affinity clusters, Dovetail theme view, or a photo of a whiteboard session. Shows the rigour and scale of 32 interviews reduced to actionable insight.</div>
+        <div class="ph-spec">Miro / Dovetail export or photo · PNG · 1600 × 600 px recommended</div>
+      </div>
+      <p class="img-caption">Synthesis across 32 user interviews — affinity mapping in Miro</p>
+    </div>
+
+    <div class="persona-split fade-up">
+      <div class="persona-card primary">
+        <div class="persona-header"><h3>Primary Users</h3><span class="pct-badge primary">87% of daily usage</span></div>
+        <div class="persona-row"><div class="persona-title">Credit Union Marketing Coordinator</div><div class="persona-quote">"Half my day is just getting a clean list."</div><div class="persona-freq">3–5×/week · Low–Medium technical level</div></div>
+        <div class="persona-row"><div class="persona-title">Healthcare Quality Manager</div><div class="persona-quote">"By the time I pull the list, our 48-hr window is gone."</div><div class="persona-freq">4–6×/week · Low–Medium technical level</div></div>
+        <div class="persona-row"><div class="persona-title">K–12 Communications Lead</div><div class="persona-quote">"I need IT approval just to get an email list."</div><div class="persona-freq">2–4×/week · Low technical level</div></div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-header"><h3>Secondary Users</h3><span class="pct-badge secondary">Setup &amp; oversight</span></div>
+        <div class="persona-row"><div class="persona-title">IT Directors</div><div class="persona-quote">Configure integrations once during setup, rarely return.</div></div>
+        <div class="persona-row"><div class="persona-title">Executive Sponsors</div><div class="persona-quote">Review dashboards quarterly, approve upgrades.</div></div>
+        <div class="persona-row"><div class="persona-title">Compliance Officers</div><div class="persona-quote">Audit data usage on event-triggered reviews.</div></div>
+      </div>
+    </div>
+
+    <!-- ┌─────────────────────────────────────────────────────────────┐ -->
+    <!-- │  📸 IMAGE 3 — Persona cards (Figma)                          │ -->
+    <!-- └─────────────────────────────────────────────────────────────┘ -->
+    <div class="img-block fade-up">
+      <div class="img-placeholder ph-3-2" role="img" aria-label="Persona cards — replace with Figma persona frames">
+        <span class="ph-badge">📸 Image 3 of 11</span>
+        <span class="ph-dims">3 : 2</span>
+        <div class="ph-icon">👤</div>
+        <div class="ph-title">Persona Cards — Figma Frames</div>
+        <div class="ph-desc">Illustrated persona documents showing goals, frustrations, day-in-the-life, and tools used for each of the three primary user types.</div>
+        <div class="ph-spec">Figma persona frames · PNG · 1200 × 800 px recommended</div>
+      </div>
+      <p class="img-caption">Primary user personas — Credit Union, Healthcare, and K–12 contexts</p>
+    </div>
+
+    <div class="callout amber fade-up">
+      Secondary users spoke fluently in technical language and gave the most confident beta feedback. Primary users were quieter — but they were the ones generating 73% of support tickets.
+    </div>
+
+    <h3 style="margin-top:48px;">Where the product broke</h3>
+    <p>We had optimised the onboarding for IT Directors who configured and left. Primary users hit a wall on day one and never recovered.</p>
+    <div class="journey-wrap fade-up">
+      <table class="journey-table">
+        <thead><tr><th scope="col">Persona</th><th scope="col">Awareness</th><th scope="col">Evaluation</th><th scope="col">Onboarding</th><th scope="col">Daily Use</th><th scope="col">Advanced Use</th></tr></thead>
+        <tbody>
+          <tr class="row-header"><td scope="row"><strong>IT Director</strong><br><span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);font-weight:400;">Buyer/Enabler</span></td><td class="jcell-empty">—</td><td>Evaluates schema depth</td><td>Configures field mappings</td><td class="jcell-empty">Exits after setup</td><td class="jcell-empty">—</td></tr>
+          <tr class="row-header"><td scope="row"><strong>Marketing Coord.</strong><br><span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);font-weight:400;">Primary User</span></td><td class="jcell-empty">—</td><td class="jcell-empty">—</td><td><span class="jcell-red">CAN'T USE IT<br>Schema Builder</span></td><td><span class="jcell-red">WASTES HOURS<br>Outside Platform</span></td><td><span class="jcell-red">NEVER GETS<br>HERE AT ALL</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top:48px;">Four insights that forced a rethink</h3>
+    <div class="insights-grid fade-up">
+      <div class="insight-card"><div class="insight-num">INSIGHT 01</div><div class="insight-obs">Secondary users gave polished beta feedback. We weighted it most.</div><div class="insight-need">"I don't know what a foreign key is." — Marketing Coordinator</div><div class="insight-impl">→ Design for daily operators first. Build a separate non-default path for technical config.</div></div>
+      <div class="insight-card"><div class="insight-num">INSIGHT 02</div><div class="insight-obs">0% task completion on Schema Builder. Users abandoned at 12 minutes.</div><div class="insight-need">Primary users think in data they have — not structures they need to design.</div><div class="insight-impl">→ Detect structure from uploaded data. Don't require users to architect it upfront.</div></div>
+      <div class="insight-card"><div class="insight-num">INSIGHT 03</div><div class="insight-obs">68% abandoned onboarding before importing data.</div><div class="insight-need">Perceived risk of "breaking something" exceeded actual complexity.</div><div class="insight-impl">→ Sample data preview in the user's own industry removes the leap-of-faith barrier.</div></div>
+      <div class="insight-card"><div class="insight-num">INSIGHT 04</div><div class="insight-obs">73% of segmentation decisions were based on recent customer actions.</div><div class="insight-need">Users can't rebuild lists manually every week.</div><div class="insight-impl">→ Auto-updating "alive" segments — not static snapshots.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ PIVOT ══════════════════ -->
+<section id="pivot">
+  <div class="wrap">
+    <div class="section-label">The Stakeholder Pivot</div>
+    <h2>Week 6: $180K invested. 0% task completion. One decision.</h2>
+    <p>The Schema Builder was technically elegant. IT Directors loved it. Then we tested it with primary users.</p>
+
+    <div class="pivot-metrics fade-up">
+      <div class="pivot-metric"><div class="pivot-metric-num">0%</div><div class="pivot-metric-label">Task Completion</div></div>
+      <div class="pivot-metric"><div class="pivot-metric-num">12 min</div><div class="pivot-metric-label">Avg. Abandonment</div></div>
+      <div class="pivot-metric"><div class="pivot-metric-num">32/100</div><div class="pivot-metric-label">SUS Score ("Poor")</div></div>
+    </div>
+
+    <!-- ┌─────────────────────────────────────────────────────────────┐ -->
+    <!-- │  📸 IMAGE 4 — Schema Builder (the thing that failed)         │ -->
+    <!-- └─────────────────────────────────────────────────────────────┘ -->
+    <div class="img-block fade-up">
+      <div class="img-placeholder ph-3-2" role="img" aria-label="Schema Builder UI — replace with Figma screenshot of the original design">
+        <span class="ph-badge">📸 Image 4 of 11</span>
+        <span class="ph-dims">3 : 2</span>
+        <div class="ph-icon">🚫</div>
+        <div class="ph-title">Schema Builder — The Design That Failed</div>
+        <div class="ph-desc">Screenshot of the original Schema Builder interface. The contrast between this and Image 5 (Import-First) is one of the most powerful visual moments in the case study.</div>
+        <div class="ph-spec">Figma screenshot · PNG · 1200 × 800 px recommended</div>
+      </div>
+      <p class="img-caption">Schema Builder (v1) — 0% task completion · 32/100 SUS · abandoned at 12 min average</p>
+    </div>
+
+    <div class="pull-quote fade-up">
+      <blockquote>"I've seen enough. These are exactly the users we need to succeed."</blockquote>
+      <cite>— VP of Product, after watching unedited usability recordings</cite>
+    </div>
+
+    <p>By this point, $180K had been invested. The default reaction: <em>"Can we fix this with better tutorials?"</em> I structured a 2-hour stakeholder session around three levers.</p>
+
+    <div class="pivot-steps fade-up">
+      <div class="pivot-step"><div class="step-num">1</div><div class="step-title">Show, don't tell</div><div class="step-body">Played three unedited usability recordings. No commentary. After the third, the decision was made.</div></div>
+      <div class="pivot-step"><div class="step-num">2</div><div class="step-title">Frame as a revenue decision</div><div class="step-body">Schema Builder path: $400K–$600K ARR. Import-First path: $2.8M–$3.2M ARR. The 6-week delay cost $150K. Shipping wrong cost $2.2M annually.</div></div>
+      <div class="pivot-step"><div class="step-num">3</div><div class="step-title">De-risk with a sprint</div><div class="step-body">2-week paper prototype sprint. Exit criteria: &gt;70% completion, &gt;60 SUS. Results: 83% completion · 68 SUS · 2.5 min time-to-import.</div></div>
+    </div>
+
+    <!-- ┌─────────────────────────────────────────────────────────────┐ -->
+    <!-- │  📸 IMAGE 5 — Validation sprint (paper prototypes / wireframes)│ -->
+    <!-- └─────────────────────────────────────────────────────────────┘ -->
+    <div class="img-block fade-up">
+      <div class="img-placeholder ph-3-2" role="img" aria-label="Validation sprint — replace with paper prototype or wireframe photos">
+        <span class="ph-badge">📸 Image 5 of 11</span>
+        <span class="ph-dims">3 : 2</span>
+        <div class="ph-icon">📋</div>
+        <div class="ph-title">Validation Sprint — Paper Prototypes or Early Wireframes</div>
+        <div class="ph-desc">Low-fidelity wireframes, paper prototype photos, or Maze test result screenshots used to validate the Import-First approach before any dev investment.</div>
+        <div class="ph-spec">Photos or Figma/Maze screenshots · PNG · 1200 × 800 px recommended</div>
+      </div>
+      <p class="img-caption">2-week paper prototype sprint — tested with 10 primary users · 83% task completion</p>
+    </div>
+
+    <h3 style="margin-top:48px;">Three paths. One viable option.</h3>
+    <div class="decision-wrap fade-up">
+      <table class="decision-table">
+        <thead><tr><th scope="col">Option</th><th scope="col">Pros</th><th scope="col">Cons</th><th scope="col">Decision</th></tr></thead>
+        <tbody>
+          <tr><td scope="row" style="font-family:'Playfair Display', serif;font-weight:600;font-size:14px;color:var(--text);">Ship Schema Builder</td><td>No delay. IT Directors satisfied.</td><td>0% primary user adoption. $2.2M annual loss.</td><td style="color:var(--text-dim);font-style:italic;">Not viable.</td></tr>
+          <tr><td scope="row" style="font-family:'Playfair Display', serif;font-weight:600;font-size:14px;color:var(--text);">Add tutorials only</td><td>Fastest. No rewrite.</td><td>Cognitive load unchanged. Wrong UX in education.</td><td style="color:var(--text-dim);font-style:italic;">Not viable.</td></tr>
+          <tr class="chosen"><td scope="row">Import-First Pivot <span class="chosen-badge">CHOSEN</span></td><td>Matches primary user mental model. 83% validated completion. $2.8M ARR path.</td><td>3-week delay. Scope cuts required.</td><td>Only option that solves the primary user problem and creates a viable revenue path.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top:48px;">The solution: Import-First design</h3>
+    <div class="principles-grid fade-up">
+      <div class="principle-card"><div class="principle-icon">🎯</div><div><div class="principle-title">Intelligent Detection</div><div class="principle-body">Auto-map column headers to field types using industry-specific patterns. Recognises "Member ID", "Patient Name" without user-defined schemas.</div></div></div>
+      <div class="principle-card"><div class="principle-icon">⚡</div><div><div class="principle-title">Smart Defaults</div><div class="principle-body">Handle 80% of cases automatically. Users can override, but don't have to choose upfront.</div></div></div>
+      <div class="principle-card"><div class="principle-icon">🔓</div><div><div class="principle-title">Progressive Disclosure</div><div class="principle-body">Advanced controls hidden behind "Show Advanced Options." Power stays available without cognitive burden.</div></div></div>
+      <div class="principle-card"><div class="principle-icon">📈</div><div><div class="principle-title">Tiered Growth Model</div><div class="principle-body">Preview Mode → Real Data Mode → Advanced Mode. 78% of Preview Mode users upgraded within 60 days.</div></div></div>
+    </div>
+
+    <!-- ┌─────────────────────────────────────────────────────────────┐ -->
+    <!-- │  📸 IMAGE 6 — Import-First flow (full walkthrough)           │ -->
+    <!-- └─────────────────────────────────────────────────────────────┘ -->
+    <div class="img-block fade-up">
+      <div class="img-placeholder ph-16-7" role="img" aria-label="Import-First flow — replace with Figma flow export">
+        <span class="ph-badge">📸 Image 6 of 11</span>
+        <span class="ph-dims">16 : 7</span>
+        <div class="ph-icon">🗂️</div>
+        <div class="ph-title">Import-First Flow — Full Step-by-Step Walkthrough</div>
+        <div class="ph-desc">Multi-screen Figma flow showing: file upload → auto column detection → smart field mapping → confirmation screen. The visual centrepiece of the solution section.</div>
+        <div class="ph-spec">Figma flow frame export · PNG · 1600 × 700 px recommended</div>
+      </div>
+      <p class="img-caption">Import-First flow — upload, auto-detect, map, confirm · avg. 2.5 min time-to-first-import in validation</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FEATURES ══════════════════ -->
+<section id="features">
+  <div class="wrap">
+    <div class="section-label">Feature Deep Dives</div>
+    <h2>Three features — and the decisions behind them</h2>
+
+    <!-- Smart Segments -->
+    <h3 style="margin-bottom:8px;">01 — Smart Segments: lists that stay alive</h3>
+    <p>Diary studies showed 73% of segmentation decisions were based on recent customer actions. Users rebuilt the same lists manually every week.</p>
+    <div class="feature-split fade-up">
+      <div>
+        <h3 style="font-size:14px;color:var(--text-muted);font-weight:400;margin-bottom:10px;">Real examples from user interviews</h3>
+        <ul class="feature-examples">
+          <li>"Members who opened accounts in last 30 days but haven't set up mobile banking"</li>
+          <li>"Patients discharged from cardiology in last 7 days with no follow-up scheduled"</li>
+          <li>"Parents who haven't responded to the last 2 surveys"</li>
+        </ul>
+        <h3 style="font-size:14px;margin-top:20px;margin-bottom:10px;">Key design decisions</h3>
+        <ul class="feature-decisions">
+          <li>Conversational activity badges: "+12 new members today" — not raw data counts</li>
+          <li>Simple timeline trend — not a complex analytics graph</li>
+          <li>Alerts only for dramatic shifts (&gt;20% change) to avoid notification fatigue</li>
+          <li>A/B tested with 240 beta users — segment reuse increased 340%</li>
+        </ul>
+      </div>
+      <!-- ┌──────────────────────────────────────┐ -->
+      <!-- │  📸 IMAGE 7 — Smart Segments UI       │ -->
+      <!-- └──────────────────────────────────────┘ -->
+      <div>
+        <div class="img-placeholder ph-3-4" role="img" aria-label="Smart Segments UI — replace with Figma screenshot">
+          <span class="ph-badge">📸 Image 7 of 11</span>
+          <span class="ph-dims">3 : 4</span>
+          <div class="ph-icon">🔖</div>
+          <div class="ph-title">Smart Segments UI</div>
+          <div class="ph-desc">Segment builder with dynamic badge (e.g. "+12 new members today"), activity trend bar, and alive indicator.</div>
+          <div class="ph-spec">Figma export · PNG · 900 × 1200 px</div>
+        </div>
+        <p class="img-caption">Smart Segments · auto-updating with conversational activity badges</p>
+      </div>
+    </div>
+
+    <!-- Activity Triggers -->
+    <h3 style="margin-top:56px;margin-bottom:8px;">02 — Activity Triggers: IF this → THEN that</h3>
+    <p>73% of survey triggers in diary studies were based on recent customer actions. I designed a recipe-card UI matching mental models from Mailchimp and Constant Contact — tools primary users already knew.</p>
+    <div class="feature-split fade-up">
+      <div>
+        <ul class="feature-decisions">
+          <li>Drag-and-drop blocks with full keyboard alternatives (WCAG 2.1 AA)</li>
+          <li>Live preview: "X customers would have received this in the last 30 days"</li>
+          <li>Plain-language frequency warnings: "These members will receive 3 surveys in 14 days"</li>
+          <li>Industry-specific templates out of the box — no blank canvas</li>
+        </ul>
+      </div>
+      <!-- ┌──────────────────────────────────────┐ -->
+      <!-- │  📸 IMAGE 8 — Trigger Builder UI      │ -->
+      <!-- └──────────────────────────────────────┘ -->
+      <div>
+        <div class="img-placeholder ph-3-4" role="img" aria-label="Trigger builder UI — replace with Figma screenshot">
+          <span class="ph-badge">📸 Image 8 of 11</span>
+          <span class="ph-dims">3 : 4</span>
+          <div class="ph-icon">⚙️</div>
+          <div class="ph-title">Activity Trigger Builder</div>
+          <div class="ph-desc">Recipe-card IF/THEN interface with live preview count ("X customers would have received this") and frequency warning banner.</div>
+          <div class="ph-spec">Figma export · PNG · 900 × 1200 px</div>
+        </div>
+        <p class="img-caption">Activity trigger builder · IF/THEN recipe card with live preview</p>
+      </div>
+    </div>
+
+    <!-- Activity History -->
+    <h3 style="margin-top:56px;margin-bottom:8px;">03 — Activity History: turning a constraint into a feature</h3>
+    <div class="constraint-split fade-up">
+      <div class="constraint-card problem"><div class="constraint-card-label">⚠ Infrastructure Constraint</div><p style="font-size:14px;line-height:1.6;">Database costs limited activity retention to 90 days. Silently deleting data wasn't an option for regulated industries.</p></div>
+      <div class="constraint-card solution"><div class="constraint-card-label">→ Design Response</div><p style="font-size:14px;line-height:1.6;"><strong>Key Moments:</strong> users flag up to 50 activities per contact for permanent retention. Beta users flagged an average of 12. The 90-day constraint became invisible.</p></div>
+    </div>
+
+    <!-- ┌─────────────────────────────────────────────────────────────┐ -->
+    <!-- │  📸 IMAGE 9 — Activity History / Key Moments UI             │ -->
+    <!-- └─────────────────────────────────────────────────────────────┘ -->
+    <div class="img-block fade-up">
+      <div class="img-placeholder ph-16-6" role="img" aria-label="Key Moments UI — replace with Figma screenshot of activity timeline">
+        <span class="ph-badge">📸 Image 9 of 11</span>
+        <span class="ph-dims">16 : 6</span>
+        <div class="ph-icon">📌</div>
+        <div class="ph-title">Key Moments — Activity History Timeline</div>
+        <div class="ph-desc">Contact activity timeline with the "flag for permanent retention" interaction highlighted. Shows how the 90-day infrastructure constraint was made invisible to primary users.</div>
+        <div class="ph-spec">Figma screenshot · PNG · 1600 × 600 px recommended</div>
+      </div>
+      <p class="img-caption">Activity timeline with Key Moments flagging — 90-day cap invisible to primary users</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ IMPACT ══════════════════ -->
+<section id="impact">
+  <div class="wrap">
+    <div class="section-label">Outcomes</div>
+    <h2>Three months post-launch</h2>
+    <div class="impact-grid fade-up">
+      <div class="impact-card"><div class="impact-big">50%↓</div><div class="impact-label">Survey Launch Time</div><div class="impact-sub">3.2 hrs → 1.6 hrs</div></div>
+      <div class="impact-card"><div class="impact-big">89%</div><div class="impact-label">Feature Adoption</div><div class="impact-sub">↑ 162% from 34% baseline</div></div>
+      <div class="impact-card"><div class="impact-big">83%↓</div><div class="impact-label">Support Tickets</div><div class="impact-sub">Import-related</div></div>
+      <div class="impact-card"><div class="impact-big">$2.1M</div><div class="impact-label">Incremental ARR</div><div class="impact-sub">Tracked cohort · 12 months</div></div>
+      <div class="impact-card"><div class="impact-big">23%↑</div><div class="impact-label">Plan Upgrade Rate</div><div class="impact-sub">Post-launch cohort</div></div>
+      <div class="impact-card"><div class="impact-big">18%↑</div><div class="impact-label">12-Month Renewals</div><div class="impact-sub">vs. prior year cohort</div></div>
+    </div>
+
+    <!-- ┌─────────────────────────────────────────────────────────────┐ -->
+    <!-- │  📸 IMAGE 10 — Analytics dashboard (Amplitude)              │ -->
+    <!-- └─────────────────────────────────────────────────────────────┘ -->
+    <div class="img-block fade-up">
+      <div class="img-placeholder ph-16-6" role="img" aria-label="Product analytics — replace with Amplitude or annotated dashboard screenshot">
+        <span class="ph-badge">📸 Image 10 of 11</span>
+        <span class="ph-dims">16 : 6</span>
+        <div class="ph-icon">📊</div>
+        <div class="ph-title">Product Analytics — Feature Adoption Curve</div>
+        <div class="ph-desc">Amplitude export or annotated screenshot showing adoption over time, plan upgrade funnel, or support ticket reduction chart. Annotate key milestones: launch date, Preview Mode rollout.</div>
+        <div class="ph-spec">Amplitude export or annotated screenshot · PNG · 1600 × 600 px recommended</div>
+      </div>
+      <p class="img-caption">Feature adoption curve · 34% baseline → 89% post-launch · Amplitude</p>
+    </div>
+
+    <div class="wins-grid fade-up">
+      <div class="win-card"><div class="win-icon">✦</div><div class="win-body">78% of users who started with Preview Mode upgraded their plan within 60 days — vs. 31% baseline.</div><div class="win-stat">Preview Mode → plan upgrade</div></div>
+      <div class="win-card"><div class="win-icon">↺</div><div class="win-body">Dynamic segments increased segment reuse by 340% and reduced duplicate segment creation by 67%, validated across 240 beta users.</div><div class="win-stat">Validated · 240 beta users</div></div>
+      <div class="win-card"><div class="win-icon">⊞</div><div class="win-body">47-component design system adopted by 2 additional product teams — contributing to 40% faster design-to-development time.</div><div class="win-stat">2 teams · 47 components</div></div>
+    </div>
+
+    <div class="pull-quote fade-up">
+      <blockquote>"I used to dread setting up surveys. Now I actually look forward to it."</blockquote>
+      <cite>— Credit Union Marketing Director</cite>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ DESIGN SYSTEM ══════════════════ -->
+<section id="system">
+  <div class="wrap">
+    <div class="section-label">Systems Contribution</div>
+    <h2>47-component library — adopted beyond this project</h2>
+    <p>Building end-to-end ownership meant owning the component system too. The 47-component library I built was adopted by two additional product teams — contributing to 40% faster design-to-development time platform-wide.</p>
+
+    <!-- ┌─────────────────────────────────────────────────────────────┐ -->
+    <!-- │  📸 IMAGE 11 — Design system / component library            │ -->
+    <!-- └─────────────────────────────────────────────────────────────┘ -->
+    <div class="img-block fade-up">
+      <div class="img-placeholder ph-16-7" role="img" aria-label="Design system — replace with Figma component library screenshot">
+        <span class="ph-badge">📸 Image 11 of 11</span>
+        <span class="ph-dims">16 : 7</span>
+        <div class="ph-icon">🧩</div>
+        <div class="ph-title">Design System — Component Library Overview</div>
+        <div class="ph-desc">Figma component library page showing key components: buttons, form inputs, data tables, cards, chips, modals, and empty states. Can include token grid or variant documentation.</div>
+        <div class="ph-spec">Figma component page export · PNG · 1600 × 700 px recommended</div>
+      </div>
+      <p class="img-caption">47-component Figma library — adopted across 3 product teams</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ SCOPE ══════════════════ -->
+<section id="scope">
+  <div class="wrap">
+    <div class="section-label">Scope Decisions</div>
+    <h2>Three things I chose not to build — and why</h2>
+    <p>Knowing what to cut is as important as knowing what to ship.</p>
+    <div class="cuts-grid fade-up">
+      <div class="cut-card"><div class="cut-title"><span class="cut-x">✕</span> Advanced Data Transformation Tools</div><div class="cut-body">Only 12% of primary users had the skills for this — and they preferred Excel for complex transforms anyway. 4–6 week delay to serve a minority with a working solution.</div><div class="cut-evidence">Evidence: skill assessment · 32 interviews</div></div>
+      <div class="cut-card"><div class="cut-title"><span class="cut-x">✕</span> Real-Time Collaboration</div><div class="cut-body">94% of users worked individually. Shipped version history and "last edited by" indicators instead — the safety net without co-editing overhead.</div><div class="cut-evidence">Evidence: diary study · 94% solo usage</div></div>
+      <div class="cut-card"><div class="cut-title"><span class="cut-x">✕</span> Industry-Specific Data Models at Launch</div><div class="cut-body">Would have delayed launch 4–6 months. Smart detection recognised 87% of common field patterns. Healthcare templates shipped in Phase 2 after adoption data confirmed fit.</div><div class="cut-evidence">Shipped: Phase 2 · post-adoption data</div></div>
+    </div>
+    <div class="callout green fade-up">Scope cuts recovered 3 weeks of the pivot delay — bringing a 6-week delay down to 3.</div>
+  </div>
+</section>
+
+<!-- ══════════════════ REFLECTION ══════════════════ -->
+<section id="reflection">
+  <div class="wrap">
+    <div class="section-label">Reflection</div>
+    <h2>What this project changed about how I work</h2>
+    <div class="reflection-stack fade-up">
+      <div class="reflection-item"><div class="r-num">1</div><div><div class="r-title">Design for primary users. Accommodate secondary users.</div><div class="r-body">Secondary users are more articulate. But primary users are the ones who come back on Tuesday, and Thursday, and Monday after that. Optimise for daily operators and build escape hatches for edge cases.</div></div></div>
+      <div class="reflection-item"><div class="r-num">2</div><div><div class="r-title">Test early with the right users — not just any users.</div><div class="r-body">We invested 6 weeks before testing with primary users. Paper prototypes with 6 primary users in Week 2 would have surfaced this cleanly. I now require 3 primary user tests with low-fidelity prototypes in the first two weeks of every project.</div></div></div>
+      <div class="reflection-item"><div class="r-num">3</div><div><div class="r-title">Mental models beat feature completeness.</div><div class="r-body">The Schema Builder was more powerful. It failed because it didn't match how primary users thought. Before adding features I now ask: does this match how primary users already think? If not — change the feature, not the documentation.</div></div></div>
+      <div class="reflection-item"><div class="r-num">4</div><div><div class="r-title">Sample data removes the leap of faith.</div><div class="r-body">For non-technical users in regulated industries, perceived risk often exceeds actual complexity. Preview Mode with realistic sample data was the single highest-impact design decision in the project.</div></div></div>
+      <div class="reflection-item"><div class="r-num">5</div><div><div class="r-title">Frame design decisions in the language of the room.</div><div class="r-body">I didn't convince leadership with "better UX." I framed it as a $2.2M annual revenue decision. The same design argument can be made in three languages — lead with the one that lands.</div></div></div>
+    </div>
+    <h3 style="margin-top:40px;">Tools used</h3>
+    <div class="tools-row">
+      <span class="tool-badge">Figma</span><span class="tool-badge">Maze</span><span class="tool-badge">Amplitude</span><span class="tool-badge">Dovetail</span><span class="tool-badge">Miro</span>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>[YOUR NAME] · UX Designer · <a href="/cdn-cgi/l/email-protection#44" style="color:var(--accent);text-decoration:none;">[YOUR EMAIL]</a> · <a href="#" style="color:var(--accent);text-decoration:none;">LinkedIn</a></p>
+  </div>
+</footer>
+
+
+<script>
+  const nav = document.getElementById('main-nav');
+  window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 40); }, { passive: true });
+
+  // Enable entrance animations only when JS is running — elements are visible by default (CSS fallback)
+  document.body.classList.add('js-ready');
+
+  const fadeEls = document.querySelectorAll('.fade-up');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 60);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
+
+  // Immediately reveal elements already in the viewport on page load
+  fadeEls.forEach(el => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight) {
+      el.classList.add('visible');
+    } else {
+      observer.observe(el);
+    }
+  });
+</script>
+</body>
+</html>

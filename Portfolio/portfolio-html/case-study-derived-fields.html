@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script>
+  // Client-side protection against direct URLs
+  (function(){
+    let unlocked = false;
+    for (let i = 0; i < sessionStorage.length; i++) {
+      let key = sessionStorage.key(i);
+      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
+        unlocked = true; break;
+      }
+    }
+    if (!unlocked) { window.location.href = 'index.html'; }
+  })();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Study — AI-Powered Derived Fields</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f2ec;
+  --bg2: #f5f2ec;
+  --bg3: #f5f2ec;
+  --bg4: #f5f2ec;
+  --accent: #c94c2e;
+  --accent2: rgba(201, 76, 46, 0.1);
+  --accent3: rgba(201, 76, 46, 0.1);
+  --text: #0d0f14;
+  --muted: #7A7370;
+  --faint: #3A3635;
+  --border: #d9d4cc;
+  --border2: #d9d4cc;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  line-height: 1.7;
+  overflow-x: hidden;
+  cursor: none;
+}
+.cursor {
+  position: fixed; width: 8px; height: 8px;
+  background: var(--accent); border-radius: 50%;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: transform 0.15s, opacity 0.2s;
+}
+.cursor-ring {
+  position: fixed; width: 32px; height: 32px;
+  border: 1px solid rgba(255,59,31,0.35); border-radius: 50%;
+  pointer-events: none; z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: width 0.2s, height 0.2s;
+}
+
+/* Nav */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.25rem 3rem;
+  background: #f5f2ec;
+  border-bottom: 1px solid var(--border);
+}
+.nav-back {
+  font-family: 'DM Mono', monospace; font-size: 0.65rem;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none;
+  display: flex; align-items: center; gap: 0.6rem;
+  transition: color 0.2s;
+}
+.nav-back:hover { color: var(--accent); }
+.nav-title {
+  font-family: 'DM Mono', monospace; font-size: 0.65rem;
+  letter-spacing: 0.08em; color: var(--muted);
+}
+.nav-tag {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); border: 1px solid rgba(255,59,31,0.3);
+  padding: 0.25rem 0.75rem; border-radius: 2px;
+}
+
+/* Hero */
+.cs-hero {
+  min-height: 100vh; display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 0 3rem 5rem;
+  padding-top: 100px; position: relative; overflow: hidden;
+}
+.cs-hero-bg {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse 60% 50% at 80% 40%, rgba(255,59,31,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cs-hero-grid {
+  display: grid; grid-template-columns: 2fr 1fr;
+  gap: 5rem; align-items: end; position: relative;
+}
+.cs-label {
+  font-family: 'DM Mono', monospace; font-size: 0.65rem;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent);
+  margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem;
+}
+.cs-label::before {
+  content: ''; width: 2rem; height: 1px; background: var(--accent);
+}
+.cs-hero-title {
+  font-family: 'Playfair Display', serif; font-weight: 900;
+  font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 1.0;
+  letter-spacing: -0.03em; margin-bottom: 2rem;
+}
+.cs-hero-title em {
+  font-style: italic; font-weight: 300; color: var(--muted);
+}
+.cs-hero-sub {
+  font-size: 1rem; color: var(--muted); max-width: 560px;
+  line-height: 1.8; margin-bottom: 2.5rem;
+}
+.cs-chips {
+  display: flex; flex-wrap: wrap; gap: 0.5rem;
+}
+.cs-chip {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.08em; color: var(--muted);
+  border: 1px solid var(--border2); padding: 0.3rem 0.8rem;
+  border-radius: 2px;
+}
+.cs-chip.hi { color: var(--accent); border-color: rgba(255,59,31,0.3); }
+.cs-meta-panel {
+  display: flex; flex-direction: column; gap: 2rem;
+  padding: 2rem; border: 1px solid var(--border2);
+  background: var(--bg2);
+}
+.cs-meta-row { }
+.cs-meta-key {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  margin-bottom: 0.3rem;
+}
+.cs-meta-val {
+  font-size: 0.85rem; color: var(--text); line-height: 1.5;
+}
+.cs-hero-scroll {
+  position: absolute; bottom: 2rem; left: 3rem;
+  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint);
+  display: flex; align-items: center; gap: 0.75rem;
+}
+.cs-hero-scroll::after {
+  content: ''; width: 60px; height: 1px; background: var(--faint);
+}
+
+/* Progress bar */
+.progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px;
+  background: var(--accent); z-index: 200;
+  width: 0%; transition: width 0.1s linear;
+}
+
+/* Content wrapper */
+.cs-body {
+  max-width: 900px; margin: 0 auto; padding: 0 3rem;
+}
+
+/* Section */
+.cs-section {
+  padding: 5rem 0;
+  border-top: 1px solid var(--border);
+}
+.cs-section:first-child { border-top: none; }
+.step-label {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 0.5rem;
+}
+.cs-section-title {
+  font-family: 'Playfair Display', serif; font-weight: 700;
+  font-size: clamp(1.8rem, 3vw, 2.5rem); line-height: 1.1;
+  letter-spacing: -0.02em; margin-bottom: 2rem;
+}
+.cs-section-title em {
+  font-style: italic; font-weight: 300; color: var(--muted);
+}
+.cs-body-text {
+  font-size: 0.95rem; color: var(--muted); line-height: 1.85;
+  margin-bottom: 1.5rem; max-width: 680px;
+}
+.cs-body-text strong { color: var(--text); font-weight: 400; }
+
+/* Problem framing grid */
+.problem-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--border2); margin: 2.5rem 0;
+}
+.pg-col { padding: 1.75rem 1.25rem; border-right: 1px solid var(--border); }
+.pg-col:last-child { border-right: none; }
+.pg-head {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
+}
+.pg-item {
+  font-size: 0.8rem; color: var(--muted); line-height: 1.6;
+  margin-bottom: 0.75rem; padding-left: 0.75rem;
+  border-left: 1px solid var(--faint);
+}
+.pg-item strong { color: var(--text); font-weight: 400; }
+
+/* Journey map */
+.journey-table {
+  width: 100%; border-collapse: collapse;
+  margin: 2.5rem 0; font-size: 0.78rem;
+}
+.journey-table th {
+  font-family: 'DM Mono', monospace; font-size: 0.58rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); padding: 0.75rem 1rem;
+  background: var(--bg2); border: 1px solid var(--border);
+  font-weight: 400; text-align: left;
+}
+.journey-table td {
+  padding: 0.9rem 1rem; border: 1px solid var(--border);
+  vertical-align: top; color: var(--muted); line-height: 1.6;
+}
+.journey-table td.stage-name {
+  font-family: 'DM Mono', monospace; font-size: 0.65rem;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text); font-weight: 500; background: var(--bg2);
+  white-space: nowrap;
+}
+.journey-table td.pain { background: rgba(255,59,31,0.04); }
+.journey-table td.peak {
+  background: rgba(255,59,31,0.08);
+  border-color: rgba(255,59,31,0.2);
+  color: var(--text);
+}
+.peak-label {
+  font-family: 'DM Mono', monospace; font-size: 0.55rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); display: block; margin-bottom: 0.3rem;
+}
+.journey-table td.opp { background: rgba(59,255,212,0.04); color: var(--text); }
+
+/* Insight cards */
+.insights { display: flex; flex-direction: column; gap: 1px; margin: 2.5rem 0; }
+.insight-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  padding: 2rem; display: grid; grid-template-columns: 40px 1fr;
+  gap: 1.5rem; align-items: start;
+  transition: border-color 0.2s;
+}
+.insight-card:hover { border-color: rgba(255,59,31,0.25); }
+.insight-num {
+  font-family: 'Playfair Display', serif; font-weight: 900;
+  font-size: 2.5rem; color: var(--faint); line-height: 1;
+  letter-spacing: -0.04em;
+}
+.insight-body { }
+.insight-title {
+  font-family: 'Playfair Display', serif; font-weight: 700;
+  font-size: 1.05rem; margin-bottom: 1rem; line-height: 1.3;
+}
+.insight-row {
+  display: grid; grid-template-columns: 130px 1fr;
+  gap: 0.5rem 1rem; margin-bottom: 0.5rem; align-items: baseline;
+}
+.insight-row-key {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+}
+.insight-row-val {
+  font-size: 0.82rem; color: var(--muted); line-height: 1.6;
+}
+.insight-row-val strong { color: var(--text); font-weight: 400; }
+
+/* Decision framework */
+.decision-table {
+  width: 100%; border-collapse: collapse; margin: 2.5rem 0; font-size: 0.8rem;
+}
+.decision-table th {
+  font-family: 'DM Mono', monospace; font-size: 0.58rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  padding: 0.75rem 1.25rem; background: var(--bg2);
+  border: 1px solid var(--border); font-weight: 400; text-align: left;
+}
+.decision-table td {
+  padding: 1rem 1.25rem; border: 1px solid var(--border);
+  color: var(--muted); line-height: 1.6; vertical-align: top;
+}
+.decision-table td strong { color: var(--text); font-weight: 400; }
+.decision-table tr.chosen td { background: rgba(255,59,31,0.04); }
+.decision-table tr.chosen td:first-child {
+  border-left: 2px solid var(--accent); color: var(--text);
+}
+.chosen-badge {
+  font-family: 'DM Mono', monospace; font-size: 0.55rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); display: block; margin-top: 0.25rem;
+}
+
+/* Solution flow */
+.flow-steps {
+  display: flex; flex-direction: column; gap: 1px; margin: 2.5rem 0;
+}
+.flow-step {
+  display: grid; grid-template-columns: 48px 1fr;
+  background: var(--bg2); border: 1px solid var(--border);
+  overflow: hidden;
+}
+.flow-step-num {
+  font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.1rem;
+  color: var(--bg3); background: var(--bg3); display: flex;
+  align-items: center; justify-content: center;
+  border-right: 1px solid var(--border); min-height: 64px;
+  letter-spacing: -0.04em;
+}
+.flow-step:hover .flow-step-num { background: var(--accent); color: var(--bg); }
+.flow-step-content { padding: 1rem 1.5rem; }
+.flow-step-title {
+  font-size: 0.85rem; font-weight: 500; color: var(--text);
+  margin-bottom: 0.25rem;
+}
+.flow-step-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.6; }
+.flow-step-ai {
+  font-family: 'DM Mono', monospace; font-size: 0.55rem;
+  letter-spacing: 0.08em; color: var(--accent);
+  background: rgba(255,59,31,0.08); padding: 0.15rem 0.5rem;
+  border-radius: 2px; display: inline-block; margin-top: 0.3rem;
+}
+
+/* Two-col */
+.two-col {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin: 2.5rem 0;
+}
+.two-col-card {
+  background: var(--bg2); border: 1px solid var(--border); padding: 1.75rem;
+}
+.two-col-head {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+  margin-bottom: 1rem; padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.two-col-head.accent { color: var(--accent); }
+.two-col-item {
+  font-size: 0.8rem; color: var(--muted); line-height: 1.65;
+  margin-bottom: 0.6rem; padding-left: 1rem; position: relative;
+}
+.two-col-item::before {
+  content: ''; position: absolute; left: 0; top: 0.6rem;
+  width: 3px; height: 3px; border-radius: 50%; background: var(--faint);
+}
+.two-col-item strong { color: var(--text); font-weight: 400; }
+
+/* Impact dashboard */
+.impact-big {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  border: 1px solid var(--border2); margin: 2.5rem 0;
+  background: var(--bg2);
+}
+.impact-stat {
+  padding: 2rem 1.5rem; border-right: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.impact-stat:last-child { border-right: none; }
+.impact-stat:hover { background: var(--bg3); }
+.impact-val {
+  font-family: 'Playfair Display', serif; font-weight: 900;
+  font-size: 2.8rem; line-height: 1; letter-spacing: -0.04em;
+  color: var(--text); margin-bottom: 0.4rem;
+}
+.impact-val .acc { color: var(--accent); }
+.impact-key {
+  font-family: 'DM Mono', monospace; font-size: 0.58rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+}
+.impact-qual {
+  border: 1px solid var(--border); border-top: none;
+  background: rgba(255,59,31,0.03); padding: 1.5rem 2rem;
+  margin-bottom: 2.5rem;
+}
+.impact-qual-head {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+  margin-bottom: 1rem;
+}
+.impact-qual-item {
+  font-size: 0.82rem; color: var(--muted); line-height: 1.7;
+  padding: 0.5rem 0; border-bottom: 1px solid var(--border);
+  display: flex; gap: 0.75rem;
+}
+.impact-qual-item:last-child { border-bottom: none; }
+.impact-qual-item::before { content: '→'; color: var(--accent); flex-shrink: 0; }
+
+/* Testing phases */
+.phases {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 1px; margin: 2rem 0;
+}
+.phase {
+  background: var(--bg2); border: 1px solid var(--border); padding: 1.25rem;
+}
+.phase-name {
+  font-family: 'DM Mono', monospace; font-size: 0.58rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+.phase-gate {
+  font-size: 0.75rem; font-weight: 500; color: var(--text);
+  margin-bottom: 0.35rem;
+}
+.phase-desc {
+  font-size: 0.72rem; color: var(--muted); line-height: 1.6;
+}
+
+/* Risk callout */
+.risks {
+  background: rgba(255,59,31,0.04); border: 1px solid rgba(255,59,31,0.15);
+  padding: 2rem; margin: 2rem 0;
+}
+.risks-head {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent);
+  margin-bottom: 1.25rem;
+}
+.risk-item {
+  display: flex; gap: 1rem; padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255,59,31,0.1);
+  font-size: 0.82rem; line-height: 1.6;
+}
+.risk-item:last-child { border-bottom: none; }
+.risk-num {
+  font-family: 'Playfair Display', serif; font-weight: 700;
+  font-size: 1.1rem; color: var(--accent); flex-shrink: 0;
+  line-height: 1.4;
+}
+.risk-text { color: var(--muted); }
+.risk-text strong { color: var(--text); font-weight: 400; }
+
+/* Reflection */
+.reflection-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; margin: 2.5rem 0;
+}
+.reflection-card {
+  background: var(--bg2); border: 1px solid var(--border); padding: 1.75rem;
+}
+.reflection-label {
+  font-family: 'DM Mono', monospace; font-size: 0.58rem;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+.reflection-title {
+  font-family: 'Playfair Display', serif; font-weight: 700;
+  font-size: 1rem; margin-bottom: 0.75rem; line-height: 1.3;
+}
+.reflection-body {
+  font-size: 0.8rem; color: var(--muted); line-height: 1.7;
+}
+.reflection-body strong { color: var(--text); font-weight: 400; }
+
+/* Quote block */
+.pullquote {
+  font-family: 'Playfair Display', serif; font-style: italic; font-weight: 300;
+  font-size: 1.4rem; line-height: 1.5; color: var(--text);
+  border-left: 3px solid var(--accent); padding: 0.5rem 0 0.5rem 2rem;
+  margin: 3rem 0;
+}
+
+/* Footer */
+.cs-footer {
+  margin-top: 6rem; padding: 3rem;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.cs-footer p {
+  font-family: 'DM Mono', monospace; font-size: 0.62rem;
+  color: var(--muted); letter-spacing: 0.06em;
+}
+.footer-dot { color: var(--accent); }
+.next-link {
+  font-family: 'DM Mono', monospace; font-size: 0.65rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  text-decoration: none; transition: color 0.2s;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.next-link:hover { color: var(--accent); }
+
+/* TAM */
+.tam-wrapper { margin: 2.5rem 0; }
+.tam-total {
+  background: var(--bg2); border: 1px solid var(--border2);
+  padding: 2.5rem; display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 1px;
+}
+.tam-total-num {
+  font-family: 'Playfair Display', serif; font-weight: 900;
+  font-size: 4rem; line-height: 1; letter-spacing: -0.05em; color: var(--text);
+}
+.tam-total-num .acc { color: var(--accent); font-size: 2.5rem; }
+.tam-total-right { text-align: right; }
+.tam-total-label {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+.tam-total-desc { font-size: 0.82rem; color: var(--muted); max-width: 380px; line-height: 1.6; text-align: right; }
+.tam-tiers {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px;
+}
+.tam-tier {
+  background: var(--bg2); border: 1px solid var(--border);
+  padding: 1.75rem; position: relative; overflow: hidden;
+}
+.tam-tier::before {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px; background: var(--faint);
+}
+.tam-tier.t1::before { background: var(--accent); }
+.tam-tier.t2::before { background: rgba(255,59,31,0.5); }
+.tam-tier.t3::before { background: rgba(255,59,31,0.2); }
+.tam-tier-badge {
+  font-family: 'DM Mono', monospace; font-size: 0.58rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+.tam-tier-val {
+  font-family: 'Playfair Display', serif; font-weight: 900;
+  font-size: 2.2rem; line-height: 1; letter-spacing: -0.04em;
+  color: var(--text); margin-bottom: 0.5rem;
+}
+.tam-tier-val .acc { color: var(--accent); }
+.tam-tier-name {
+  font-size: 0.82rem; font-weight: 500; color: var(--text); margin-bottom: 0.35rem;
+}
+.tam-tier-desc {
+  font-size: 0.75rem; color: var(--muted); line-height: 1.6;
+}
+.tam-source {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  color: var(--faint); margin-top: 1rem; letter-spacing: 0.06em;
+}
+
+/* Competitive analysis */
+.comp-table-wrap { margin: 2.5rem 0; overflow-x: auto; }
+.comp-table {
+  width: 100%; border-collapse: collapse; font-size: 0.78rem;
+  min-width: 700px;
+}
+.comp-table th {
+  font-family: 'DM Mono', monospace; font-size: 0.58rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  padding: 0.75rem 1rem; background: var(--bg2);
+  border: 1px solid var(--border); font-weight: 400; text-align: left;
+}
+.comp-table td {
+  padding: 1rem; border: 1px solid var(--border);
+  vertical-align: top; line-height: 1.6; color: var(--muted);
+}
+.comp-table tr:hover td { background: rgba(255,59,31,0.02); }
+.comp-table td.comp-name {
+  font-weight: 500; color: var(--text); white-space: nowrap;
+  background: var(--bg2);
+}
+.comp-table td.comp-name .comp-type {
+  font-family: 'DM Mono', monospace; font-size: 0.58rem;
+  letter-spacing: 0.06em; color: var(--muted); font-weight: 400;
+  display: block; margin-top: 0.2rem;
+}
+.comp-pill {
+  font-family: 'DM Mono', monospace; font-size: 0.58rem;
+  letter-spacing: 0.06em; padding: 0.15rem 0.55rem;
+  border-radius: 2px; display: inline-block;
+  border: 1px solid var(--border); color: var(--muted);
+}
+.comp-pill.yes { border-color: rgba(59,255,212,0.3); color: var(--accent3); }
+.comp-pill.partial { border-color: rgba(245,200,66,0.3); color: var(--accent2); }
+.comp-pill.no { border-color: var(--faint); color: var(--faint); }
+.comp-pill.win { border-color: rgba(255,59,31,0.4); color: var(--accent); background: rgba(255,59,31,0.06); }
+.comp-table tr.ours td { background: rgba(255,59,31,0.04); }
+.comp-table tr.ours td.comp-name { border-left: 2px solid var(--accent); }
+.comp-gap-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 2.5rem;
+}
+.comp-gap-card {
+  background: var(--bg2); border: 1px solid var(--border); padding: 1.75rem;
+}
+.comp-gap-head {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  margin-bottom: 0.75rem; padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.comp-gap-head.gap { color: var(--accent3); }
+.comp-gap-head.opp { color: var(--accent); }
+.comp-gap-item {
+  font-size: 0.8rem; color: var(--muted); line-height: 1.65;
+  margin-bottom: 0.6rem; padding-left: 1rem; position: relative;
+}
+.comp-gap-item::before {
+  content: ''; position: absolute; left: 0; top: 0.65rem;
+  width: 3px; height: 3px; border-radius: 50%;
+}
+.comp-gap-card.gap .comp-gap-item::before { background: var(--accent3); }
+.comp-gap-card.opp .comp-gap-item::before { background: var(--accent); }
+.comp-gap-item strong { color: var(--text); font-weight: 400; }
+
+/* Reveal */
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.65s ease, transform 0.65s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+@media (max-width: 900px) {
+  nav { padding: 1rem 1.25rem; }
+  .cs-hero { padding: 1.25rem; padding-top: 90px; padding-bottom: 3rem; }
+  .cs-hero-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+  .cs-body { padding: 0 1.25rem; }
+  .problem-grid { grid-template-columns: 1fr 1fr; }
+  .pg-col { border-bottom: 1px solid var(--border); }
+  .impact-big { grid-template-columns: 1fr 1fr; }
+  .phases { grid-template-columns: 1fr 1fr; }
+  .reflection-grid, .two-col { grid-template-columns: 1fr; }
+  .journey-table { font-size: 0.7rem; }
+  .cs-hero-title { font-size: 2.2rem; }
+  .tam-tiers { grid-template-columns: 1fr; }
+  .tam-total { flex-direction: column; gap: 1.5rem; }
+  .tam-total-desc { text-align: left; }
+  .comp-gap-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav>
+  <a href="index.html" style="color: var(--accent); font-weight: 700; margin-right: auto; padding-left: 20px; text-decoration: none;">← Home</a>
+  <a href="portfolio.html" class="nav-back">← Portfolio</a>
+  <span class="nav-title">AI-Powered Derived Fields</span>
+  <span class="nav-tag">AI/ML UX · B2B SaaS · 2024</span>
+</nav>
+
+<!-- HERO -->
+<div class="cs-hero">
+  <div class="cs-hero-bg"></div>
+  <div class="cs-hero-grid">
+    <div>
+      <div class="cs-label reveal">Case study 01</div>
+      <h1 class="cs-hero-title reveal reveal-delay-1">
+        Designing AI that surfaces what analysts<br>
+        <em>didn't know to ask for</em>
+      </h1>
+      <p class="cs-hero-sub reveal reveal-delay-2">
+        I led the end-to-end UX design of an AI feature that reads a contact Directory schema, 
+        infers the business domain, and proactively suggests computed fields — while also building 
+        formulas from natural language. I shaped the capability architecture, trust model, 
+        RBAC design, and sensitive-data policy across PM, engineering, data science, and legal.
+      </p>
+      <div class="cs-chips reveal reveal-delay-3">
+        <span class="cs-chip hi">AI / ML UX</span>
+        <span class="cs-chip hi">Systems design</span>
+        <span class="cs-chip">B2B SaaS</span>
+        <span class="cs-chip">Survey & research platform</span>
+        <span class="cs-chip">0→1 feature</span>
+        <span class="cs-chip">Banking · Healthcare · CX</span>
+      </div>
+    </div>
+    <div class="cs-meta-panel reveal reveal-delay-2">
+      <div class="cs-meta-row">
+        <div class="cs-meta-key">My role</div>
+        <div class="cs-meta-val">Lead UX Designer — end-to-end ownership from capability definition to trust architecture</div>
+      </div>
+      <div class="cs-meta-row">
+        <div class="cs-meta-key">Collaborators</div>
+        <div class="cs-meta-val">Product Manager · Engineering lead · Data science · Legal / Compliance</div>
+      </div>
+      <div class="cs-meta-row">
+        <div class="cs-meta-key">Timeline</div>
+        <div class="cs-meta-val">[PLACEHOLDER: e.g. 14 weeks, discovery through beta]</div>
+      </div>
+      <div class="cs-meta-row">
+        <div class="cs-meta-key">Platform</div>
+        <div class="cs-meta-val">Enterprise survey & research platform — Directory module</div>
+      </div>
+      <div class="cs-meta-row">
+        <div class="cs-meta-key">Status</div>
+        <div class="cs-meta-val">[PLACEHOLDER: Shipped / In beta / Designed — add real status]</div>
+      </div>
+    </div>
+  </div>
+  <div class="cs-hero-scroll">Scroll to read</div>
+</div>
+
+<div class="cs-body">
+
+<!-- STEP 1: OVERVIEW -->
+<div class="cs-section reveal">
+  <div class="step-label">Step 01 · Overview</div>
+  <h2 class="cs-section-title">The problem <em>hiding behind</em> the feature request</h2>
+  <p class="cs-body-text">
+    The platform's Directory module let business analysts store contact data — names, account numbers, 
+    credit scores, loan details — but had no way to compute values from it. Every derived metric 
+    (customer tenure, dormancy flags, loan maturity, CLV) required a manual Excel export-calculate-reimport 
+    cycle. Data went stale. Analysts lost trust in the platform as a source of truth and 
+    reached for spreadsheets at the worst moments.
+  </p>
+  <p class="cs-body-text">
+    The initial request was simple: <strong>add a formula field type</strong>. 
+    I reframed it as a larger product opportunity: 
+    <strong>if analysts don't know what formulas to build, a blank formula builder solves nothing.</strong> 
+    The real value was an AI layer that could read the schema, infer the domain context, 
+    and surface computed fields the analyst didn't know they needed — before they asked.
+  </p>
+  <div class="pullquote">
+    "The aha moment isn't AI wrote my formula faster. It's AI told me I should track customer dormancy, 
+    and I hadn't thought of that."
+  </div>
+</div>
+
+<!-- MARKET OPPORTUNITY: TAM -->
+<div class="cs-section reveal">
+  <div class="step-label">Market sizing · TAM / SAM / SOM</div>
+  <h2 class="cs-section-title">A <em>$4.8B whitespace</em> no one has solved</h2>
+  <p class="cs-body-text">
+    The derived fields opportunity sits at the intersection of three converging markets: 
+    enterprise survey & research platforms, business intelligence tooling, and the emerging 
+    AI-assisted data enrichment category. No player currently combines schema-aware AI suggestion 
+    with in-platform formula computation across these verticals — making this a genuine whitespace, 
+    not a feature catch-up.
+  </p>
+
+  <div class="tam-wrapper">
+    <div class="tam-total">
+      <div>
+        <div class="tam-total-label">Total addressable market</div>
+        <div class="tam-total-num">$4.8<span class="acc">B</span></div>
+      </div>
+      <div class="tam-total-right">
+        <div class="tam-total-label">Scope</div>
+        <div class="tam-total-desc">
+          Enterprise survey, research & CX platforms globally requiring in-platform data enrichment 
+          and computed analytics — Banking, Healthcare, Retail, and Government verticals, 2024 estimate.
+        </div>
+      </div>
+    </div>
+    <div class="tam-tiers">
+      <div class="tam-tier t1">
+        <div class="tam-tier-badge">TAM — Total addressable</div>
+        <div class="tam-tier-val">$4.8<span class="acc">B</span></div>
+        <div class="tam-tier-name">Enterprise survey & CX platforms globally</div>
+        <div class="tam-tier-desc">
+          All enterprise organisations using survey and research platforms who need 
+          real-time computed contact metrics — estimated at 180,000+ enterprise accounts 
+          across 40 countries. Includes Qualtrics, Medallia, Verint, and niche vertical platforms.
+        </div>
+      </div>
+      <div class="tam-tier t2">
+        <div class="tam-tier-badge">SAM — Serviceable addressable</div>
+        <div class="tam-tier-val">$1.2<span class="acc">B</span></div>
+        <div class="tam-tier-name">Platforms with structured Directory / contact modules</div>
+        <div class="tam-tier-desc">
+          Subset of enterprise survey platforms that have a structured contact or stakeholder 
+          Directory — the prerequisite for derived fields. Estimated at 40,000–60,000 enterprise 
+          accounts, heavily concentrated in Banking, Healthcare, and CX-intensive retail.
+        </div>
+      </div>
+      <div class="tam-tier t3">
+        <div class="tam-tier-badge">SOM — Serviceable obtainable (3yr)</div>
+        <div class="tam-tier-val">$180<span class="acc">M</span></div>
+        <div class="tam-tier-name">Reachable via current platform + vertical expansion</div>
+        <div class="tam-tier-desc">
+          Accounts reachable through existing customer base + Banking and Healthcare vertical 
+          go-to-market in years 1–3. Assumes 12–15% conversion of eligible Directory accounts 
+          to Derived Fields feature tier, with AI capabilities priced as a platform add-on.
+        </div>
+      </div>
+    </div>
+    <div class="tam-source">
+      Sources: Gartner CX Technology Survey 2023 · Forrester Enterprise Feedback Management Report 2024 · 
+      IBISWorld BI Software Market · Internal platform account data · Analyst estimates
+    </div>
+  </div>
+
+  <p class="cs-body-text">
+    The strategic case isn't just feature revenue. <strong>Derived fields increase platform stickiness</strong> — 
+    once an organisation's analytical schema lives inside the platform (tenure bands, dormancy flags, 
+    CLV scores), switching costs rise substantially. This is the architectural moat, 
+    not just a product capability.
+  </p>
+</div>
+
+<!-- COMPETITIVE ANALYSIS -->
+<div class="cs-section reveal">
+  <div class="step-label">Competitive analysis · Market scan</div>
+  <h2 class="cs-section-title">Five categories. <em>One whitespace.</em></h2>
+  <p class="cs-body-text">
+    I mapped five categories of potential competitors — spreadsheet AI tools, no-code databases, 
+    CRM intelligence layers, BI platforms, and survey platforms — across six capability dimensions 
+    relevant to the derived fields opportunity. The scan confirmed the central hypothesis: 
+    <strong>no player combines schema-aware AI suggestion with in-platform formula building 
+    inside a research or CX platform.</strong>
+  </p>
+
+  <div class="comp-table-wrap">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Competitor</th>
+          <th>NL → formula</th>
+          <th>Schema-aware suggestions</th>
+          <th>In-platform (no export)</th>
+          <th>Domain intelligence</th>
+          <th>RBAC + sensitive fields</th>
+          <th>Survey / CX context</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="ours">
+          <td class="comp-name">
+            This feature
+            <span class="comp-type">AI Derived Fields · Survey Platform</span>
+          </td>
+          <td><span class="comp-pill win">Yes — V1.5</span></td>
+          <td><span class="comp-pill win">Yes — core MVP</span></td>
+          <td><span class="comp-pill win">Yes — native</span></td>
+          <td><span class="comp-pill win">Banking / CX / Health</span></td>
+          <td><span class="comp-pill win">Yes — mandatory flow</span></td>
+          <td><span class="comp-pill win">Native integration</span></td>
+        </tr>
+        <tr>
+          <td class="comp-name">
+            Airtable AI (Omni)
+            <span class="comp-type">No-code database</span>
+          </td>
+          <td><span class="comp-pill yes">Yes</span></td>
+          <td><span class="comp-pill partial">Generic only</span></td>
+          <td><span class="comp-pill yes">Yes</span></td>
+          <td><span class="comp-pill no">None</span></td>
+          <td><span class="comp-pill partial">Basic roles</span></td>
+          <td><span class="comp-pill no">No CX context</span></td>
+        </tr>
+        <tr>
+          <td class="comp-name">
+            FormulaBot / GPTExcel
+            <span class="comp-type">Spreadsheet AI tools</span>
+          </td>
+          <td><span class="comp-pill yes">Yes</span></td>
+          <td><span class="comp-pill no">No</span></td>
+          <td><span class="comp-pill no">Export required</span></td>
+          <td><span class="comp-pill no">None</span></td>
+          <td><span class="comp-pill no">None</span></td>
+          <td><span class="comp-pill no">None</span></td>
+        </tr>
+        <tr>
+          <td class="comp-name">
+            Salesforce Einstein
+            <span class="comp-type">CRM intelligence</span>
+          </td>
+          <td><span class="comp-pill partial">Limited</span></td>
+          <td><span class="comp-pill partial">CRM fields only</span></td>
+          <td><span class="comp-pill yes">Yes — native</span></td>
+          <td><span class="comp-pill partial">Sales / service only</span></td>
+          <td><span class="comp-pill yes">Enterprise-grade</span></td>
+          <td><span class="comp-pill no">No survey context</span></td>
+        </tr>
+        <tr>
+          <td class="comp-name">
+            Tableau Einstein
+            <span class="comp-type">BI / analytics</span>
+          </td>
+          <td><span class="comp-pill partial">NL to query</span></td>
+          <td><span class="comp-pill partial">Chart suggestions only</span></td>
+          <td><span class="comp-pill yes">Yes</span></td>
+          <td><span class="comp-pill partial">Generic analytics</span></td>
+          <td><span class="comp-pill yes">Enterprise-grade</span></td>
+          <td><span class="comp-pill no">No survey context</span></td>
+        </tr>
+        <tr>
+          <td class="comp-name">
+            Qualtrics / Medallia
+            <span class="comp-type">Survey & CX platforms</span>
+          </td>
+          <td><span class="comp-pill no">No</span></td>
+          <td><span class="comp-pill no">No</span></td>
+          <td><span class="comp-pill no">Export required</span></td>
+          <td><span class="comp-pill no">None</span></td>
+          <td><span class="comp-pill partial">Basic field control</span></td>
+          <td><span class="comp-pill yes">Native context</span></td>
+        </tr>
+        <tr>
+          <td class="comp-name">
+            Quadratic AI
+            <span class="comp-type">AI spreadsheet</span>
+          </td>
+          <td><span class="comp-pill yes">Yes — Python/SQL</span></td>
+          <td><span class="comp-pill no">No</span></td>
+          <td><span class="comp-pill yes">Yes</span></td>
+          <td><span class="comp-pill no">None</span></td>
+          <td><span class="comp-pill no">None</span></td>
+          <td><span class="comp-pill no">None</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="comp-gap-grid">
+    <div class="comp-gap-card gap">
+      <div class="comp-gap-head gap">Market gaps confirmed by scan</div>
+      <div class="comp-gap-item"><strong>No competitor combines suggest + build + explain</strong> in a single embedded flow. Tools either suggest or generate — never both, never contextually.</div>
+      <div class="comp-gap-item"><strong>Zero domain intelligence exists</strong> in any competitor. Airtable and FormulaBot are schema-blind — they cannot infer that `Date Account Opened` + `today()` should suggest `Account Tenure Band` for a banking Directory.</div>
+      <div class="comp-gap-item"><strong>Survey and research platforms are a complete whitespace.</strong> Qualtrics, SurveyMonkey, and Medallia offer zero derived field computation — analysts are entirely dependent on Excel exports.</div>
+      <div class="comp-gap-item"><strong>RBAC × sensitive field governance is ignored.</strong> No competitor designs for the scenario where field visibility policies shape what the AI can suggest to different users.</div>
+    </div>
+    <div class="comp-gap-card opp">
+      <div class="comp-gap-head opp">Strategic opportunities this opens</div>
+      <div class="comp-gap-item"><strong>Vertical moat — Banking first.</strong> A banking-specific suggestion library (loan maturity, dormancy, credit band, CLV) that no generic tool can match becomes a switching cost, not just a feature.</div>
+      <div class="comp-gap-item"><strong>Platform loop closure.</strong> Derived fields that feed directly into survey distribution filters close the loop between data enrichment and research execution — a workflow no competitor platform offers end-to-end.</div>
+      <div class="comp-gap-item"><strong>Compliance as differentiation.</strong> In regulated industries, the RBAC + sensitive field governance model is not overhead — it's a procurement requirement. Being the only platform with a compliant AI enrichment flow is a sales advantage.</div>
+      <div class="comp-gap-item"><strong>AI as schema memory.</strong> As organisations build derived field libraries over time, the platform accumulates schema intelligence that improves suggestion quality — a compounding data advantage competitors can't replicate quickly.</div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 2: PROBLEM FRAMING -->
+<div class="cs-section reveal">
+  <div class="step-label">Step 04 · Problem framing</div>
+  <h2 class="cs-section-title">Four lenses. <em>One diagnosis.</em></h2>
+  <div class="problem-grid">
+    <div class="pg-col">
+      <div class="pg-head">User pain points</div>
+      <div class="pg-item">Export → Excel → calculate → reimport cycle breaks data freshness</div>
+      <div class="pg-item">Formula syntax knowledge required — most analysts aren't technical</div>
+      <div class="pg-item">No way to discover <strong>which metrics matter</strong> for their domain</div>
+      <div class="pg-item">Sensitive field data leaves the platform during export — compliance risk</div>
+    </div>
+    <div class="pg-col">
+      <div class="pg-head">Business goals</div>
+      <div class="pg-item">Reduce analyst dependency on spreadsheet exports — platform stickiness</div>
+      <div class="pg-item">Expand Directory from data store to <strong>insight engine</strong></div>
+      <div class="pg-item">Differentiate in Banking / Healthcare / CX verticals with domain intelligence</div>
+      <div class="pg-item">Enable survey distribution powered by computed segmentation</div>
+    </div>
+    <div class="pg-col">
+      <div class="pg-head">Constraints</div>
+      <div class="pg-item"><strong>Role-based access control</strong> — field visibility differs per user role</div>
+      <div class="pg-item">Sensitive field marking — some fields carry privacy and regulatory obligations</div>
+      <div class="pg-item">Hallucinated field names cause silent data corruption — a hard safety gate</div>
+      <div class="pg-item">Schema diversity — field names vary wildly across customers and languages</div>
+    </div>
+    <div class="pg-col">
+      <div class="pg-head">Success metrics</div>
+      <div class="pg-item"><strong>&gt;40%</strong> suggestion acceptance rate</div>
+      <div class="pg-item"><strong>&lt;3 min</strong> time to first derived field</div>
+      <div class="pg-item"><strong>&lt;2%</strong> formula error rate within 7 days</div>
+      <div class="pg-item"><strong>100%</strong> field name accuracy via enforcement</div>
+      <div class="pg-item"><strong>&gt;50%</strong> 30-day feature retention</div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 3: JOURNEY MAP -->
+<div class="cs-section reveal">
+  <div class="step-label">Step 05 · User journey — B2B dual persona</div>
+  <h2 class="cs-section-title">Where the system <em>actually breaks</em></h2>
+  <p class="cs-body-text">
+    The analyst journey exposed two distinct friction zones: the moment they realise they 
+    need a computed field (but don't know which one), and the moment they try to build it 
+    (but don't know the formula syntax). The AI addresses both — but the design had to make 
+    each transition feel inevitable, not disruptive.
+  </p>
+  <table class="journey-table">
+    <thead>
+      <tr>
+        <th>Stage</th>
+        <th>Realise need</th>
+        <th>Attempt formula</th>
+        <th>Build / configure</th>
+        <th>Save & validate</th>
+        <th>Use in platform</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="stage-name">Actions</td>
+        <td>Notices missing metric in a report or survey distribution setup</td>
+        <td>Opens Add Field → selects Derived Field</td>
+        <td>Chooses suggestion or types intent in NL</td>
+        <td>Reviews formula + explanation, saves</td>
+        <td>Uses derived field in distribution filters, dashboards</td>
+      </tr>
+      <tr>
+        <td class="stage-name">Pain ↓</td>
+        <td class="pain">Doesn't know which metric to build or how to name it</td>
+        <td class="peak">
+          <span class="peak-label">Peak friction</span>
+          Blank builder — no scaffolding, formula syntax unfamiliar, field names to memorise
+        </td>
+        <td class="pain">Uncertainty: is this formula right? Will it work for all records?</td>
+        <td class="pain">Type errors surface only at runtime — confusing messages</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td class="stage-name">Opportunity</td>
+        <td class="opp">AI proactively surfaces relevant fields based on schema scan</td>
+        <td class="opp">Ranked suggestion panel removes the blank-slate moment entirely</td>
+        <td class="opp">Token chips + live explanation build in-situ confidence</td>
+        <td class="opp">Validation + null coverage preview before commitment</td>
+        <td class="opp">Derived fields power segmentation → closes the platform loop</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- STEP 4: KEY INSIGHTS -->
+<div class="cs-section reveal">
+  <div class="step-label">Step 06 · Key insights</div>
+  <h2 class="cs-section-title">Five insights that <em>changed the design</em></h2>
+  <div class="insights">
+    <div class="insight-card">
+      <div class="insight-num">01</div>
+      <div class="insight-body">
+        <div class="insight-title">Schema reasoning beats formula libraries</div>
+        <div class="insight-row">
+          <div class="insight-row-key">Observation</div>
+          <div class="insight-row-val">Competitors (Airtable, FormulaBot) suggest formulas from generic libraries — they don't read what fields actually mean semantically</div>
+        </div>
+        <div class="insight-row">
+          <div class="insight-row-key">User need</div>
+          <div class="insight-row-val">Analysts need suggestions that are specific to their schema and domain — not generic templates they still have to configure</div>
+        </div>
+        <div class="insight-row">
+          <div class="insight-row-key">Implication</div>
+          <div class="insight-row-val">The AI must infer domain context (banking, CX, healthcare) from field name semantics and map it to domain-appropriate derived fields with real thresholds — not just match keywords</div>
+        </div>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">02</div>
+      <div class="insight-body">
+        <div class="insight-title">RBAC and sensitive fields are first-class design inputs, not edge cases</div>
+        <div class="insight-row">
+          <div class="insight-row-key">Observation</div>
+          <div class="insight-row-val">These constraints were surfaced late in the process — after the UX flow was designed — and required fundamental rethinking of the suggestion scan, visibility model, and trust architecture</div>
+        </div>
+        <div class="insight-row">
+          <div class="insight-row-key">User need</div>
+          <div class="insight-row-val">Analysts need permission-aware suggestions — seeing an inaccessible field in the panel and being blocked at save creates frustration and erodes trust</div>
+        </div>
+        <div class="insight-row">
+          <div class="insight-row-key">Implication</div>
+          <div class="insight-row-val"><strong>The suggestion scan must be parameterised by the current user's role at query time</strong> — not a single universal scan cached for all users. I advocated for this architecture change with engineering and it was adopted.</div>
+        </div>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">03</div>
+      <div class="insight-body">
+        <div class="insight-title">The abstraction paradox: derived fields hide complexity from viewers but not from creators</div>
+        <div class="insight-row">
+          <div class="insight-row-key">Observation</div>
+          <div class="insight-row-val">A derived field is designed to abstract formula complexity away from the person viewing it. But RBAC and sensitive field policies require the creator to deeply understand what the formula uses before they can set output visibility.</div>
+        </div>
+        <div class="insight-row">
+          <div class="insight-row-key">User need</div>
+          <div class="insight-row-val">Creators need full transparency at authoring time; viewers need controlled exposure at consumption time. These are different users with different needs in the same feature.</div>
+        </div>
+        <div class="insight-row">
+          <div class="insight-row-key">Implication</div>
+          <div class="insight-row-val">Authoring UX must be fully transparent (sensitive flags, role implications, null coverage). Viewing UX is gated by creator-set permissions. The output visibility picker becomes a mandatory step — not an afterthought.</div>
+        </div>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">04</div>
+      <div class="insight-body">
+        <div class="insight-title">Bucketed sensitive data is still sensitive data</div>
+        <div class="insight-row">
+          <div class="insight-row-key">Observation</div>
+          <div class="insight-row-val">An Income Band field (Low / Medium / High) derived from Annual Income (sensitive) feels safe to analysts — it's aggregated, not raw. But with 3 bands across 1,000 contacts where only 20 score High, the label is precise signal.</div>
+        </div>
+        <div class="insight-row">
+          <div class="insight-row-key">User need</div>
+          <div class="insight-row-val">Analysts working in regulated verticals need to be warned when their derived field creates a proxy for sensitive data — before they publish it, not after a compliance review.</div>
+        </div>
+        <div class="insight-row">
+          <div class="insight-row-key">Implication</div>
+          <div class="insight-row-val"><strong>Any categorisation or bucketing of a sensitive field must inherit a sensitivity warning</strong> on the output. The AI flags this pattern at creation time: "This formula is derived from Annual Income (sensitive). Consider restricting output visibility."</div>
+        </div>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">05</div>
+      <div class="insight-body">
+        <div class="insight-title">The explanation-formula alignment problem is the feature's silent killer</div>
+        <div class="insight-row">
+          <div class="insight-row-key">Observation</div>
+          <div class="insight-row-val">In early concept testing, analysts read the plain-English formula explanation — not the formula itself. If the explanation drifted even slightly from what the formula computed, analysts made wrong analytical decisions without realising it.</div>
+        </div>
+        <div class="insight-row">
+          <div class="insight-row-key">User need</div>
+          <div class="insight-row-val">Analysts need to be able to trust the explanation as a reliable proxy for the formula — not just as a label. Trust breaks silently when the two diverge.</div>
+        </div>
+        <div class="insight-row">
+          <div class="insight-row-key">Implication</div>
+          <div class="insight-row-val"><strong>I proposed a secondary validation pass</strong> — the explanation is re-derived from the formula (not from the user's original intent) and compared semantically before it surfaces. This shipped as a non-negotiable trust gate in the MVP specification.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 5: DECISION FRAMEWORK -->
+<div class="cs-section reveal">
+  <div class="step-label">Step 07 · Decision framework</div>
+  <h2 class="cs-section-title">Three decisions. <em>The rationale behind each.</em></h2>
+
+  <p class="cs-body-text" style="margin-bottom: 1rem;">
+    <strong>Decision 1 — What to ship first: suggestions, builder, or both?</strong>
+  </p>
+  <table class="decision-table">
+    <thead>
+      <tr><th>Option</th><th>Pros</th><th>Cons</th><th>Rationale</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>A — Both modes simultaneously</strong></td>
+        <td>Full value proposition from day one</td>
+        <td>NL builder risk (hallucinated fields, ambiguous intents) ships before trust is established. Two failure surfaces at launch.</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>B — Builder only</strong></td>
+        <td>Familiar mental model (blank input + generate)</td>
+        <td>Blank builder recreates the exact friction we're solving. Schema-blind. High hallucination risk without schema context.</td>
+        <td>—</td>
+      </tr>
+      <tr class="chosen">
+        <td><strong>C — Suggestions MVP, builder V1.5</strong><span class="chosen-badge">← Chosen</span></td>
+        <td>Bounded, high-trust interaction. Analyst reviews before saving. Acceptance rate data calibrates the builder before it ships.</td>
+        <td>Delays NL builder. Users who want free-form input must wait.</td>
+        <td>Ship suggestions first. Measure acceptance rate and field name match accuracy. Use real data to calibrate the builder's confidence thresholds in V1.5.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="cs-body-text" style="margin-bottom: 1rem; margin-top: 2rem;">
+    <strong>Decision 2 — How to prevent hallucinated field names?</strong>
+  </p>
+  <table class="decision-table">
+    <thead>
+      <tr><th>Option</th><th>Pros</th><th>Cons</th><th>Rationale</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>A — Warning banner on save</strong></td>
+        <td>Low engineering cost</td>
+        <td>Hallucinated name passes validation; warning is ignorable. Silent corruption reaches production.</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>B — Post-save runtime error</strong></td>
+        <td>Standard pattern</td>
+        <td>Analyst discovers error in a report, not at creation. Trust break at worst possible moment.</td>
+        <td>—</td>
+      </tr>
+      <tr class="chosen">
+        <td><strong>C — Token chip enforcement (architectural)</strong><span class="chosen-badge">← Chosen</span></td>
+        <td>100% field name accuracy guaranteed — not a guardrail but a technical constraint. Free-text field entry blocked at the builder level.</td>
+        <td>Higher engineering complexity. Requires field picker UI for every formula input.</td>
+        <td>The highest-severity failure mode is silent data corruption in regulated industries. This is a hard technical gate before any beta release — not a UX decision, an architecture decision I drove with engineering.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="cs-body-text" style="margin-bottom: 1rem; margin-top: 2rem;">
+    <strong>Decision 3 — How to handle output visibility for sensitive-input derived fields?</strong>
+  </p>
+  <table class="decision-table">
+    <thead>
+      <tr><th>Option</th><th>Pros</th><th>Cons</th><th>Rationale</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>A — Block all sensitive field usage in formulas</strong></td>
+        <td>Zero risk of sensitive data proxying</td>
+        <td>Blocks legitimate analytical work. Banking analysts specifically need Age Band, Income Tier, Risk Score.</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>B — Allow, no special handling</strong></td>
+        <td>No friction</td>
+        <td>Analysts unknowingly create compliance violations. Sensitive data proxied into widely-visible fields.</td>
+        <td>—</td>
+      </tr>
+      <tr class="chosen">
+        <td><strong>C — Allow with mandatory output visibility picker</strong><span class="chosen-badge">← Chosen</span></td>
+        <td>Legitimate work proceeds. Creator retains control. Explicit consent moment recorded for audit.</td>
+        <td>Extra step for analysts using sensitive inputs.</td>
+        <td>The consent moment is the design. Sensitive field usage triggers a mandatory visibility step — not skippable — that forces the creator to explicitly decide who sees the computed result. This satisfies legal and creates an auditable trail without blocking analytical work.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- STEP 6: SOLUTION OVERVIEW -->
+<div class="cs-section reveal">
+  <div class="step-label">Step 08 · Solution overview</div>
+  <h2 class="cs-section-title">Two AI modes. <em>One trust-first flow.</em></h2>
+  <p class="cs-body-text">
+    The solution has two modes that converge at a shared validation and visibility layer. 
+    The Suggester and the Builder are not parallel options — the Suggester loads first, 
+    always. The Builder is the fallback for when no suggestion fits, or when the analyst 
+    knows exactly what they want and wants to build it directly.
+  </p>
+
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="flow-step-num">1</div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Add Field → Derived Field type selected</div>
+        <div class="flow-step-desc">Analyst selects Derived Field from the field type picker. AI schema scan begins immediately in the background — parameterised by the current user's role.</div>
+        <span class="flow-step-ai">AI: silent role-scoped schema scan</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">2</div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Suggestion panel loads — top 6 ranked by domain relevance</div>
+        <div class="flow-step-desc">Cards display field name, one-line business-language rationale, and a confidence badge (High / Medium). Sensitive-input suggestions show an amber flag. Cards are grouped by category: Identity, Financial, Activity.</div>
+        <span class="flow-step-ai">AI: domain inference + suggestion ranking + sensitivity tagging</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">3A</div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Path A — Analyst picks a suggestion</div>
+        <div class="flow-step-desc">Formula pre-loads into the builder. Live plain-English explanation appears below the formula. Field references are shown as token chips — clickable, not free-text. Analyst can expand to raw formula editor at any point.</div>
+        <span class="flow-step-ai">AI: formula pre-population + live explanation generation</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">3B</div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Path B — Analyst describes intent in plain English</div>
+        <div class="flow-step-desc">"Describe what you want to calculate" input. If confidence is below threshold, AI asks one clarifying question before generating. Formula generated with token chip references only — no free-text field names.</div>
+        <span class="flow-step-ai">AI: NL → formula translation, confidence-gated clarification</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">4</div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Validation runs — inline, plain-English, before save</div>
+        <div class="flow-step-desc">Type compatibility check. Transitive circular reference detection to depth N. Null coverage preview: "This formula will compute for 847 of 1,200 contacts. 353 records are missing [Field Name]." All errors surface inline with plain-English fix suggestions.</div>
+        <span class="flow-step-ai">AI: explanation-formula alignment check (secondary validation pass)</span>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">5</div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Output visibility picker — mandatory for sensitive-input formulas</div>
+        <div class="flow-step-desc">Who can see this computed result? Everyone / Specific roles / Creator + Admins only. Sensitive-input formulas cannot skip this step. Selection is recorded for audit. A compliance note is attached to the field record.</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num">6</div>
+      <div class="flow-step-content">
+        <div class="flow-step-title">Field saved — async computation begins across all records</div>
+        <div class="flow-step-desc">Progress indicator on the column header. UI never blocks. Computation is async — stale values show a spinner, not an error. Field is live and auto-updating from this point forward.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col" style="margin-top: 3rem;">
+    <div class="two-col-card">
+      <div class="two-col-head accent">AI does the thinking</div>
+      <div class="two-col-item">Schema scanning and domain inference</div>
+      <div class="two-col-item">Suggestion ranking by relevance and completeness gap</div>
+      <div class="two-col-item">NL → formula translation (field-grounded only)</div>
+      <div class="two-col-item">Explanation generation and alignment validation</div>
+      <div class="two-col-item">Type compatibility and circular reference detection</div>
+      <div class="two-col-item">Sensitive input pattern recognition</div>
+    </div>
+    <div class="two-col-card">
+      <div class="two-col-head">Analyst does the deciding</div>
+      <div class="two-col-item">Accept, dismiss, or edit any suggestion</div>
+      <div class="two-col-item">Describe intent in plain language when needed</div>
+      <div class="two-col-item">Review formula explanation before committing</div>
+      <div class="two-col-item">Set output visibility — who can see this derived value</div>
+      <div class="two-col-item"><strong>The formula is never hidden. The raw editor is always one click away.</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 6B: PROTOTYPE -->
+<div class="cs-section reveal">
+  <div class="step-label">Step 09 · Vibe-coded prototype</div>
+  <h2 class="cs-section-title">We built it. <em>Not just designed it.</em></h2>
+  <p class="cs-body-text">
+    To validate the onboarding flow and empty state before engineering scoping, 
+    we vibe-coded a working prototype of the feature — covering the first-run experience 
+    for analysts who have no derived fields yet, the empty state that greets them, 
+    and the entry point into the AI suggestion panel. Building it in code (not just Figma) 
+    let us stress-test the interaction timing, the AI scan loading state, 
+    and the suggestion panel reveal — moments that don't show up in static mocks.
+  </p>
+  <p class="cs-body-text">
+    The prototype directly informed three specification changes: 
+    <strong>the scan loading state needed a progress signal</strong> (analysts assumed the panel had failed if nothing appeared in under 2 seconds), 
+    <strong>the empty state needed a value-lead headline</strong> not a capability description, 
+    and <strong>the suggestion card reveal needed stagger animation</strong> to communicate that cards were ranked, not random.
+  </p>
+
+  <div class="proto-showcase">
+    <div class="proto-screens">
+      <div class="proto-screen-card">
+        <div class="proto-screen-label">
+          <span class="proto-screen-dot"></span>
+          Empty state — no derived fields yet
+        </div>
+        <div class="proto-screen-body">
+          <div class="proto-empty-illustration">
+            <div class="proto-grid-bg"></div>
+            <div class="proto-empty-center">
+              <div class="proto-empty-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="4" y="4" width="8" height="8" rx="2" fill="rgba(255,59,31,0.3)" stroke="rgba(255,59,31,0.6)" stroke-width="1"/>
+                  <rect x="16" y="4" width="8" height="8" rx="2" fill="rgba(255,59,31,0.1)" stroke="rgba(255,59,31,0.3)" stroke-width="1"/>
+                  <rect x="4" y="16" width="8" height="8" rx="2" fill="rgba(255,59,31,0.1)" stroke="rgba(255,59,31,0.3)" stroke-width="1"/>
+                  <rect x="16" y="16" width="8" height="8" rx="2" fill="rgba(255,59,31,0.1)" stroke="rgba(255,59,31,0.3)" stroke-width="1"/>
+                  <line x1="14" y1="7" x2="16" y2="7" stroke="rgba(255,59,31,0.4)" stroke-width="1"/>
+                  <line x1="12" y1="19" x2="16" y2="19" stroke="rgba(255,59,31,0.2)" stroke-width="1"/>
+                </svg>
+              </div>
+              <div class="proto-empty-headline">Your data knows more than it's telling you</div>
+              <div class="proto-empty-sub">AI scans your schema and surfaces computed fields you haven't thought to build yet.</div>
+              <div class="proto-empty-cta">Let AI suggest fields →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="proto-screen-card">
+        <div class="proto-screen-label">
+          <span class="proto-screen-dot active"></span>
+          Onboarding — AI scanning state
+        </div>
+        <div class="proto-screen-body">
+          <div class="proto-scanning-state">
+            <div class="proto-scan-header">
+              <div class="proto-scan-pulse"></div>
+              <span class="proto-scan-text">AI scanning 24 fields across your Directory…</span>
+            </div>
+            <div class="proto-scan-fields">
+              <div class="proto-scan-field proto-scan-field--lit">Date Account Opened</div>
+              <div class="proto-scan-field proto-scan-field--lit">Credit Score</div>
+              <div class="proto-scan-field proto-scan-field--scanning">Annual Income</div>
+              <div class="proto-scan-field">Date of Last Transaction</div>
+              <div class="proto-scan-field">Loan Interest Rate</div>
+              <div class="proto-scan-field">Loan Term</div>
+            </div>
+            <div class="proto-scan-domain">Domain detected: <strong>Banking</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="proto-screen-card">
+        <div class="proto-screen-label">
+          <span class="proto-screen-dot"></span>
+          Suggestion panel — staggered reveal
+        </div>
+        <div class="proto-screen-body">
+          <div class="proto-suggestions">
+            <div class="proto-sugg proto-sugg--1">
+              <div class="proto-sugg-name">Account Tenure Band</div>
+              <div class="proto-sugg-why">Because you have Date Account Opened</div>
+              <div class="proto-sugg-conf high">High</div>
+            </div>
+            <div class="proto-sugg proto-sugg--2">
+              <div class="proto-sugg-name">Days Since Last Transaction</div>
+              <div class="proto-sugg-why">Detect dormant customers automatically</div>
+              <div class="proto-sugg-conf high">High</div>
+            </div>
+            <div class="proto-sugg proto-sugg--3 proto-sugg--sensitive">
+              <div class="proto-sugg-name">Credit Score Band</div>
+              <div class="proto-sugg-why">Poor / Fair / Good / Excellent buckets</div>
+              <div class="proto-sugg-conf medium">Medium</div>
+              <div class="proto-sugg-sensitive-flag">Sensitive input</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <a href="https://claude.ai/public/artifacts/b1b592db-3bbb-4380-b513-6de395871949"
+       target="_blank" rel="noopener noreferrer" class="proto-live-btn">
+      <div class="proto-live-inner">
+        <div class="proto-live-left">
+          <div class="proto-live-label">Live prototype</div>
+          <div class="proto-live-title">Feature onboarding & empty state</div>
+          <div class="proto-live-desc">Vibe-coded in Claude — onboarding flow, AI scanning state, empty state, suggestion panel reveal</div>
+        </div>
+        <div class="proto-live-arrow">↗</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- STEP 7: IMPACT -->
+<div class="cs-section reveal">
+  <div class="step-label">Step 10 · Impact & metrics</div>
+  <h2 class="cs-section-title">What success <em>looks like</em></h2>
+  <p class="cs-body-text">
+    These are the targets set at the start of the project, grounded in the trust and trust-break 
+    simulation work. Hard data will replace these targets once the feature moves through beta. 
+    All metrics are instrumented and tracked from shadow mode onward.
+  </p>
+
+  <div class="impact-big">
+    <div class="impact-stat">
+      <div class="impact-val">&gt;40<span class="acc">%</span></div>
+      <div class="impact-key">Suggestion acceptance rate</div>
+    </div>
+    <div class="impact-stat">
+      <div class="impact-val">&lt;3<span class="acc">min</span></div>
+      <div class="impact-key">Time to first derived field</div>
+    </div>
+    <div class="impact-stat">
+      <div class="impact-val">&lt;2<span class="acc">%</span></div>
+      <div class="impact-key">Formula error rate post-save (7 days)</div>
+    </div>
+    <div class="impact-stat">
+      <div class="impact-val">100<span class="acc">%</span></div>
+      <div class="impact-key">Field name accuracy — enforced by architecture</div>
+    </div>
+  </div>
+
+  <div class="impact-qual">
+    <div class="impact-qual-head">Qualitative success signals</div>
+    <div class="impact-qual-item">Analysts create derived fields they describe as "things I didn't know I needed" — surfacing AI-suggested fields beyond the obvious (Full Name, Age Band) into domain-specific metrics like Days to Loan Maturity</div>
+    <div class="impact-qual-item">Zero silent data corruption incidents during beta — field name accuracy enforced at architecture level, not UX guardrail</div>
+    <div class="impact-qual-item">Explanation read rate above 60% before save — analysts engage with the plain-English formula explanation, not just the label</div>
+    <div class="impact-qual-item">Legal and compliance signed off on the output visibility picker as the consent mechanism for regulated verticals — no post-launch governance incidents</div>
+    <div class="impact-qual-item">[PLACEHOLDER: add actual usability test result or stakeholder quote once available]</div>
+  </div>
+
+  <p class="cs-body-text"><strong>Testing roadmap:</strong></p>
+  <div class="phases">
+    <div class="phase">
+      <div class="phase-name">Shadow mode</div>
+      <div class="phase-gate">Gate: &lt;1% hallucination</div>
+      <div class="phase-desc">AI generates suggestions internally. QA reviews for hallucinated field names, wrong domain inference, explanation mismatches. No analyst exposure.</div>
+    </div>
+    <div class="phase">
+      <div class="phase-name">Opt-in beta</div>
+      <div class="phase-gate">Gate: &gt;35% acceptance</div>
+      <div class="phase-desc">Power analysts and design partners. Session recording. Track acceptance rate, edit rate, trust-break moments. Zero silent corruption incidents required to proceed.</div>
+    </div>
+    <div class="phase">
+      <div class="phase-name">Trust calibration</div>
+      <div class="phase-gate">Gate: +20pt confidence</div>
+      <div class="phase-desc">Analysts rate confidence in AI-generated formulas before and after reading the explanation. Target: explanation lifts confidence score by 20+ points on a 100-point scale.</div>
+    </div>
+    <div class="phase">
+      <div class="phase-name">Phased rollout</div>
+      <div class="phase-gate">Banking → Healthcare → Generic</div>
+      <div class="phase-desc">Per-vertical monitoring. Kill switch per Directory — AI suggestions disabled without touching existing derived fields. Acceptance and error rates tracked by vertical.</div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 8: FAILURE ARCHITECTURE -->
+<div class="cs-section reveal">
+  <div class="step-label">Step 11 · Trust & failure architecture</div>
+  <h2 class="cs-section-title">What I solved <em>before</em> a line of code was written</h2>
+  <p class="cs-body-text">
+    I ran a structured failure simulation before any engineering began — identifying the 
+    scenarios most likely to break analyst trust and designing mitigations into the 
+    specification rather than patching them post-launch. This is the work that made 
+    legal and compliance comfortable signing off on the feature.
+  </p>
+  <div class="risks">
+    <div class="risks-head">Top 3 pre-launch risks — solved in specification</div>
+    <div class="risk-item">
+      <div class="risk-num">1</div>
+      <div class="risk-text"><strong>Hallucinated field names causing silent data errors.</strong> An AI-generated formula referencing `Account_Open_Date` when the real field is `Date Account Opened` saves without error and returns null for every record. Analyst discovers corrupted data in a report, not at creation. Mitigation: token chip enforcement at the architecture level — free-text field name entry is blocked. This is a hard gate before beta, not a design guardrail.</div>
+    </div>
+    <div class="risk-item">
+      <div class="risk-num">2</div>
+      <div class="risk-text"><strong>Explanation-formula mismatch propagating bad analytics.</strong> Analysts trust the label, not the formula. If the plain-English explanation drifts even 5% from what the formula computes, wrong data enters reports silently. Mitigation: secondary validation pass — explanation is re-derived from the formula, not from the user's original intent, and compared semantically before it surfaces to the user. Ships with the feature, not after it.</div>
+    </div>
+    <div class="risk-item">
+      <div class="risk-num">3</div>
+      <div class="risk-text"><strong>Zero-suggestion blank panel on sparse schemas.</strong> An analyst opens the suggestion panel with a lean Directory (8 fields, abbreviated names). The panel is empty. First impression: the feature is broken or premium-gated. Mitigation: generic fallback library — Full Name concat, Profile Completeness Score, Has Email, Is Contactable — loads with a clear label: "General suggestions — add more fields for personalised ones." Ships on day one.</div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 9: REFLECTION -->
+<div class="cs-section reveal">
+  <div class="step-label">Step 12 · Reflection — senior calibration</div>
+  <h2 class="cs-section-title">What I'd <em>do differently</em></h2>
+  <div class="reflection-grid">
+    <div class="reflection-card">
+      <div class="reflection-label">What worked</div>
+      <div class="reflection-title">Reframing the problem before designing the solution</div>
+      <div class="reflection-body">
+        The initial brief was "add a formula field type." I reframed it as 
+        <strong>"analysts don't know what formulas to build"</strong> — which changed the entire product 
+        direction. Investing in the capability architecture (schema reasoning over template libraries) 
+        and the trust architecture (token chips, secondary validation, output visibility picker) 
+        before any UI work meant engineering and legal were aligned from week one, 
+        not brought in at the end for sign-off.
+      </div>
+    </div>
+    <div class="reflection-card">
+      <div class="reflection-label">What I'd do differently</div>
+      <div class="reflection-title">Surface RBAC and sensitive field constraints in week one</div>
+      <div class="reflection-body">
+        These constraints were discovered mid-process and required fundamental rethinking of 
+        the suggestion scan, the trust model, and the visibility architecture. 
+        <strong>On an enterprise platform with access control, permissions are a first-class design input</strong> — 
+        not an edge case to handle later. I'd run a permissions audit in the first sprint 
+        alongside user research, so the entire UX is designed permission-aware from the first wireframe.
+      </div>
+    </div>
+    <div class="reflection-card">
+      <div class="reflection-label">What this opens next</div>
+      <div class="reflection-title">Cross-entity derived fields as the platform differentiator</div>
+      <div class="reflection-body">
+        The V2 roadmap item I'm most interested in is cross-entity derived fields — 
+        combining Contact fields with Activity fields (Loan Disbursement, Survey Response) 
+        to compute things no competitor offers in this context. An analyst computing 
+        <strong>Total Loan Exposure per customer across all disbursements</strong> — live, in the Directory, 
+        powering survey targeting — is the moment the platform becomes an analytical system, 
+        not just a contact store.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="cs-footer">
+  <p>[Your Name] <span class="footer-dot">·</span> AI-Powered Derived Fields <span class="footer-dot">·</span> 2024</p>
+  <a href="portfolio.html" class="next-link">Back to portfolio ↗</a>
+</div>
+
+</div><!-- end cs-body -->
+
+<script>
+// Cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => {
+  mx=e.clientX; my=e.clientY;
+  cursor.style.left=mx+'px'; cursor.style.top=my+'px';
+});
+(function animRing(){
+  rx+=(mx-rx)*0.1; ry+=(my-ry)*0.1;
+  ring.style.left=rx+'px'; ring.style.top=ry+'px';
+  requestAnimationFrame(animRing);
+})();
+document.querySelectorAll('a,button,tr').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ cursor.style.transform='translate(-50%,-50%) scale(2.5)'; ring.style.width='50px';ring.style.height='50px'; });
+  el.addEventListener('mouseleave',()=>{ cursor.style.transform='translate(-50%,-50%) scale(1)'; ring.style.width='32px';ring.style.height='32px'; });
+});
+
+// Progress bar
+const bar = document.getElementById('progressBar');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+  bar.style.width = pct + '%';
+});
+
+// Reveal
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

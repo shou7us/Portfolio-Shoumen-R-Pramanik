@@ -1,0 +1,38 @@
+{
+  "Secondary -- Active": {
+    "value": "{Error .  100}",
+    "type": "color"
+  },
+  "Secondary -- Hover": {
+    "value": "{Error . 50}",
+    "type": "color"
+  },
+  "Border -- Active": {
+    "value": "{Error . 200}",
+    "type": "color"
+  },
+  "Border -- Hover": {
+    "value": "{Error .  100}",
+    "type": "color"
+  },
+  "Text Color -- Btn": {
+    "value": "{Error .  100}",
+    "type": "color"
+  },
+  "Active": {
+    "value": "{Error . 900}",
+    "type": "color"
+  },
+  "Border -- Default": {
+    "value": "{Error . 50}",
+    "type": "color"
+  },
+  "Hover": {
+    "value": "{Error . 800}",
+    "type": "color"
+  },
+  "Default": {
+    "value": "{Error . 500}",
+    "type": "color"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "X-Large": {
+    "value": "2rem",
+    "type": "dimension"
+  },
+  "Large": {
+    "value": "1.5rem",
+    "type": "dimension"
+  },
+  "Medium": {
+    "value": "1.25rem",
+    "type": "dimension"
+  },
+  "Regular": {
+    "value": "1rem",
+    "type": "dimension"
+  },
+  "XX-Large": {
+    "value": "2.5rem",
+    "type": "dimension"
+  },
+  "small": {
+    "value": "0.75rem",
+    "type": "dimension"
+  }
+}

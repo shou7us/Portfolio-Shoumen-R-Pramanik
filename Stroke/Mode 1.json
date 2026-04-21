@@ -1,0 +1,10 @@
+{
+  "Focus Ring": {
+    "value": "0.125rem",
+    "type": "dimension"
+  },
+  "Border": {
+    "value": "0.062rem",
+    "type": "dimension"
+  }
+}

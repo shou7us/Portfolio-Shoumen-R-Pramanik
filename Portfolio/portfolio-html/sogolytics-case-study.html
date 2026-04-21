@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script>
+  // Client-side protection against direct URLs
+  (function(){
+    let unlocked = false;
+    for (let i = 0; i < sessionStorage.length; i++) {
+      let key = sessionStorage.key(i);
+      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
+        unlocked = true; break;
+      }
+    }
+    if (!unlocked) { window.location.href = 'index.html'; }
+  })();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sogolytics Smart Filters — Case Study</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0f14;
+    --paper: #f5f2ec;
+    --accent: #c94c2e;
+    --accent-light: #e8705a;
+    --mid: #6b6560;
+    --rule: #d9d4cc;
+    --highlight: #fff3cd;
+    --green: #2d7a4e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+    padding: 0 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+  }
+  .nav-brand {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--mid);
+  }
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--mid);
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding-top: 56px;
+  }
+  .hero-left {
+    padding: 80px 64px 80px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-right: 1px solid var(--rule);
+  }
+  .hero-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hero-tag::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--accent);
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(40px, 5vw, 72px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 28px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .hero-sub {
+    font-size: 18px;
+    color: var(--mid);
+    font-weight: 300;
+    max-width: 420px;
+    margin-bottom: 48px;
+  }
+  .meta-row {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid var(--rule);
+    border-left: 1px solid var(--rule);
+  }
+  .meta-item {
+    flex: 1;
+    padding: 16px 20px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .meta-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 4px;
+  }
+  .meta-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .hero-right {
+    padding: 80px 64px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-right::before {
+    content: 'FILTERS';
+    position: absolute;
+    font-family: 'Playfair Display', serif;
+    font-size: 200px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.03);
+    bottom: -30px;
+    right: -20px;
+    line-height: 1;
+    pointer-events: none;
+  }
+  .problem-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .problem-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    margin-bottom: 16px;
+  }
+  .problem-statement {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    font-style: italic;
+    color: #f5f2ec;
+    line-height: 1.5;
+  }
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .stat-box {
+    background: rgba(201, 76, 46, 0.15);
+    border: 1px solid rgba(201, 76, 46, 0.3);
+    border-radius: 4px;
+    padding: 20px;
+  }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent-light);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-desc {
+    font-size: 12px;
+    color: rgba(245,242,236,0.6);
+  }
+
+  /* SECTIONS */
+  section {
+    padding: 96px 80px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 64px;
+  }
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 3.5vw, 48px);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  /* RESEARCH */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+  }
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px;
+  }
+  .card {
+    border: 1px solid var(--rule);
+    padding: 32px;
+    border-radius: 2px;
+  }
+  .card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .card p {
+    font-size: 14px;
+    color: var(--mid);
+    line-height: 1.7;
+  }
+
+  /* PERSONA */
+  .persona-block {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 48px;
+    border-radius: 2px;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 48px;
+    margin-bottom: 48px;
+  }
+  .persona-id {
+    border-right: 1px solid rgba(255,255,255,0.1);
+    padding-right: 48px;
+  }
+  .persona-avatar {
+    width: 80px;
+    height: 80px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    color: white;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .persona-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .persona-role {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: rgba(245,242,236,0.5);
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+  .persona-quote {
+    font-style: italic;
+    font-size: 14px;
+    color: rgba(245,242,236,0.8);
+    line-height: 1.6;
+    border-left: 2px solid var(--accent);
+    padding-left: 16px;
+  }
+  .persona-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .persona-detail h4 {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    margin-bottom: 12px;
+  }
+  .persona-detail ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .persona-detail li {
+    font-size: 13px;
+    color: rgba(245,242,236,0.75);
+    padding-left: 14px;
+    position: relative;
+  }
+  .persona-detail li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
+  /* JOURNEY MAP */
+  .journey {
+    overflow-x: auto;
+    margin-top: 48px;
+  }
+  .journey-table {
+    min-width: 900px;
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .journey-table th {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 16px 20px;
+    text-align: left;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 500;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+  .journey-table td {
+    padding: 16px 20px;
+    vertical-align: top;
+    font-size: 13px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    color: var(--mid);
+  }
+  .journey-table tr:nth-child(even) td {
+    background: rgba(0,0,0,0.02);
+  }
+  .phase-label {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 15px;
+  }
+  .pain { color: var(--accent); font-weight: 500; }
+  .opp { color: var(--green); font-weight: 500; }
+
+  /* DESIGN DIRECTION */
+  .hmw {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 48px 64px;
+    border-radius: 2px;
+    margin-bottom: 48px;
+    text-align: center;
+  }
+  .hmw-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--accent-light);
+    margin-bottom: 20px;
+  }
+  .hmw-statement {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(22px, 3vw, 36px);
+    font-style: italic;
+    line-height: 1.4;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  /* IA SECTION */
+  .ia-tree {
+    background: #f9f7f3;
+    border: 1px solid var(--rule);
+    padding: 40px;
+    border-radius: 2px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    line-height: 2;
+    color: var(--mid);
+    overflow-x: auto;
+  }
+  .ia-tree .root { color: var(--ink); font-weight: 500; font-size: 14px; }
+  .ia-tree .child { color: var(--accent); }
+  .ia-tree .leaf { color: var(--mid); }
+
+  /* MECHANICS */
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    padding-left: 48px;
+  }
+  .flow-steps::before {
+    content: '';
+    position: absolute;
+    left: 16px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--rule);
+  }
+  .flow-step {
+    position: relative;
+    padding: 28px 0 28px 32px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .flow-step:last-child { border-bottom: none; }
+  .flow-step::before {
+    content: attr(data-n);
+    position: absolute;
+    left: -48px;
+    top: 28px;
+    width: 32px;
+    height: 32px;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .flow-step h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .flow-step p {
+    font-size: 14px;
+    color: var(--mid);
+  }
+
+  /* TECH STACK */
+  .badge-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .badge {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+  }
+  .badge.outlined {
+    background: transparent;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+  }
+
+  /* IMPACT */
+  .impact-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-right: none;
+    border-bottom: none;
+    margin-bottom: 48px;
+  }
+  .impact-item {
+    padding: 40px 32px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .impact-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 52px;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .impact-label {
+    font-size: 13px;
+    color: var(--mid);
+    line-height: 1.5;
+  }
+
+  /* REFLECTION */
+  .reflection-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+  }
+  .reflection-block h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .reflection-block ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .reflection-block li {
+    font-size: 14px;
+    color: var(--mid);
+    padding-left: 20px;
+    position: relative;
+    line-height: 1.6;
+  }
+  .reflection-block li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 12px;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--ink);
+    color: rgba(245,242,236,0.5);
+    padding: 40px 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+
+  /* UTILITIES */
+  .body-text {
+    font-size: 16px;
+    color: var(--mid);
+    line-height: 1.8;
+    max-width: 720px;
+  }
+  .body-text + .body-text { margin-top: 16px; }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    padding: 20px 24px;
+    background: rgba(201, 76, 46, 0.04);
+    margin: 32px 0;
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.7;
+  }
+
+  .insight-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .insight {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .insight-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--ink);
+    color: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    border-radius: 2px;
+  }
+  .insight-text h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .insight-text p {
+    font-size: 14px;
+    color: var(--mid);
+  }
+
+  @media (max-width: 900px) {
+    nav { padding: 0 24px; }
+    .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; }
+    .hero-right { display: none; }
+    section { padding: 64px 24px; }
+    .two-col, .three-col, .persona-block, .reflection-cols { grid-template-columns: 1fr; }
+    .persona-id { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding-right: 0; padding-bottom: 32px; }
+    .impact-grid { grid-template-columns: 1fr 1fr; }
+    footer { flex-direction: column; gap: 16px; text-align: center; padding: 32px 24px; }
+    .hero-left { padding: 64px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Case Study — Sogolytics</div>
+  <ul class="nav-links">
+    <li><a href="index.html" style="color: var(--accent); font-weight: 700;">← Home</a></li>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#research">Research</a></li>
+    <li><a href="#design">Design</a></li>
+    <li><a href="#system">System</a></li>
+    <li><a href="#impact">Impact</a></li>
+    <li><a href="#reflection">Reflection</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="overview" style="padding:0; border-bottom:1px solid var(--rule);">
+  <div class="hero-left">
+    <div class="hero-tag">UX Design · Enterprise SaaS · 2024</div>
+    <h1>Rethinking<br><em>Smart Filters</em><br>at Scale</h1>
+    <p class="hero-sub">Redesigning filter creation across Sogolytics' five enterprise products — from a cumbersome, error-prone workflow into an intelligent, intuitive experience.</p>
+    <div class="meta-row">
+      <div class="meta-item">
+        <div class="meta-label">Timeline</div>
+        <div class="meta-value">6 Months</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Budget</div>
+        <div class="meta-value">$100,000</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Platform</div>
+        <div class="meta-value">Multi-product</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Role</div>
+        <div class="meta-value">UX Designer</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="problem-card">
+      <div class="problem-label">The Core Problem</div>
+      <p class="problem-statement">"Data analysts at Sogolytics spend disproportionate time building and managing filters — time stolen from the actual insights they exist to uncover."</p>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-num">5+</div>
+        <div class="stat-desc">Products affected by fragmented filter UX</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">0</div>
+        <div class="stat-desc">Smart filter suggestions in existing system</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESEARCH -->
+<section id="research">
+  <div class="section-header">
+    <span class="section-num">01 — RESEARCH</span>
+    <h2 class="section-title">Understanding the Pain</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <p class="body-text">User interviews were conducted across three core user types — data analysts, marketing managers, and business owners — surfacing a consistent pattern of frustration with filter creation. The research focused on four problem areas: filter setup difficulty, multi-filter management, data analysis efficiency, and insight extraction.</p>
+
+  <div class="insight-list" style="margin-top:48px;">
+    <div class="insight">
+      <div class="insight-icon">⏱</div>
+      <div class="insight-text">
+        <h4>Time Tax on Filter Creation</h4>
+        <p>Users consistently reported spending more time configuring filters than analyzing results. Complex multi-condition filters required manual reconstruction every session with no save or reuse functionality.</p>
+      </div>
+    </div>
+    <div class="insight">
+      <div class="insight-icon">🔁</div>
+      <div class="insight-text">
+        <h4>Redundant Multi-Filter Work</h4>
+        <p>Analysts routinely built multiple overlapping filters to extract a single insight — a direct symptom of no combinatorial logic or filter grouping support in the existing interface.</p>
+      </div>
+    </div>
+    <div class="insight">
+      <div class="insight-icon">🧭</div>
+      <div class="insight-text">
+        <h4>No Intelligent Guidance</h4>
+        <p>The platform offered zero contextual suggestions. Users had to recall variable names, data types, and valid ranges from memory — creating high cognitive load and frequent errors.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:48px;">
+    <strong>Key interview insight:</strong> "I know what I want to find in the data. The system doesn't help me express that — I have to translate my question into its language, and that translation is where I lose time and make mistakes."
+  </div>
+
+  <!-- PERSONA -->
+  <div style="margin-top:64px;">
+    <div class="persona-block">
+      <div class="persona-id">
+        <div class="persona-avatar">D</div>
+        <div class="persona-name">Data Analyst Dave</div>
+        <div class="persona-role">Age 32 · Intermediate · Marketing Agency</div>
+        <p class="persona-quote">"Data tells the story — I just interpret it. But right now, I'm spending too much time setting up the stage."</p>
+      </div>
+      <div class="persona-detail-grid">
+        <div class="persona-detail">
+          <h4>Goals</h4>
+          <ul>
+            <li>Create precise, reusable data filters</li>
+            <li>Extract meaningful insights from large datasets</li>
+            <li>Improve analysis efficiency</li>
+            <li>Contribute to data-driven decisions</li>
+          </ul>
+        </div>
+        <div class="persona-detail">
+          <h4>Frustrations</h4>
+          <ul>
+            <li>Lack of intuitive filter creation options</li>
+            <li>No smart suggestions or autocomplete</li>
+            <li>Slow data processing for complex queries</li>
+            <li>No filter reuse or template system</li>
+          </ul>
+        </div>
+        <div class="persona-detail">
+          <h4>Needs</h4>
+          <ul>
+            <li>Easy-to-use filter creation UI</li>
+            <li>Ability to handle large datasets</li>
+            <li>Accurate, reliable results</li>
+            <li>Integration with other tools</li>
+          </ul>
+        </div>
+        <div class="persona-detail">
+          <h4>Motivations</h4>
+          <ul>
+            <li>Solving complex analysis challenges</li>
+            <li>Delivering valuable insights to clients</li>
+            <li>Advancing career in data analytics</li>
+            <li>Building data visualization expertise</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOURNEY MAP -->
+  <div style="margin-top:64px;">
+    <h3 style="font-family:'Playfair Display',serif; font-size:28px; font-weight:700; margin-bottom:8px;">User Journey Map</h3>
+    <p style="font-size:14px; color:var(--mid); margin-bottom:32px;">Emotional arc across six phases of Dave's data analysis workflow.</p>
+    <div class="journey">
+      <table class="journey-table">
+        <thead>
+          <tr>
+            <th>Phase</th>
+            <th>Key Tasks</th>
+            <th>Pain Points</th>
+            <th>Opportunities</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="phase-label">Discovery</span></td>
+            <td>Identify data sources, define scope, gather info on business question</td>
+            <td class="pain">Limited data access, unclear scope, poor data quality</td>
+            <td class="opp">Discover new sources, identify improvement areas</td>
+          </tr>
+          <tr>
+            <td><span class="phase-label">Research</span></td>
+            <td>Gather data, conduct market research, analyze competitor data</td>
+            <td class="pain">Time-consuming collection, overwhelming volume, inconsistent sources</td>
+            <td class="opp">Uncover customer preferences, identify market gaps</td>
+          </tr>
+          <tr>
+            <td><span class="phase-label">Analysis</span></td>
+            <td>Clean data, perform statistical analysis, identify patterns</td>
+            <td class="pain">Messy data, missing values, complex filter setup</td>
+            <td class="opp">Automate preprocessing, leverage ML for analysis</td>
+          </tr>
+          <tr>
+            <td><span class="phase-label">Implementation</span></td>
+            <td>Execute analysis plan, monitor progress, document findings</td>
+            <td class="pain">Limited resources, technical limitations, time constraints</td>
+            <td class="opp">Streamline workflows, improve collaboration tools</td>
+          </tr>
+          <tr>
+            <td><span class="phase-label">Evaluation</span></td>
+            <td>Compare against benchmarks, collect feedback, assess impact</td>
+            <td class="pain">Limited data access, unclear benchmarks, slow evaluation</td>
+            <td class="opp">Implement automated data collection, clearer metrics</td>
+          </tr>
+          <tr>
+            <td><span class="phase-label">Reflection</span></td>
+            <td>Review outcomes, document lessons learned, share insights</td>
+            <td class="pain">Difficulty measuring intangible benefits, limited time</td>
+            <td class="opp">Build continuous improvement culture, repository of learnings</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- DESIGN DIRECTION -->
+<section id="design">
+  <div class="section-header">
+    <span class="section-num">02 — DESIGN DIRECTION</span>
+    <h2 class="section-title">How Might We?</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="hmw">
+    <div class="hmw-label">Design Challenge</div>
+    <p class="hmw-statement">"How might we transform filter creation from a cognitive burden into an intelligent, guided experience that anticipates what analysts need before they ask?"</p>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Principle 01</div>
+      <h3>Simplicity First</h3>
+      <p>Reduce the number of steps required to create a functional filter. Every interaction should feel obvious without documentation.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Principle 02</div>
+      <h3>Intelligence as Default</h3>
+      <p>Smart filters should automatically surface relevant suggestions based on the active dataset — no manual configuration required to get started.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Principle 03</div>
+      <h3>Persistence & Reuse</h3>
+      <p>Filters built once should be saveable, shareable, and discoverable. The system should remember, so the analyst doesn't have to.</p>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:48px;">
+    <strong>Constraint to honor:</strong> All improvements must operate within the existing Sogolytics design system and brand guidelines, and remain compatible across SogoSurvey, SogoCore, SogoCX, SogoEX, and SogoConnect.
+  </div>
+</section>
+
+<!-- SYSTEM / IA -->
+<section id="system" style="background:#f9f7f3;">
+  <div class="section-header">
+    <span class="section-num">03 — SYSTEM ARCHITECTURE</span>
+    <h2 class="section-title">Information Architecture</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <p class="body-text" style="margin-bottom:40px;">The filter system was positioned as a cross-cutting module — Sogo Filter Manager — that lives above the product layer and feeds into all five products. This centralized IA eliminates the fragmented per-product filter experiences that existed before.</p>
+
+  <div class="ia-tree">
+<span class="root">Sogolytics Platform</span>
+│
+├── <span class="child">Sogo Filter Manager</span> ← New centralized module
+│   ├── Filter Creation
+│   │   ├── <span class="leaf">Create new filters with smart suggestions</span>
+│   │   ├── <span class="leaf">Edit existing filters</span>
+│   │   ├── <span class="leaf">Apply filters to datasets</span>
+│   │   ├── <span class="leaf">Save filter configurations</span>
+│   │   └── <span class="leaf">Share filters with team members</span>
+│   ├── Filter Management
+│   │   ├── <span class="leaf">Organize filters into folders</span>
+│   │   ├── <span class="leaf">Search and tag filters</span>
+│   │   ├── <span class="leaf">Archive unused filters</span>
+│   │   └── <span class="leaf">Delete or restore filters</span>
+│   └── Filter Analytics
+│       ├── <span class="leaf">Analyze filter usage patterns</span>
+│       ├── <span class="leaf">Track filter performance</span>
+│       └── <span class="leaf">Monitor adoption across products</span>
+│
+├── SogoSurvey  →  Consumes Filter Manager (Survey Analysis)
+├── SogoCore    →  Consumes Filter Manager (Data Analysis)
+├── SogoCX      →  Consumes Filter Manager (Customer Insights)
+├── SogoEX      →  Consumes Filter Manager (Employee Insights)
+└── SogoConnect →  Manages permissions and access for shared filters
+  </div>
+
+  <!-- MECHANICS / HOW IT WORKS -->
+  <div style="margin-top:64px;">
+    <h3 style="font-family:'Playfair Display',serif; font-size:28px; font-weight:700; margin-bottom:8px;">How the New Filter Flow Works</h3>
+    <p style="font-size:14px; color:var(--mid); margin-bottom:40px;">A step-by-step walkthrough of the redesigned filter creation experience.</p>
+    <div class="flow-steps">
+      <div class="flow-step" data-n="1">
+        <h4>Contextual Entry Point</h4>
+        <p>Users access the filter interface from any Sogolytics product. The system automatically detects the active dataset and pre-loads relevant field suggestions — no blank canvas to face.</p>
+      </div>
+      <div class="flow-step" data-n="2">
+        <h4>Smart Filter Suggestions</h4>
+        <p>Based on the current dataset and user history, the system surfaces the top 5 most relevant filter starting points. Analysts can accept a suggestion or build from scratch.</p>
+      </div>
+      <div class="flow-step" data-n="3">
+        <h4>Guided Condition Builder</h4>
+        <p>A redesigned condition builder uses inline autocomplete for field names, auto-validates data types, and shows live result counts as conditions are set — preventing empty-result errors before they happen.</p>
+      </div>
+      <div class="flow-step" data-n="4">
+        <h4>Logic Group Controls</h4>
+        <p>AND/OR grouping is surfaced prominently rather than buried. Users can create nested logic groups with drag-and-drop reordering — handling complex multi-condition filters cleanly.</p>
+      </div>
+      <div class="flow-step" data-n="5">
+        <h4>Save, Name & Share</h4>
+        <p>Filters can be saved with custom names and tags, organized into folders, and shared with specific team members or the whole organization — creating a reusable filter library over time.</p>
+      </div>
+      <div class="flow-step" data-n="6">
+        <h4>Filter Analytics Dashboard</h4>
+        <p>Administrators and power users see which filters are most used, identify stale filters for cleanup, and track adoption across the five products from a single analytics panel.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DELIVERABLES -->
+<section>
+  <div class="section-header">
+    <span class="section-num">04 — DELIVERABLES & TOOLS</span>
+    <h2 class="section-title">What Was Built</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <h3 style="font-family:'Playfair Display',serif; font-size:22px; margin-bottom:20px;">Design Deliverables</h3>
+      <div class="insight-list">
+        <div class="insight">
+          <div class="insight-icon" style="font-size:16px; background:var(--accent);">📋</div>
+          <div class="insight-text">
+            <h4>User Research Report</h4>
+            <p>Full synthesis of interview findings, affinity mapping, and prioritized pain point hierarchy.</p>
+          </div>
+        </div>
+        <div class="insight">
+          <div class="insight-icon" style="font-size:16px; background:var(--accent);">🗂</div>
+          <div class="insight-text">
+            <h4>Persona & Journey Map</h4>
+            <p>Data Analyst Dave persona with six-phase journey map and emotional arc annotations.</p>
+          </div>
+        </div>
+        <div class="insight">
+          <div class="insight-icon" style="font-size:16px; background:var(--accent);">📐</div>
+          <div class="insight-text">
+            <h4>Wireframes & Interactive Prototype</h4>
+            <p>Low to high-fidelity wireframes for the Filter Manager module with clickable prototype for usability testing.</p>
+          </div>
+        </div>
+        <div class="insight">
+          <div class="insight-icon" style="font-size:16px; background:var(--accent);">🎨</div>
+          <div class="insight-text">
+            <h4>Visual Design Enhancements</h4>
+            <p>Interface updates within the Sogolytics design system — new filter creation UI components with design specs.</p>
+          </div>
+        </div>
+        <div class="insight">
+          <div class="insight-icon" style="font-size:16px; background:var(--accent);">📊</div>
+          <div class="insight-text">
+            <h4>Usability Testing Report</h4>
+            <p>Two rounds of testing with 8 participants per round — findings, iterations, and next-step recommendations.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h3 style="font-family:'Playfair Display',serif; font-size:22px; margin-bottom:20px;">Tech & Tool Stack</h3>
+      <p style="font-size:14px; color:var(--mid); margin-bottom:20px;">Design and research tools used across the project lifecycle.</p>
+      <div class="badge-group">
+        <span class="badge">Figma</span>
+        <span class="badge">FigJam</span>
+        <span class="badge">Maze</span>
+        <span class="badge">Hotjar</span>
+        <span class="badge">Notion</span>
+        <span class="badge">Miro</span>
+        <span class="badge">Zoom</span>
+        <span class="badge">Loom</span>
+        <span class="badge outlined">WCAG 2.1 AA</span>
+        <span class="badge outlined">Responsive Design</span>
+        <span class="badge outlined">Design System</span>
+      </div>
+
+      <div style="margin-top:40px;">
+        <h3 style="font-family:'Playfair Display',serif; font-size:22px; margin-bottom:20px;">Competitors Analyzed</h3>
+        <p style="font-size:14px; color:var(--mid); margin-bottom:16px;">Benchmarked filter and analytics UX patterns from industry leaders.</p>
+        <div class="badge-group">
+          <span class="badge outlined">Tableau</span>
+          <span class="badge outlined">Power BI</span>
+          <span class="badge outlined">Google Analytics</span>
+          <span class="badge outlined">Adobe Analytics</span>
+          <span class="badge outlined">Looker</span>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top:32px;">
+        <strong>Key constraint honored:</strong> All filter UI components were built within the existing Sogolytics design system — no new brand tokens were introduced. Compatibility tested across desktop and tablet breakpoints.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section id="impact" style="background:var(--ink); color:var(--paper);">
+  <div class="section-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+    <span class="section-num" style="color:var(--accent-light);">05 — METRICS & IMPACT</span>
+    <h2 class="section-title" style="color:var(--paper);">Success Criteria</h2>
+    <div class="section-line" style="background:rgba(255,255,255,0.1);"></div>
+  </div>
+
+  <div class="impact-grid" style="border-color:rgba(255,255,255,0.1); margin-bottom:48px;">
+    <div class="impact-item" style="border-color:rgba(255,255,255,0.1);">
+      <div class="impact-num">↑ Eng.</div>
+      <div class="impact-label" style="color:rgba(245,242,236,0.6);">Increased user engagement with filter creation features across all products</div>
+    </div>
+    <div class="impact-item" style="border-color:rgba(255,255,255,0.1);">
+      <div class="impact-num">↓ Err.</div>
+      <div class="impact-label" style="color:rgba(245,242,236,0.6);">Reduction in user errors during filter creation — measured via session recordings</div>
+    </div>
+    <div class="impact-item" style="border-color:rgba(255,255,255,0.1);">
+      <div class="impact-num">↑ CSAT</div>
+      <div class="impact-label" style="color:rgba(245,242,236,0.6);">Higher user satisfaction scores for filter-related features post-launch</div>
+    </div>
+    <div class="impact-item" style="border-color:rgba(255,255,255,0.1);">
+      <div class="impact-num">↑ Adop.</div>
+      <div class="impact-label" style="color:rgba(245,242,236,0.6);">Increased adoption of smart filter suggestions among new and returning users</div>
+    </div>
+  </div>
+
+  <p style="color:rgba(245,242,236,0.6); font-size:14px; font-style:italic; max-width:600px;">
+    Note: Quantified post-launch metrics were pending at time of case study publication. Targets established via usability testing benchmarks and stakeholder success criteria. Final numbers available upon request.
+  </p>
+</section>
+
+<!-- REFLECTION -->
+<section id="reflection">
+  <div class="section-header">
+    <span class="section-num">06 — REFLECTION</span>
+    <h2 class="section-title">Lessons & Next Steps</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="reflection-cols">
+    <div class="reflection-block">
+      <h3>What I Learned</h3>
+      <ul>
+        <li>Centralizing a cross-product feature requires buy-in from multiple product teams early — stakeholder alignment was as critical as the design work itself.</li>
+        <li>Smart suggestions only feel smart when they're accurate. The filtering logic needed close collaboration with engineering to ensure suggestions were contextually valid, not just syntactically possible.</li>
+        <li>Users don't just want powerful filters — they want to feel confident using them. Inline validation and live result counts dramatically reduced user anxiety during testing.</li>
+        <li>The "blank canvas" problem is real. Starting users with suggestions instead of empty fields increased task completion rates in prototype testing.</li>
+        <li>Filter naming and organization became an unexpected priority — power users had 50+ saved filters and no way to manage them. Folder and tagging system was a late but essential addition.</li>
+      </ul>
+    </div>
+    <div class="reflection-block">
+      <h3>Next Steps</h3>
+      <ul>
+        <li>Instrument post-launch analytics to capture baseline metrics for filter creation time, error rate, and suggestion acceptance rate.</li>
+        <li>Expand smart filter intelligence with ML-based suggestions trained on anonymized usage patterns across the platform.</li>
+        <li>Build a filter template library — allowing Sogolytics to ship pre-built "starter filters" for common use cases (e.g., NPS analysis, employee engagement baseline).</li>
+        <li>Investigate natural language filter input — allowing users to type queries like "show responses from Q3 where NPS > 8" and auto-generate the filter logic.</li>
+        <li>Explore mobile-responsive filter management for on-the-go access by executive stakeholders reviewing dashboards on tablets.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>Sogolytics · Smart Filter Redesign · 2024</span>
+  <span>UX Design Case Study · CODEX Framework</span>
+</footer>
+
+</body>
+</html>

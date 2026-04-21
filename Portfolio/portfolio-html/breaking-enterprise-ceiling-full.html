@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script>
+  // Client-side protection against direct URLs
+  (function(){
+    let unlocked = false;
+    for (let i = 0; i < sessionStorage.length; i++) {
+      let key = sessionStorage.key(i);
+      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
+        unlocked = true; break;
+      }
+    }
+    if (!unlocked) { window.location.href = 'index.html'; }
+  })();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breaking the Enterprise Ceiling — Full Case Study</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f2ec;
+  --bg2: #f5f2ec;
+  --bg3: #f5f2ec;
+  --bg4: #f5f2ec;
+  --bg5: #f5f2ec;
+  --border: #d9d4cc;
+  --border2: #d9d4cc;
+  --border3: #d9d4cc;
+  --ink: #0d0f14;
+  --ink2: #6b6560;
+  --ink3: #6b6560;
+  --gold: #c94c2e;
+  --gold2: #c94c2e;
+  --gold-a: rgba(201, 76, 46, 0.1);
+  --gold-b: rgba(201, 76, 46, 0.1);
+  --teal: #2d7a4e;
+  --teal-a: rgba(201, 76, 46, 0.1);
+  --red: #c94c2e;
+  --red-a: rgba(201, 76, 46, 0.1);
+  --green: #2d7a4e;
+  --green-a: rgba(201, 76, 46, 0.1);
+  --purple: #7c3aed;
+  --purple-a: rgba(201, 76, 46, 0.1);
+  --amber: #c94c2e;
+  --amber-a: rgba(201, 76, 46, 0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.72;overflow-x:hidden;}
+
+/* GRAIN */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;mix-blend-mode:overlay;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 60px;background: #f5f2ec;border-bottom:1px solid var(--border);}
+.nav-brand{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.28em;text-transform:uppercase;color:var(--gold);}
+.nav-links{display:flex;gap:0;list-style:none;}
+.nav-links a{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;color:var(--ink3);padding:0 16px;height:52px;display:flex;align-items:center;border-right:1px solid var(--border);transition:color 0.2s,background 0.2s;}
+.nav-links a:hover{color:var(--ink);background: rgba(0,0,0,0.04);}
+.nav-links li:first-child a{border-left:1px solid var(--border);}
+
+/* SECTION WRAPPER */
+section{max-width:1140px;margin:0 auto;padding:100px 60px;}
+section.full-bleed{max-width:100%;padding:0;}
+.section-inner{max-width:1140px;margin:0 auto;padding:100px 60px;}
+
+/* CODEX TAG */
+.codex-tag{display:inline-flex;align-items:center;gap:10px;margin-bottom:44px;}
+.codex-num{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.26em;text-transform:uppercase;color:var(--gold);background:var(--gold-a);padding:5px 11px;border:1px solid rgba(200,164,98,0.28);}
+.codex-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink3);}
+
+/* EYEBROW */
+.eyebrow{display:flex;align-items:center;gap:14px;margin-bottom:24px;}
+.eyebrow-line{width:32px;height:1px;background:var(--gold);}
+.eyebrow-text{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.24em;text-transform:uppercase;color:var(--gold);}
+
+/* SECTION HEADER */
+.sec-h{margin-bottom:60px;}
+.sec-h h2{font-family:'Playfair Display',serif;font-size:clamp(32px,3.5vw,52px);font-weight:700;line-height:1.08;letter-spacing:-0.02em;margin-bottom:16px;}
+.sec-h h2 em{font-style:italic;color:var(--gold2);}
+.sec-h p{font-size:16px;color:var(--ink2);max-width:620px;line-height:1.7;}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:0 60px;}
+
+/* HERO */
+.hero{min-height:100vh;padding-top:52px;display:grid;grid-template-columns:1fr 440px;position:relative;overflow:hidden;}
+.hero-glow{position:absolute;inset:0;background:radial-gradient(ellipse 65% 55% at 30% 50%,rgba(200,164,98,0.048) 0%,transparent 60%),radial-gradient(ellipse 45% 65% at 88% 65%,rgba(62,207,190,0.025) 0%,transparent 55%);pointer-events:none;}
+.hero-left{padding:80px 64px 80px 80px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--border);position:relative;z-index:1;}
+h1{font-family:'Playfair Display',serif;font-size:clamp(48px,5.2vw,78px);font-weight:900;line-height:1.0;letter-spacing:-0.025em;margin-bottom:12px;}
+h1 em{font-style:italic;color:var(--gold2);}
+.hero-sub{font-size:13px;color:var(--ink2);font-weight:300;letter-spacing:0.04em;margin-bottom:32px;max-width:500px;line-height:1.65;}
+.hero-hook{font-family:'Playfair Display',serif;font-size:19px;font-style:italic;font-weight:400;color:var(--ink);line-height:1.65;max-width:510px;margin-bottom:48px;padding-left:22px;border-left:2px solid var(--gold);}
+.meta-row{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);}
+.meta-cell{padding:14px 16px;border-right:1px solid var(--border);}
+.meta-cell:last-child{border-right:none;}
+.meta-l{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px;}
+.meta-v{font-size:12px;font-weight:600;color:var(--ink);}
+.hero-right{background:var(--bg2);padding:60px 44px;display:flex;flex-direction:column;justify-content:center;gap:14px;position:relative;z-index:1;}
+.hr-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;}
+.f-card{background:var(--bg3);border:1px solid var(--border);padding:20px 22px;border-radius: 2px;}
+.f-card-tag{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:9px;}
+.f-card.red .f-card-tag{color:var(--red);}
+.f-card.amber .f-card-tag{color:var(--gold);}
+.f-card h3{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;margin-bottom:5px;line-height:1.35;}
+.f-card p{font-size:12px;color:var(--ink2);line-height:1.6;}
+.risk-card{background:rgba(224,92,92,0.07);border:1px solid rgba(224,92,92,0.2);border-radius: 2px;padding:14px 18px;font-size:12px;color:rgba(224,92,92,0.9);line-height:1.6;}
+.risk-card strong{display:block;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:5px;opacity:0.7;}
+
+/* PLACEHOLDER BOX */
+.placeholder{background:var(--bg3);border:1px solid var(--border2);border-radius: 2px;padding:48px 40px;text-align:center;margin:40px 0;position:relative;overflow:hidden;}
+.placeholder::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--gold-b) 0%,transparent 60%);pointer-events:none;}
+.ph-icon{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:block;}
+.ph-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:600;margin-bottom:8px;}
+.ph-desc{font-size:13px;color:var(--ink2);line-height:1.6;max-width:540px;margin:0 auto 16px;}
+.ph-caption{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.16em;color:var(--ink3);font-style:italic;}
+.ph-frame{border:1px dashed rgba(200,164,98,0.25);padding:28px;border-radius: 2px;margin:16px 0;}
+.ph-aspect{width:100%;padding-top:42%;background:linear-gradient(145deg,var(--bg4),var(--bg3));border:1px solid var(--border);border-radius: 2px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.ph-aspect-inner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;}
+.ph-aspect-tag{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.18em;color:var(--gold);text-transform:uppercase;}
+.ph-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);overflow:hidden;border-radius: 2px;margin:20px 0;}
+.ph-half{background:var(--bg3);padding:32px 28px;min-height:200px;display:flex;flex-direction:column;justify-content:center;}
+.ph-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;}
+.ph-big{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--ink2);}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;}
+.two-col-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;}
+
+/* INSIGHT BLOCK */
+.insight-row{display:flex;gap:48px;padding:40px 0;border-bottom:1px solid var(--border);}
+.insight-row:last-child{border-bottom:none;}
+.insight-num{font-family:'DM Mono',monospace;font-size:40px;font-weight:500;color:var(--gold-a);line-height:1;flex-shrink:0;width:60px;}
+.insight-body h3{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;margin-bottom:8px;}
+.insight-body p{font-size:14px;color:var(--ink2);}
+.insight-body .signal{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal);margin-top:10px;}
+
+/* CALLOUT */
+.callout{background:var(--gold-a);border-left:3px solid var(--gold);padding:20px 24px;margin:28px 0;border-radius: 0 2px 2px 0;}
+.callout p{font-family:'Playfair Display',serif;font-size:16px;font-style:italic;font-weight:400;line-height:1.65;color:var(--ink);}
+.callout-body{font-size:14px;color:var(--ink2);line-height:1.65;}
+
+/* VALUE BRIDGE */
+.bridge-wrap{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid var(--border);margin:40px 0;overflow:hidden;}
+.bridge-tier{padding:32px 28px;border-right:1px solid var(--border);position:relative;transition:background 0.3s;}
+.bridge-tier:last-child{border-right:none;}
+.bridge-tier:hover{background:var(--bg4);}
+.bridge-tier-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.24em;text-transform:uppercase;margin-bottom:6px;}
+.tier-1 .bridge-tier-label{color:var(--teal);}
+.tier-2 .bridge-tier-label{color:var(--gold);}
+.tier-3 .bridge-tier-label{color:var(--purple);}
+.bridge-tier h3{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:12px;}
+.bridge-tier ul{list-style:none;margin-bottom:16px;}
+.bridge-tier ul li{font-size:13px;color:var(--ink2);padding:5px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;}
+.bridge-tier ul li::before{content:'→';color:var(--gold);font-size:11px;flex-shrink:0;margin-top:2px;}
+.bridge-mindset{font-family:'Playfair Display',serif;font-size:13px;font-style:italic;color:var(--ink2);padding-top:12px;border-top:1px solid var(--border2);}
+.bridge-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;padding:3px 9px;margin-bottom:14px;border-radius: 2px;}
+.tier-1 .bridge-badge{background:var(--teal-a);color:var(--teal);border:1px solid rgba(62,207,190,0.2);}
+.tier-2 .bridge-badge{background:var(--gold-a);color:var(--gold);border:1px solid rgba(200,164,98,0.2);}
+.tier-3 .bridge-badge{background:var(--purple-a);color:var(--purple);border:1px solid rgba(158,140,245,0.2);}
+
+/* AGENT CARDS */
+.agent-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:32px 0;}
+.agent-card{background:var(--bg3);border:1px solid var(--border);padding:24px;border-radius: 2px;position:relative;}
+.agent-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.agent-brand::before{background:linear-gradient(90deg,var(--gold),transparent);}
+.agent-context::before{background:linear-gradient(90deg,var(--teal),transparent);}
+.agent-insight::before{background:linear-gradient(90deg,var(--purple),transparent);}
+.agent-visual::before{background:linear-gradient(90deg,var(--amber),transparent);}
+.agent-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.22em;text-transform:uppercase;margin-bottom:8px;}
+.agent-brand .agent-label{color:var(--gold);}
+.agent-context .agent-label{color:var(--teal);}
+.agent-insight .agent-label{color:var(--purple);}
+.agent-visual .agent-label{color:var(--amber);}
+.agent-card h4{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;margin-bottom:8px;}
+.agent-card p{font-size:13px;color:var(--ink2);line-height:1.6;}
+.agent-io{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;}
+.agent-io-tag{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;color:var(--ink3);background:var(--bg4);padding:3px 8px;border:1px solid var(--border);}
+
+/* COMPETITIVE ANALYSIS */
+.comp-table-wrap{overflow-x:auto;margin:32px 0;}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comp-table th{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink3);padding:12px 16px;text-align:left;border-bottom:1px solid var(--border2);background:var(--bg3);}
+.comp-table td{padding:14px 16px;border-bottom:1px solid var(--border);vertical-align:top;}
+.comp-table tr:hover td{background:rgba(255,255,255,0.015);}
+.comp-table td.co-name{font-weight:600;color:var(--ink);}
+.co-tag{display:inline-block;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.14em;text-transform:uppercase;padding:2px 7px;border-radius: 2px;margin-bottom:4px;}
+.co-smb{background:var(--teal-a);color:var(--teal);border:1px solid rgba(62,207,190,0.2);}
+.co-ent{background:var(--purple-a);color:var(--purple);border:1px solid rgba(158,140,245,0.2);}
+.co-mid{background:var(--gold-a);color:var(--gold);border:1px solid rgba(200,164,98,0.2);}
+.co-us{background:rgba(78,201,122,0.12);color:var(--green);border:1px solid rgba(78,201,122,0.2);}
+.dot{display:inline-block;width:8px;height:8px;border-radius: 50%;margin-right:4px;flex-shrink:0;}
+.dot-green{background:var(--green);}
+.dot-red{background:var(--red);}
+.dot-amber{background:var(--amber);}
+.comp-score{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;padding:2px 8px;border-radius: 2px;}
+.score-high{color:var(--green);background:var(--green-a);}
+.score-mid{color:var(--amber);background:var(--amber-a);}
+.score-low{color:var(--red);background:var(--red-a);}
+
+/* POSITIONING MATRIX */
+.matrix-wrap{position:relative;height:460px;background:var(--bg3);border:1px solid var(--border);border-radius: 2px;margin:32px 0;overflow:hidden;}
+.matrix-axis-x{position:absolute;bottom:50%;left:0;right:0;height:1px;background:var(--border2);}
+.matrix-axis-y{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border2);}
+.matrix-label-x1{position:absolute;bottom:16px;left:16px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink3);}
+.matrix-label-x2{position:absolute;bottom:16px;right:16px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink3);}
+.matrix-label-y1{position:absolute;top:16px;left:16px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink3);}
+.matrix-label-y2{position:absolute;bottom:60px;left:16px;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink3);}
+.matrix-dot{position:absolute;width:44px;height:44px;border-radius: 50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:8px;font-weight:500;text-align:center;transform:translate(-50%,-50%);transition:transform 0.2s;cursor:default;}
+.matrix-dot:hover{transform:translate(-50%,-50%) scale(1.15);}
+.matrix-dot-label{position:absolute;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;white-space:nowrap;}
+.matrix-qualtrics{background:rgba(158,140,245,0.15);border:1px solid var(--purple);color:var(--purple);top:18%;left:72%;}
+.matrix-medallia{background:rgba(224,92,92,0.12);border:1px solid var(--red);color:var(--red);top:12%;left:82%;}
+.matrix-surveymonkey{background:var(--teal-a);border:1px solid var(--teal);color:var(--teal);top:60%;left:28%;}
+.matrix-typeform{background:var(--amber-a);border:1px solid var(--amber);color:var(--amber);top:55%;left:38%;}
+.matrix-sogolytics{background:rgba(78,201,122,0.15);border:2px solid var(--green);color:var(--green);top:28%;left:55%;width:52px;height:52px;}
+.matrix-opportunity{position:absolute;top:14%;left:44%;width:18%;height:34%;border:1px dashed rgba(78,201,122,0.3);border-radius: 4px;background:rgba(78,201,122,0.04);}
+.matrix-opp-label{position:absolute;top:14%;left:44%;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(78,201,122,0.6);transform:translate(8px,-18px);}
+
+/* GAP ANALYSIS TABLE */
+.gap-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid var(--border);margin:32px 0;overflow:hidden;}
+.gap-cell{padding:28px 24px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.gap-cell:nth-child(3n){border-right:none;}
+.gap-cell:nth-last-child(-n+3){border-bottom:none;}
+.gap-cell-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.22em;text-transform:uppercase;margin-bottom:8px;}
+.gap-cell h4{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;margin-bottom:8px;}
+.gap-cell p{font-size:13px;color:var(--ink2);line-height:1.6;}
+.gap-opp{background:rgba(78,201,122,0.04);}
+.gap-opp .gap-cell-label{color:var(--green);}
+.gap-threat{background:rgba(224,92,92,0.04);}
+.gap-threat .gap-cell-label{color:var(--red);}
+
+/* PLG PHASES */
+.plg-phases{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--border);margin:32px 0;}
+.plg-phase{padding:28px 22px;border-right:1px solid var(--border);}
+.plg-phase:last-child{border-right:none;}
+.plg-phase-num{font-family:'DM Mono',monospace;font-size:28px;font-weight:500;color:var(--gold-a);line-height:1;margin-bottom:8px;}
+.plg-phase-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+.plg-phase h3{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;margin-bottom:8px;}
+.plg-phase p{font-size:13px;color:var(--ink2);line-height:1.6;}
+
+/* TRIGGER TABLE */
+.trigger-table{width:100%;border-collapse:collapse;font-size:13px;margin:32px 0;}
+.trigger-table th{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink3);padding:12px 18px;text-align:left;border-bottom:1px solid var(--border2);background:var(--bg3);}
+.trigger-table td{padding:14px 18px;border-bottom:1px solid var(--border);}
+.trigger-table tr:hover td{background:rgba(255,255,255,0.015);}
+.trigger-icon{display:inline-flex;align-items:center;gap:8px;}
+.arrow-small{font-size:10px;color:var(--gold);font-family:'DM Mono',monospace;}
+
+/* IMPACT DASHBOARD */
+.impact-hero{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid var(--border);margin:32px 0;overflow:hidden;}
+.impact-cell{padding:36px 30px;border-right:1px solid var(--border);text-align:center;}
+.impact-cell:last-child{border-right:none;}
+.impact-num{font-family:'Playfair Display',serif;font-size:54px;font-weight:900;line-height:1;color:var(--ink);margin-bottom:6px;}
+.impact-num.gold{color:var(--gold2);}
+.impact-num.teal{color:var(--teal);}
+.impact-num.green{color:var(--green);}
+.impact-delta{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:8px;}
+.impact-delta.up{color:var(--green);}
+.impact-delta.down{color:var(--teal);}
+.impact-label{font-size:12px;color:var(--ink2);}
+.impact-sub-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--border);border-top:none;overflow:hidden;}
+.impact-sub{padding:20px 22px;border-right:1px solid var(--border);text-align:center;}
+.impact-sub:last-child{border-right:none;}
+.impact-sub-num{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--gold);margin-bottom:4px;}
+.impact-sub-l{font-size:11px;color:var(--ink2);}
+
+/* JOURNEY MAP */
+.journey-wrap{overflow-x:auto;margin:32px 0;}
+.journey-table{min-width:860px;border-collapse:collapse;}
+.journey-table th{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink3);padding:12px 18px;border:1px solid var(--border);background:var(--bg3);text-align:center;}
+.journey-table td{padding:14px 18px;border:1px solid var(--border);font-size:12px;color:var(--ink2);vertical-align:top;}
+.journey-table .stage-header{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);white-space:nowrap;}
+.emo-high{color:var(--green);}
+.emo-mid{color:var(--amber);}
+.emo-low{color:var(--red);}
+.pain-badge{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;color:var(--red);background:var(--red-a);padding:2px 7px;border-radius: 2px;display:inline-block;margin:2px 0;}
+.opp-badge{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;color:var(--green);background:var(--green-a);padding:2px 7px;border-radius: 2px;display:inline-block;margin:2px 0;}
+
+/* PRINCIPLE CARDS */
+.principle-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin:32px 0;}
+.principle-card{background:var(--bg3);border:1px solid var(--border);padding:28px;border-radius: 2px;position:relative;overflow:hidden;}
+.principle-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.pc-blue::after{background:linear-gradient(90deg,var(--teal),var(--purple));}
+.pc-gold::after{background:linear-gradient(90deg,var(--gold),var(--amber));}
+.pc-green::after{background:linear-gradient(90deg,var(--green),var(--teal));}
+.principle-icon{font-family:'DM Mono',monospace;font-size:22px;color:var(--gold);margin-bottom:14px;}
+.principle-card h4{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:8px;}
+.principle-card p{font-size:13px;color:var(--ink2);line-height:1.65;}
+
+/* BEFORE/AFTER */
+.ba-wrap{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);overflow:hidden;margin:32px 0;}
+.ba-side{padding:32px 28px;}
+.ba-side.before{border-right:1px solid var(--border);background:var(--red-a);}
+.ba-side.after{background:rgba(78,201,122,0.05);}
+.ba-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.24em;text-transform:uppercase;margin-bottom:16px;}
+.ba-side.before .ba-label{color:var(--red);}
+.ba-side.after .ba-label{color:var(--green);}
+.ba-step{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.ba-step:last-child{border-bottom:none;}
+.ba-step-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink3);flex-shrink:0;width:52px;}
+.ba-step-text{font-size:13px;color:var(--ink2);}
+.ba-step-emo{font-family:'DM Mono',monospace;font-size:9px;flex-shrink:0;min-width:60px;text-align:right;}
+
+/* NDA NOTE */
+.nda-note{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;color:var(--ink3);font-style:italic;text-align:center;padding:14px;border:1px solid var(--border);margin:32px 0;}
+
+/* SOUNDBITE */
+.soundbite{background:var(--bg4);border:1px solid var(--border2);padding:48px 52px;margin:40px 0;position:relative;}
+.soundbite::before{content:'\201C';font-family:'Playfair Display',serif;font-size:120px;color:var(--gold-a);position:absolute;top:-20px;left:32px;line-height:1;}
+.soundbite p{font-family:'Playfair Display',serif;font-size:20px;font-style:italic;font-weight:400;line-height:1.65;color:var(--ink);position:relative;z-index:1;}
+
+/* REFLECTION */
+.reflection-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid var(--border);margin:32px 0;overflow:hidden;}
+.ref-cell{padding:28px 24px;border-right:1px solid var(--border);}
+.ref-cell:last-child{border-right:none;}
+.ref-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.22em;text-transform:uppercase;margin-bottom:12px;}
+.ref-label.worked{color:var(--green);}
+.ref-label.improve{color:var(--amber);}
+.ref-label.future{color:var(--purple);}
+.ref-cell ul{list-style:none;}
+.ref-cell ul li{font-size:13px;color:var(--ink2);padding:7px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;}
+.ref-cell ul li::before{content:'—';color:var(--ink3);flex-shrink:0;}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:32px 80px;display:flex;justify-content:space-between;align-items:center;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink3);}
+
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;}
+  .hero-right{display:none;}
+  nav{padding:0 24px;}
+  section{padding:72px 24px;}
+  .meta-row{grid-template-columns:1fr 1fr;}
+  .two-col,.two-col-3,.bridge-wrap,.plg-phases,.impact-hero,.impact-sub-grid,.principle-row,.gap-grid,.agent-grid,.reflection-grid{grid-template-columns:1fr;}
+  .ba-wrap{grid-template-columns:1fr;}
+  footer{flex-direction:column;gap:8px;text-align:center;padding:24px;}
+  h1{font-size:42px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">UX Portfolio — Case Study</div>
+  <ul class="nav-links">
+    <li><a href="index.html" style="color: var(--accent); font-weight: 700;">← Home</a></li>
+    <li><a href="#challenge">Challenge</a></li>
+    <li><a href="#research">Research</a></li>
+    <li><a href="#competitive">Competitive</a></li>
+    <li><a href="#strategy">Strategy</a></li>
+    <li><a href="#onboarding">Onboarding</a></li>
+    <li><a href="#impact">Impact</a></li>
+    <li><a href="#reflection">Reflection</a></li>
+  </ul>
+</nav>
+
+<!-- ========================================================= HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-left">
+    <div class="eyebrow"><div class="eyebrow-line"></div><div class="eyebrow-text">Case Study · SaaS Experience Management · Enterprise PLG</div></div>
+    <h1>Breaking the<br><em>Enterprise</em><br>Ceiling</h1>
+    <p class="hero-sub">Repositioning a Feedback Platform for Global Scale Through AI Orchestration &amp; Product-Led Growth — SaaS · B2B · Virginia, USA</p>
+    <p class="hero-hook">"We transformed a feedback platform from an SMB-focused tool into an enterprise-ready growth engine by designing a Value Bridge PLG strategy — enabling teams to experience enterprise-grade ROI before committing to a purchase."</p>
+    <div class="meta-row">
+      <div class="meta-cell"><div class="meta-l">Role</div><div class="meta-v">UX Designer</div></div>
+      <div class="meta-cell"><div class="meta-l">Product</div><div class="meta-v">Sogolytics</div></div>
+      <div class="meta-cell"><div class="meta-l">Duration</div><div class="meta-v">2 Months</div></div>
+      <div class="meta-cell"><div class="meta-l">Focus</div><div class="meta-v">PLG + AI Onboarding</div></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hr-label">// Friction Points Identified</div>
+    <div class="f-card red">
+      <div class="f-card-tag">01 — Market Perception</div>
+      <h3>Perceived as Lightweight</h3>
+      <p>Loved by small teams, dismissed by enterprise buyers before procurement even began.</p>
+    </div>
+    <div class="f-card amber">
+      <div class="f-card-tag">02 — Revenue Friction</div>
+      <h3>Paywalls Before Value</h3>
+      <p>High-intent users hit hard limits before experiencing meaningful, enterprise-grade ROI.</p>
+    </div>
+    <div class="f-card red">
+      <div class="f-card-tag">03 — Trust Breakdown</div>
+      <h3>Misaligned Experience</h3>
+      <p>Marketing promised enterprise power. In-product experience still felt SMB-oriented.</p>
+    </div>
+    <div class="risk-card">
+      <strong>// Business Risk</strong>
+      Without structural intervention, growth would stall at low-tier revenue while competitors captured enterprise contracts at scale.
+    </div>
+  </div>
+</div>
+
+<div class="nda-note">All visuals and metrics are illustrative and anonymized in compliance with confidentiality agreements. Full context available under mutual NDA.</div>
+
+<!-- ========================================================= CHALLENGE -->
+<section id="challenge">
+  <div class="codex-tag"><span class="codex-num">01</span><span class="codex-label">The Challenge</span></div>
+  <div class="sec-h">
+    <div class="eyebrow"><div class="eyebrow-line"></div><div class="eyebrow-text">Problem Framing</div></div>
+    <h2>The <em>Enterprise Ceiling</em></h2>
+    <p>As adoption grew, the platform hit an invisible barrier. Strong with small teams, invisible to enterprise procurement. The ceiling wasn't a product failure — it was a perception and value-delivery failure.</p>
+  </div>
+
+  <!-- PLACEHOLDER: Enterprise Ceiling Growth Curve -->
+  <div class="placeholder">
+    <span class="ph-icon">// Visual 01 — Enterprise Ceiling</span>
+    <div class="ph-frame">
+      <div class="ph-aspect" style="padding-top:38%;">
+        <div class="ph-aspect-inner">
+          <div class="ph-aspect-tag">Growth Curve → Plateau → Annotated Friction Points</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:6px;">X-axis: Timeline · Y-axis: Growth Metrics · Annotations: "Lost at procurement", "Paywall drop-off", "Trust erosion"</div>
+        </div>
+      </div>
+    </div>
+    <div class="ph-title">Enterprise Ceiling Visualization</div>
+    <div class="ph-desc">Growth curve graph showing the plateau moment — steady ascent flattening into a ceiling with annotated churn and friction points along the curve.</div>
+    <div class="ph-caption">"Where growth stalled — and what we needed to break through"</div>
+  </div>
+
+  <!-- JOURNEY MAP: Enterprise Buyer Emotional Arc -->
+  <div class="journey-wrap">
+    <table class="journey-table">
+      <thead>
+        <tr>
+          <th>Row</th>
+          <th>01 — Initial Excitement</th>
+          <th>02 — Exploring Features</th>
+          <th>03 — Hitting Limitations</th>
+          <th>04 — Can't Show Exec Team</th>
+          <th>05 — Abandonment</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="stage-header">User Actions</td>
+          <td>Discovers platform via marketing; signs up for trial</td>
+          <td>Builds first survey, explores templates</td>
+          <td>Tries to add team members, export data, create dashboards</td>
+          <td>Attempts to create executive report; hits paywall</td>
+          <td>Abandons trial; returns to incumbent vendor</td>
+        </tr>
+        <tr>
+          <td class="stage-header">Emotion</td>
+          <td class="emo-high">High — Curious, Optimistic</td>
+          <td class="emo-mid">Neutral — Learning</td>
+          <td class="emo-low">Dropping — Frustrated</td>
+          <td class="emo-low">Very Low — Defeated</td>
+          <td class="emo-low">Disengaged — Exit</td>
+        </tr>
+        <tr>
+          <td class="stage-header">Pain Points</td>
+          <td>—</td>
+          <td>Templates feel generic</td>
+          <td><span class="pain-badge">"Feels too basic for our org"</span></td>
+          <td><span class="pain-badge">"Where's the ROI?"</span><br><span class="pain-badge">"Can't show this to execs"</span></td>
+          <td><span class="pain-badge">"Not worth the procurement effort"</span></td>
+        </tr>
+        <tr>
+          <td class="stage-header">Opportunity</td>
+          <td><span class="opp-badge">Enterprise signals at entry</span></td>
+          <td><span class="opp-badge">Industry-specific templates</span></td>
+          <td>—</td>
+          <td><span class="opp-badge">← Design intervention here</span></td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ========================================================= RESEARCH -->
+<section id="research">
+  <div class="codex-tag"><span class="codex-num">02</span><span class="codex-label">Research & Strategic Insight</span></div>
+  <div class="sec-h">
+    <div class="eyebrow"><div class="eyebrow-line"></div><div class="eyebrow-text">Discovery</div></div>
+    <h2>What Changed <em>Our Thinking</em></h2>
+    <p>Through interviews with CX leaders, usage data analysis with Product and Data teams, and sales feedback synthesis — a critical and subtle pattern emerged.</p>
+  </div>
+
+  <div class="insight-row">
+    <div class="insight-num">01</div>
+    <div class="insight-body">
+      <h3>Enterprise users don't fear complexity</h3>
+      <p>They are willing to configure, learn, and invest time. Complexity was not the obstacle. The missing ingredient was a visible path from effort to outcome.</p>
+      <div class="signal">→ User Research Finding</div>
+    </div>
+  </div>
+  <div class="insight-row">
+    <div class="insight-num">02</div>
+    <div class="insight-body">
+      <h3>They fear effort that doesn't translate into ROI</h3>
+      <p>When value felt abstract, delayed, or invisible — trust eroded quickly. Each configuration step without a visible reward compounded the abandonment risk.</p>
+      <div class="signal">→ Behavioral Analysis + Interview Synthesis</div>
+    </div>
+  </div>
+  <div class="insight-row">
+    <div class="insight-num">03</div>
+    <div class="insight-body">
+      <h3>Time-to-value is a credibility signal at enterprise scale</h3>
+      <p>Unlike SMB users who accept onboarding delay, enterprise buyers interpret slow time-to-value as a red flag — evidence the platform won't perform at scale.</p>
+      <div class="signal">→ Sales Team Feedback + Deal Loss Analysis</div>
+    </div>
+  </div>
+
+  <div class="callout"><p>"The question stopped being: How do we explain more features? And became: How do we let users experience value early enough that effort feels justified?"</p></div>
+
+  <!-- PLACEHOLDER: Research Synthesis Board -->
+  <div class="placeholder">
+    <span class="ph-icon">// Visual 02 — Research Synthesis Board</span>
+    <div class="ph-frame">
+      <div class="ph-grid">
+        <div class="ph-half">
+          <div class="ph-label">Cluster A — Red Notes</div>
+          <div class="ph-big">"Effort Without Outcome"</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:8px;">User quotes about investing time without seeing progress</div>
+        </div>
+        <div class="ph-half">
+          <div class="ph-label">Cluster B — Yellow Notes</div>
+          <div class="ph-big">"Need Proof Early"</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:8px;">Requests to see executive dashboard before committing</div>
+        </div>
+        <div class="ph-half" style="border-top:1px solid var(--border);">
+          <div class="ph-label">Cluster C — Orange Notes</div>
+          <div class="ph-big">"Trust Erosion Points"</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:8px;">Moments where marketing promises diverged from product reality</div>
+        </div>
+        <div class="ph-half" style="border-top:1px solid var(--border);background:var(--gold-a);">
+          <div class="ph-label" style="color:var(--gold);">The Pivotal Question — Circled in Red</div>
+          <div style="font-family:'Playfair Display',serif;font-size:16px;font-style:italic;color:var(--ink);">"How do we let users EXPERIENCE value before asking them to commit?"</div>
+        </div>
+      </div>
+    </div>
+    <div class="ph-caption">The moment everything shifted — from explaining features to demonstrating outcomes</div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ========================================================= COMPETITIVE ANALYSIS -->
+<section id="competitive">
+  <div class="codex-tag"><span class="codex-num">03</span><span class="codex-label">Competitive Analysis</span></div>
+  <div class="sec-h">
+    <div class="eyebrow"><div class="eyebrow-line"></div><div class="eyebrow-text">Market Landscape & Gap Analysis</div></div>
+    <h2>The <em>White Space</em> We Designed For</h2>
+    <p>Mapping the competitive landscape revealed a clear opportunity: a gap between enterprise-grade capability and PLG-native onboarding that no incumbent had addressed.</p>
+  </div>
+
+  <!-- POSITIONING MATRIX -->
+  <div class="matrix-wrap">
+    <div class="matrix-axis-x"></div>
+    <div class="matrix-axis-y"></div>
+    <div class="matrix-label-x1">← SMB / Self-Service</div>
+    <div class="matrix-label-x2">Enterprise-Grade →</div>
+    <div class="matrix-label-y1">↑ PLG / Low Friction</div>
+    <div class="matrix-label-y2">↓ Sales-Led / High Friction</div>
+    <div class="matrix-opportunity"></div>
+    <div class="matrix-opp-label">⬡ White Space</div>
+    <!-- Dots -->
+    <div class="matrix-dot matrix-qualtrics" title="Qualtrics">QX</div>
+    <div style="position:absolute;top:calc(18% + 26px);left:72%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.12em;color:var(--purple);white-space:nowrap;">Qualtrics</div>
+    <div class="matrix-dot matrix-medallia" title="Medallia">MD</div>
+    <div style="position:absolute;top:calc(12% + 26px);left:82%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.12em;color:var(--red);white-space:nowrap;">Medallia</div>
+    <div class="matrix-dot matrix-surveymonkey" title="SurveyMonkey">SM</div>
+    <div style="position:absolute;top:calc(60% + 26px);left:28%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.12em;color:var(--teal);white-space:nowrap;">SurveyMonkey</div>
+    <div class="matrix-dot matrix-typeform" title="Typeform">TF</div>
+    <div style="position:absolute;top:calc(55% + 26px);left:38%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.12em;color:var(--amber);white-space:nowrap;">Typeform</div>
+    <div class="matrix-dot matrix-sogolytics" title="Sogolytics (repositioned)">SG</div>
+    <div style="position:absolute;top:calc(28% + 30px);left:55%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.12em;color:var(--green);white-space:nowrap;">Sogolytics →</div>
+  </div>
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;color:var(--ink3);text-align:center;margin-top:8px;margin-bottom:40px;">Positioning matrix: Enterprise capability (x) vs. Onboarding friction / PLG accessibility (y) — illustrative, not to scale</div>
+
+  <!-- COMPETITIVE TABLE -->
+  <div class="comp-table-wrap">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Platform</th>
+          <th>Primary Segment</th>
+          <th>Onboarding Model</th>
+          <th>AI Capability</th>
+          <th>PLG Mechanics</th>
+          <th>Enterprise Trust Signals</th>
+          <th>Key Gap</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="co-name"><span class="co-tag co-ent">Enterprise</span><br>Qualtrics XM</td>
+          <td>Large Enterprise, Fortune 500</td>
+          <td>Sales-led, long onboarding cycle (weeks)</td>
+          <td><span class="comp-score score-high">High</span> — iQ suite, NLP</td>
+          <td><span class="comp-score score-low">None</span> — fully gated</td>
+          <td>Very high — SOC2, GDPR, governance</td>
+          <td>Inaccessible to mid-market; $$$; no PLG</td>
+        </tr>
+        <tr>
+          <td class="co-name"><span class="co-tag co-ent">Enterprise</span><br>Medallia</td>
+          <td>Large Enterprise, CX Programs</td>
+          <td>Professional services led; months to deploy</td>
+          <td><span class="comp-score score-high">High</span> — deep analytics</td>
+          <td><span class="comp-score score-low">None</span></td>
+          <td>Very high — complex governance</td>
+          <td>Extremely expensive; out of reach for growth-stage cos</td>
+        </tr>
+        <tr>
+          <td class="co-name"><span class="co-tag co-mid">Mid-Market</span><br>SurveyMonkey / Momentive</td>
+          <td>SMB, Mid-Market</td>
+          <td>Self-serve, immediate access</td>
+          <td><span class="comp-score score-mid">Medium</span> — AI-assist on plans</td>
+          <td><span class="comp-score score-mid">Partial</span> — usage triggers</td>
+          <td>Low — perceived as consumer-grade</td>
+          <td>Cannot support complex enterprise programs; weak governance</td>
+        </tr>
+        <tr>
+          <td class="co-name"><span class="co-tag co-smb">SMB/Consumer</span><br>Typeform</td>
+          <td>SMB, Individual</td>
+          <td>Instant self-serve; beautiful empty states</td>
+          <td><span class="comp-score score-mid">Medium</span> — AI forms</td>
+          <td><span class="comp-score score-mid">Partial</span></td>
+          <td>Very low — design-forward, not enterprise</td>
+          <td>No enterprise governance; not procurement-ready</td>
+        </tr>
+        <tr>
+          <td class="co-name"><span class="co-tag co-mid">Mid-Market</span><br>Alchemer (SurveyGizmo)</td>
+          <td>Mid-Market, Research</td>
+          <td>Trial + consultant assist</td>
+          <td><span class="comp-score score-low">Low</span></td>
+          <td><span class="comp-score score-low">Minimal</span></td>
+          <td>Medium — API, compliance options</td>
+          <td>Dated UX; no AI differentiation; poor onboarding</td>
+        </tr>
+        <tr style="background:rgba(78,201,122,0.04);">
+          <td class="co-name"><span class="co-tag co-us">Repositioned</span><br>Sogolytics (Our Work)</td>
+          <td>Mid-Market → Enterprise</td>
+          <td><strong>AI-orchestrated pre-signup value delivery</strong></td>
+          <td><span class="comp-score score-high">High</span> — multi-agent onboarding + AI insights</td>
+          <td><span class="comp-score score-high">Full PLG</span> — success-triggered, value-bridge model</td>
+          <td>Growing — governance, RBAC, executive reporting</td>
+          <td>—<em> This is the white space we designed for</em></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- GAP ANALYSIS -->
+  <h3 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin:48px 0 20px;letter-spacing:-0.01em;">Gap Analysis — <em>Where We Play</em></h3>
+  <div class="gap-grid">
+    <div class="gap-cell gap-opp">
+      <div class="gap-cell-label">Opportunity 01</div>
+      <h4>Enterprise PLG White Space</h4>
+      <p>No major player combines enterprise-grade features with genuine product-led, low-friction onboarding. Qualtrics is too expensive and sales-led; SurveyMonkey lacks enterprise credibility.</p>
+    </div>
+    <div class="gap-cell gap-opp">
+      <div class="gap-cell-label">Opportunity 02</div>
+      <h4>AI Onboarding Differentiation</h4>
+      <p>Competitors either have no AI onboarding (Medallia, Qualtrics) or basic form fill assistance (Typeform). Multi-agent, domain-triggered onboarding is an unoccupied position.</p>
+    </div>
+    <div class="gap-cell gap-opp">
+      <div class="gap-cell-label">Opportunity 03</div>
+      <h4>Mid-Market Upgrade Path</h4>
+      <p>A structured tier between free/SMB and enterprise ($5K+ contracts) is missing from every competitor. The "Growth Bridge" tier addresses $200–$800/month buyers with no credible option.</p>
+    </div>
+    <div class="gap-cell gap-threat">
+      <div class="gap-cell-label">Threat 01</div>
+      <h4>Qualtrics Moving Downstream</h4>
+      <p>Qualtrics launched "Startup" programs and more accessible pricing tiers. If they execute on PLG, they could compress the mid-market opportunity from above.</p>
+    </div>
+    <div class="gap-cell gap-threat">
+      <div class="gap-cell-label">Threat 02</div>
+      <h4>Momentive Enterprise Push</h4>
+      <p>SurveyMonkey's parent Momentive is actively repositioning toward enterprise. They have brand recognition and distribution that Sogolytics must outpace on product quality.</p>
+    </div>
+    <div class="gap-cell gap-opp">
+      <div class="gap-cell-label">Opportunity 04</div>
+      <h4>Vertical Depth — Credit Unions &amp; Healthcare</h4>
+      <p>No platform owns the Credit Union, Healthcare, or K–12 verticals with depth. Domain-specific templates and compliance signals in these verticals create a defensible moat.</p>
+    </div>
+  </div>
+
+  <div class="callout"><p>"The opportunity was not to out-enterprise Qualtrics or out-simplify SurveyMonkey. It was to be the first platform to make enterprise outcomes genuinely accessible through product-led, AI-native design."</p></div>
+</section>
+<div class="divider"></div>
+
+<!-- ========================================================= STRATEGY -->
+<section id="strategy">
+  <div class="codex-tag"><span class="codex-num">04</span><span class="codex-label">The Strategy</span></div>
+  <div class="sec-h">
+    <div class="eyebrow"><div class="eyebrow-line"></div><div class="eyebrow-text">Value Bridge Model</div></div>
+    <h2>Earned Progression, <em>Not Arbitrary Limits</em></h2>
+    <p>The Value Bridge Model replaced hard paywalls with a behavioral design system — where enterprise capability is earned through demonstrated usage, not blocked at arbitrary thresholds.</p>
+  </div>
+
+  <!-- VALUE BRIDGE TIERS -->
+  <div class="bridge-wrap">
+    <div class="bridge-tier tier-1">
+      <div class="bridge-tier-label">Tier 01</div>
+      <span class="bridge-badge">Foundation</span>
+      <h3>Enterprise DNA from Day One</h3>
+      <ul>
+        <li>Recommended CX/EX templates — best-practice defaults</li>
+        <li>Advanced analytics previews using real user data</li>
+        <li>Automation surfaced as "available as your program scales"</li>
+        <li>Enterprise credibility signals embedded in UI</li>
+      </ul>
+      <div class="bridge-mindset">"This feels serious and scalable."</div>
+    </div>
+    <div class="bridge-tier tier-2">
+      <div class="bridge-tier-label">Tier 02</div>
+      <span class="bridge-badge">Growth Bridge</span>
+      <h3>The Psychological Gap Closer</h3>
+      <ul>
+        <li>Multi-dashboard workflows (3 dashboards, 10 widgets each)</li>
+        <li>Team collaboration — no heavy governance overhead</li>
+        <li>Meaningful CX and EX programs with real data</li>
+        <li>Operational value compounds over time</li>
+      </ul>
+      <div class="bridge-mindset">"This can actually support our growth."</div>
+    </div>
+    <div class="bridge-tier tier-3">
+      <div class="bridge-tier-label">Tier 03</div>
+      <span class="bridge-badge">Scale / Enterprise</span>
+      <h3>Organizational Infrastructure</h3>
+      <ul>
+        <li>Role-based governance and access control</li>
+        <li>Cross-team automation at scale</li>
+        <li>Executive reporting — board-ready insights</li>
+        <li>Advanced compliance and audit visibility</li>
+      </ul>
+      <div class="bridge-mindset">"This is embedded in how we work."</div>
+    </div>
+  </div>
+
+  <!-- PLACEHOLDER: Mental Model Shift Diagram -->
+  <div class="placeholder">
+    <span class="ph-icon">// Visual 03 — Mental Model Shift</span>
+    <div class="ph-grid">
+      <div class="ph-half">
+        <div class="ph-label" style="color:var(--red);">Old Thinking — Feature-Focused</div>
+        <div style="font-size:13px;color:var(--ink2);line-height:1.7;">Linear flow: Features → Explanation → Trial → Purchase<br>Dead-ends marked at every paywall<br>User as passive recipient</div>
+      </div>
+      <div class="ph-half" style="background:rgba(78,201,122,0.04);">
+        <div class="ph-label" style="color:var(--green);">New Thinking — Outcome-Focused</div>
+        <div style="font-size:13px;color:var(--ink2);line-height:1.7;">Circular loop: Experience → Success → Confidence → Expansion<br>Continuous momentum — no walls<br>User as active, rewarded participant</div>
+      </div>
+    </div>
+    <div class="ph-caption">Strategic reframe: from gated features to earned value progression</div>
+  </div>
+
+  <!-- SUCCESS-TRIGGERED UPGRADES -->
+  <h3 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin:48px 0 20px;letter-spacing:-0.01em;">Success-Triggered <em>Upgrade Logic</em></h3>
+  <table class="trigger-table">
+    <thead>
+      <tr>
+        <th>User Milestone Achieved</th>
+        <th>System Response</th>
+        <th>Enterprise Preview Unlocked</th>
+        <th>Duration</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="trigger-icon"><span class="dot dot-green"></span>100 responses collected</span></td>
+        <td>Behavioral signal: "Program is gaining traction"</td>
+        <td>Custom dashboard builder</td>
+        <td>24 hours</td>
+      </tr>
+      <tr>
+        <td><span class="trigger-icon"><span class="dot dot-green"></span>3rd survey created</span></td>
+        <td>Signal: "Multi-program maturity"</td>
+        <td>Directory management (50 contacts)</td>
+        <td>48 hours</td>
+      </tr>
+      <tr>
+        <td><span class="trigger-icon"><span class="dot dot-green"></span>Team member invited</span></td>
+        <td>Signal: "Collaborative program intent"</td>
+        <td>CX/EX template library (read-only)</td>
+        <td>Permanent</td>
+      </tr>
+      <tr>
+        <td><span class="trigger-icon"><span class="dot dot-green"></span>Advanced analysis run</span></td>
+        <td>Signal: "Power user — ROI-seeking"</td>
+        <td>AI-generated insights preview</td>
+        <td>One-time demo</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- PLACEHOLDER: Behavioral Design System Framework -->
+  <div class="placeholder">
+    <span class="ph-icon">// Visual 04 — Behavioral Design System</span>
+    <div class="ph-frame">
+      <div style="display:grid;grid-template-columns:1fr;gap:1px;background:var(--border);">
+        <div style="background:var(--bg3);padding:20px;text-align:center;">
+          <div class="ph-label" style="color:var(--purple);">Top Layer — Value Perception</div>
+          <div style="font-size:13px;color:var(--ink2);">Feels Rewarded · Sees Team Potential · Experiences Efficiency · Confidence Increases</div>
+        </div>
+        <div style="background:var(--bg3);padding:20px;text-align:center;border-top:1px solid var(--border);">
+          <div class="ph-label" style="color:var(--gold);">Middle Layer — System Responses</div>
+          <div style="font-size:13px;color:var(--ink2);">Unlock Dashboard Preview · Enable Collaboration · Activate Automation Preview · Trigger Success Message</div>
+        </div>
+        <div style="background:var(--bg3);padding:20px;text-align:center;border-top:1px solid var(--border);">
+          <div class="ph-label" style="color:var(--teal);">Bottom Layer — User Actions</div>
+          <div style="font-size:13px;color:var(--ink2);">Hits 100 Responses · Creates 3rd Survey · Invites Team Member · Runs First Analysis</div>
+        </div>
+      </div>
+    </div>
+    <div class="ph-caption">How every user action triggers appropriate value signals — causal flow from behavior to confidence</div>
+  </div>
+
+  <!-- PROBLEM → SOLUTION MATCHING -->
+  <h3 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin:48px 0 16px;letter-spacing:-0.01em;">Problem <span style="color:var(--gold);">→</span> Solution Matching</h3>
+  <p style="font-size:15px;color:var(--ink2);margin-bottom:28px;">Upgrades weren't banners. They appeared at the exact moment users encountered a real constraint — framed as the logical resolution, not a sales prompt.</p>
+  <div class="two-col-3">
+    <div class="f-card amber">
+      <div class="f-card-tag">Friction Detected</div>
+      <h3>Manual Analysis at Scale</h3>
+      <p>User manually reviewing 500+ responses — time and effort investment clearly visible in usage patterns.</p>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border2);font-size:12px;color:var(--green);">→ AI-generated insights preview surfaced</div>
+    </div>
+    <div class="f-card amber">
+      <div class="f-card-tag">Friction Detected</div>
+      <h3>Repetitive Survey Setup</h3>
+      <p>User rebuilding similar surveys repeatedly — detected through template reuse patterns and time-on-task data.</p>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border2);font-size:12px;color:var(--green);">→ Automation workflow demo triggered</div>
+    </div>
+    <div class="f-card amber">
+      <div class="f-card-tag">Friction Detected</div>
+      <h3>Executive Reporting Needs</h3>
+      <p>User exporting raw data for manual stakeholder decks — a reliable signal of unmet executive reporting demand.</p>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border2);font-size:12px;color:var(--green);">→ Custom dashboard trial unlocked</div>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ========================================================= AI ONBOARDING -->
+<section id="onboarding">
+  <div class="codex-tag"><span class="codex-num">05</span><span class="codex-label">AI-Orchestrated Onboarding</span></div>
+  <div class="sec-h">
+    <div class="eyebrow"><div class="eyebrow-line"></div><div class="eyebrow-text">Value-First Activation</div></div>
+    <h2>Enterprise Transformation <em>Before Commitment</em></h2>
+    <p>The design bet: the first interaction should feel like the product already understands your organization. No forms, no tutorials, no empty states. An enterprise outcome delivered in 30 seconds.</p>
+  </div>
+
+  <!-- PRE-SIGNUP FLOW PLACEHOLDER -->
+  <div class="placeholder">
+    <span class="ph-icon">// Visual 05 — Pre-Signup Experience Flow</span>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);overflow:hidden;border-radius: 2px;margin:12px 0;">
+      <div style="background:var(--bg3);padding:20px 14px;text-align:center;">
+        <div class="ph-label">Panel 01</div>
+        <div style="font-size:12px;color:var(--ink2);">Single input: "Enter your company domain"</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);margin-top:8px;">Zero friction entry</div>
+      </div>
+      <div style="background:var(--bg3);padding:20px 14px;text-align:center;border-left:1px solid var(--border);">
+        <div class="ph-label">Panel 02</div>
+        <div style="font-size:12px;color:var(--ink2);">4 agents working in parallel — behind the scenes</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--teal);margin-top:8px;">AI orchestration</div>
+      </div>
+      <div style="background:var(--bg3);padding:20px 14px;text-align:center;border-left:1px solid var(--border);">
+        <div class="ph-label">Panel 03</div>
+        <div style="font-size:12px;color:var(--ink2);">Fully branded enterprise-ready survey appears</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--purple);margin-top:8px;">Zero user effort</div>
+      </div>
+      <div style="background:var(--bg3);padding:20px 14px;text-align:center;border-left:1px solid var(--border);">
+        <div class="ph-label">Panel 04</div>
+        <div style="font-size:12px;color:var(--ink2);">Executive CX/EX insights preview dashboard</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--amber);margin-top:8px;">Enterprise outcomes visible</div>
+      </div>
+      <div style="background:rgba(78,201,122,0.06);padding:20px 14px;text-align:center;border-left:1px solid var(--border);">
+        <div class="ph-label" style="color:var(--green);">Panel 05</div>
+        <div style="font-size:12px;color:var(--ink2);">"This already understands our needs" — CTA: Continue to create account</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green);margin-top:8px;">Mental shift achieved</div>
+      </div>
+    </div>
+    <div class="ph-caption">"From company domain to enterprise confidence — before account creation"</div>
+  </div>
+
+  <!-- MULTI-AGENT SYSTEM -->
+  <h3 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin:48px 0 20px;letter-spacing:-0.01em;">Multi-Agent <em>Orchestration Architecture</em></h3>
+  <p style="font-size:15px;color:var(--ink2);margin-bottom:28px;">Design's core contribution: defining what "enterprise confidence" feels like, then engineering a system where complexity stays invisible.</p>
+
+  <div class="agent-grid">
+    <div class="agent-card agent-brand">
+      <div class="agent-label">Brand Agent</div>
+      <h4>Identity Extraction</h4>
+      <p>Extracts logo, primary colors, typography signals and brand tone from company domain. Creates a cohesive visual identity layer for the survey and dashboard.</p>
+      <div class="agent-io">
+        <span class="agent-io-tag">INPUT: Domain</span>
+        <span class="agent-io-tag">OUTPUT: Brand Assets</span>
+      </div>
+    </div>
+    <div class="agent-card agent-context">
+      <div class="agent-label">Context Agent</div>
+      <h4>Industry &amp; Use-Case Matching</h4>
+      <p>Analyzes industry vertical, company size, and region to select the most relevant survey template and use-case framing. Removes blank-canvas anxiety.</p>
+      <div class="agent-io">
+        <span class="agent-io-tag">INPUT: Industry Data</span>
+        <span class="agent-io-tag">OUTPUT: Relevant Content</span>
+      </div>
+    </div>
+    <div class="agent-card agent-insight">
+      <div class="agent-label">Insight Agent</div>
+      <h4>Executive Preview Generation</h4>
+      <p>Generates a preview of CX/EX insights using industry benchmarks and best-practice metrics. Produces an executive-ready dashboard preview that proves ROI before signup.</p>
+      <div class="agent-io">
+        <span class="agent-io-tag">INPUT: Benchmarks</span>
+        <span class="agent-io-tag">OUTPUT: Insights Preview</span>
+      </div>
+    </div>
+    <div class="agent-card agent-visual">
+      <div class="agent-label">Visual Agent</div>
+      <h4>Coherence &amp; Composition</h4>
+      <p>Merges brand assets, content structure, and insight data into a visually cohesive, polished experience. Ensures the output feels purpose-built, not templated.</p>
+      <div class="agent-io">
+        <span class="agent-io-tag">INPUT: All Agent Outputs</span>
+        <span class="agent-io-tag">OUTPUT: Unified Experience</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout"><p>"Complexity should exist in the system, not in the experience. We pushed every difficult thing invisible — so the user only sees the outcome of 30 seconds of AI work."</p></div>
+
+  <!-- BEFORE/AFTER ONBOARDING -->
+  <h3 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin:48px 0 20px;letter-spacing:-0.01em;">Before / After: <em>Onboarding Experience</em></h3>
+  <div class="ba-wrap">
+    <div class="ba-side before">
+      <div class="ba-label">← Traditional Onboarding</div>
+      <div class="ba-step"><div class="ba-step-time">0 min</div><div class="ba-step-text">Empty state — blank dashboard</div><div class="ba-step-emo" style="color:var(--amber);">Confused</div></div>
+      <div class="ba-step"><div class="ba-step-time">10 min</div><div class="ba-step-text">Fill out 15+ form fields manually</div><div class="ba-step-emo" style="color:var(--red);">Frustrated</div></div>
+      <div class="ba-step"><div class="ba-step-time">25 min</div><div class="ba-step-text">Watch onboarding tutorial video</div><div class="ba-step-emo" style="color:var(--ink3);">Bored</div></div>
+      <div class="ba-step"><div class="ba-step-time">60 min</div><div class="ba-step-text">Manual configuration of templates and branding</div><div class="ba-step-emo" style="color:var(--red);">Overwhelmed</div></div>
+      <div class="ba-step"><div class="ba-step-time">90+ min</div><div class="ba-step-text">Maybe create first survey</div><div class="ba-step-emo" style="color:var(--red);">Uncertain</div></div>
+      <div style="margin-top:16px;padding:12px;background:var(--red-a);border:1px solid rgba(224,92,92,0.2);font-family:'DM Mono',monospace;font-size:10px;color:var(--red);">OUTCOME → "Still not sure this will work for us"</div>
+    </div>
+    <div class="ba-side after">
+      <div class="ba-label">AI-Orchestrated Onboarding →</div>
+      <div class="ba-step"><div class="ba-step-time">0 sec</div><div class="ba-step-text">Enter company domain — single field</div><div class="ba-step-emo" style="color:var(--teal);">Curious</div></div>
+      <div class="ba-step"><div class="ba-step-time">30 sec</div><div class="ba-step-text">AI generates branded enterprise survey</div><div class="ba-step-emo" style="color:var(--green);">Impressed</div></div>
+      <div class="ba-step"><div class="ba-step-time">1 min</div><div class="ba-step-text">View executive insights preview dashboard</div><div class="ba-step-emo" style="color:var(--green);">Confident</div></div>
+      <div class="ba-step"><div class="ba-step-time">2 min</div><div class="ba-step-text">Sign up — survey + theme auto-copied to account</div><div class="ba-step-emo" style="color:var(--green);">Committed</div></div>
+      <div class="ba-step"><div class="ba-step-time">5 min</div><div class="ba-step-text">Actively using enterprise-ready program</div><div class="ba-step-emo" style="color:var(--green);">Successful</div></div>
+      <div style="margin-top:16px;padding:12px;background:var(--green-a);border:1px solid rgba(78,201,122,0.2);font-family:'DM Mono',monospace;font-size:10px;color:var(--green);">OUTCOME → "I can show this to my exec team today"</div>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ========================================================= PLG PLAYBOOK -->
+<section>
+  <div class="codex-tag"><span class="codex-num">06</span><span class="codex-label">PLG Execution Playbook</span></div>
+  <div class="sec-h">
+    <div class="eyebrow"><div class="eyebrow-line"></div><div class="eyebrow-text">Growth Architecture</div></div>
+    <h2>Four-Phase <em>Product-Led Growth</em> Engine</h2>
+    <p>Each phase builds on the last — from initial value discovery to long-term organizational retention. No phase requires a sales conversation to advance.</p>
+  </div>
+
+  <div class="plg-phases">
+    <div class="plg-phase">
+      <div class="plg-phase-num">01</div>
+      <div class="plg-phase-label">Phase One</div>
+      <h3>In-Product Value Discovery</h3>
+      <p>Contextual enterprise previews replace generic upgrade banners. Interactive feature demos use the user's real data — not dummy content.</p>
+    </div>
+    <div class="plg-phase">
+      <div class="plg-phase-num">02</div>
+      <div class="plg-phase-label">Phase Two</div>
+      <h3>PQL Detection via Behavior</h3>
+      <p>Enterprise readiness scored through behavioral signals: complex surveys, frequent exports, team invitations, and advanced analysis patterns. 48-hour power user preview triggers at score threshold.</p>
+    </div>
+    <div class="plg-phase">
+      <div class="plg-phase-num">03</div>
+      <div class="plg-phase-label">Phase Three</div>
+      <h3>Expansion via Value-Aligned Pricing</h3>
+      <p>Feature-specific CX and EX expansion paths. Usage-based pricing compounds with program growth — users pay for realized value, not predicted potential.</p>
+    </div>
+    <div class="plg-phase">
+      <div class="plg-phase-num">04</div>
+      <div class="plg-phase-label">Phase Four</div>
+      <h3>Retention Through Earned Capability</h3>
+      <p>Long-term users unlock permanent enterprise features through consistent usage — feature graduation, peer learning communities, and co-created templates.</p>
+    </div>
+  </div>
+
+  <!-- PQL DASHBOARD PLACEHOLDER -->
+  <div class="placeholder">
+    <span class="ph-icon">// Visual 06 — PQL Detection Dashboard</span>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--border);overflow:hidden;border-radius: 2px;margin:12px 0;">
+      <div style="background:var(--bg3);padding:20px 16px;text-align:center;">
+        <div class="ph-label">Response Volume</div>
+        <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold);">847</div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--green);margin-top:4px;">THRESHOLD: 500 ✓</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:4px;">Enterprise signal detected</div>
+      </div>
+      <div style="background:var(--bg3);padding:20px 16px;text-align:center;border-left:1px solid var(--border);">
+        <div class="ph-label">Surveys Created</div>
+        <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold);">4</div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--green);margin-top:4px;">THRESHOLD: 3 ✓</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:4px;">Program maturity indicator</div>
+      </div>
+      <div style="background:var(--bg3);padding:20px 16px;text-align:center;border-left:1px solid var(--border);">
+        <div class="ph-label">Team Members</div>
+        <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold);">3</div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--green);margin-top:4px;">THRESHOLD: 2 ✓</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:4px;">Multi-user readiness</div>
+      </div>
+      <div style="background:rgba(78,201,122,0.07);padding:20px 16px;text-align:center;border-left:1px solid var(--border);">
+        <div class="ph-label" style="color:var(--green);">Enterprise Readiness Score</div>
+        <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--green);">92<span style="font-size:16px;">/100</span></div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--green);margin-top:4px;">→ GROWTH BRIDGE TIER</div>
+      </div>
+    </div>
+    <div class="ph-caption">Behavioral signals indicating genuine enterprise readiness — not just seat count or contract size</div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ========================================================= IMPACT -->
+<section id="impact">
+  <div class="codex-tag"><span class="codex-num">07</span><span class="codex-label">Impact & Results</span></div>
+  <div class="sec-h">
+    <div class="eyebrow"><div class="eyebrow-line"></div><div class="eyebrow-text">Measurable Outcomes</div></div>
+    <h2>Results Across <em>Conversion, Velocity &amp; Trust</em></h2>
+    <p>Early cohort results validated the core hypothesis: when users experience enterprise value before purchasing, they convert faster, at higher ACV, and with lower churn.</p>
+  </div>
+
+  <div class="impact-hero">
+    <div class="impact-cell">
+      <div class="impact-num gold">[PLACEHOLDER]</div>
+      <div class="impact-delta up">↑ Trial-to-Paid Conversion</div>
+      <div class="impact-label">Success-triggered upgrades replaced static paywalls — measured over 6 months post-launch</div>
+    </div>
+    <div class="impact-cell">
+      <div class="impact-num teal">&lt;5 min</div>
+      <div class="impact-delta down">↓ Time-to-First-Value</div>
+      <div class="impact-label">From 3–4 weeks of manual setup to sub-5 minute enterprise confidence via AI onboarding</div>
+    </div>
+    <div class="impact-cell">
+      <div class="impact-num green">4.7/5</div>
+      <div class="impact-delta up">↑ Enterprise Satisfaction</div>
+      <div class="impact-label">CSAT score among enterprise pilot cohort — "professional/enterprise-grade" perception metric</div>
+    </div>
+  </div>
+
+  <div class="impact-sub-grid">
+    <div class="impact-sub"><div class="impact-sub-num">[PH]</div><div class="impact-sub-l">PQL Identification Increase</div></div>
+    <div class="impact-sub"><div class="impact-sub-num">[PH]</div><div class="impact-sub-l">Average Deal Size Increase</div></div>
+    <div class="impact-sub"><div class="impact-sub-num">[PH]</div><div class="impact-sub-l">Growth Bridge Tier Progression</div></div>
+    <div class="impact-sub"><div class="impact-sub-num">[PH]</div><div class="impact-sub-l">Churn Reduction — Growth Tier</div></div>
+  </div>
+
+  <!-- METRICS DASHBOARD PLACEHOLDER -->
+  <div class="placeholder">
+    <span class="ph-icon">// Visual 07 — Metrics Dashboard</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);overflow:hidden;border-radius: 2px;margin:12px 0;">
+      <div style="background:var(--bg3);padding:24px;text-align:center;">
+        <div class="ph-label">Chart 01 — Conversion Improvement</div>
+        <div class="ph-aspect" style="padding-top:60%;margin-top:8px;">
+          <div class="ph-aspect-inner">
+            <div class="ph-aspect-tag">Bar Chart — Before vs. After Trial-to-Paid Conversion</div>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--bg3);padding:24px;text-align:center;border-left:1px solid var(--border);">
+        <div class="ph-label">Chart 02 — Time-to-Value Reduction</div>
+        <div class="ph-aspect" style="padding-top:60%;margin-top:8px;">
+          <div class="ph-aspect-inner">
+            <div class="ph-aspect-tag">Comparative Timeline — Weeks vs. Minutes</div>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--bg3);padding:24px;text-align:center;border-left:1px solid var(--border);">
+        <div class="ph-label">Chart 03 — Tier Progression Funnel</div>
+        <div class="ph-aspect" style="padding-top:60%;margin-top:8px;">
+          <div class="ph-aspect-inner">
+            <div class="ph-aspect-tag">Funnel — Foundation → Growth Bridge → Scale</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ph-caption">Illustrative representation of directional improvements — actual figures available under NDA</div>
+  </div>
+
+  <div class="nda-note">[ PLACEHOLDER ] tokens above indicate metrics that require real data from your analytics access before publishing. Directional indicators (↑ ↓) and relative improvements are safe to show without absolute figures.</div>
+</section>
+<div class="divider"></div>
+
+<!-- ========================================================= REFLECTION -->
+<section id="reflection">
+  <div class="codex-tag"><span class="codex-num">08</span><span class="codex-label">Reflection</span></div>
+  <div class="sec-h">
+    <div class="eyebrow"><div class="eyebrow-line"></div><div class="eyebrow-text">What This Changed</div></div>
+    <h2>From Features to <em>Growth Systems</em></h2>
+    <p>This project reinforced that enterprise UX is a team sport — and that the most powerful design decisions aren't in the interface, they're in the behavioral architecture that surrounds it.</p>
+  </div>
+
+  <div class="reflection-grid">
+    <div class="ref-cell">
+      <div class="ref-label worked">What Worked</div>
+      <ul>
+        <li>AI-orchestrated onboarding: highest-leverage intervention</li>
+        <li>Value Bridge Model as behavioral design — not pricing</li>
+        <li>Problem → solution upgrade framing eliminated "sales" feeling</li>
+        <li>Cross-functional alignment with Sales and Data on PQL signals</li>
+        <li>Domain-specific templates created vertical stickiness</li>
+      </ul>
+    </div>
+    <div class="ref-cell">
+      <div class="ref-label improve">What I'd Do Differently</div>
+      <ul>
+        <li>Invest earlier in admin and governance UX patterns</li>
+        <li>Run A/B tests on upgrade trigger timing — 24h vs. 48h windows</li>
+        <li>Build audit trail and compliance visibility earlier in roadmap</li>
+        <li>Map competitor-specific win/loss patterns into persona work</li>
+        <li>Document design principles in a shared team artifact sooner</li>
+      </ul>
+    </div>
+    <div class="ref-cell">
+      <div class="ref-label future">At Greater Scale</div>
+      <ul>
+        <li>Deeper admin + RBAC experiences as core product surface</li>
+        <li>Compliance visibility dashboards for regulated verticals</li>
+        <li>AI-powered expansion recommendations within accounts</li>
+        <li>Design system governance to support multi-product portfolio</li>
+        <li>Community and peer learning as retention + PLG flywheel</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PRINCIPLE CARDS -->
+  <h3 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin:48px 0 24px;letter-spacing:-0.01em;">Core Design <em>Principles</em></h3>
+  <div class="principle-row">
+    <div class="principle-card pc-blue">
+      <div class="principle-icon">⌁</div>
+      <h4>Value Before Monetization</h4>
+      <p>Let users succeed with enterprise-grade capabilities before asking them to commit financially. Trust is earned through experience, not promised through marketing.</p>
+    </div>
+    <div class="principle-card pc-gold">
+      <div class="principle-icon">⬡</div>
+      <h4>Earned Progression, Not Arbitrary Limits</h4>
+      <p>Users advance when they demonstrate readiness through usage and outcomes. Growth should feel rewarding — like leveling up — not restrictive like hitting a wall.</p>
+    </div>
+    <div class="principle-card pc-green">
+      <div class="principle-icon">◈</div>
+      <h4>Experience Over Explanation</h4>
+      <p>Enterprise buyers don't want feature tours. They want proof their effort will compound. Show transformation before describing it — show the outcome, not the path.</p>
+    </div>
+  </div>
+
+  <!-- SOUNDBITE -->
+  <div class="soundbite">
+    <p>"Our most strategic contribution was the Value Bridge Model. We replaced static paywalls with earned value — and used AI orchestration to let organizations experience enterprise transformation before committing financially. Instead of asking users to believe in our enterprise capabilities, we let them experience those capabilities firsthand. By the time they decided to upgrade, they weren't buying potential — they were scaling what already worked."</p>
+  </div>
+
+</section>
+
+<footer>
+  <span>Sogolytics · Breaking the Enterprise Ceiling · 2024</span>
+  <span>CODEX Framework · Pro Case Study · PLG + AI Orchestration</span>
+  <span>UX Design — All visuals anonymized under NDA</span>
+</footer>
+
+</body>
+</html>

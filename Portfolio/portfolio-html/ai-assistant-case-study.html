@@ -1,0 +1,2768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script>
+  // Client-side protection against direct URLs
+  (function(){
+    let unlocked = false;
+    for (let i = 0; i < sessionStorage.length; i++) {
+      let key = sessionStorage.key(i);
+      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
+        unlocked = true; break;
+      }
+    }
+    if (!unlocked) { window.location.href = 'index.html'; }
+  })();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Study — Conversational AI Assistant · XM Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ec;
+    --surface: #f5f2ec;
+    --surface2: #f0ebe1;
+    --border: #d9d4cc;
+    --accent: #c94c2e;
+    --accent2: rgba(201, 76, 46, 0.1);
+    --accent3: rgba(201, 76, 46, 0.1);
+    --text: #0d0f14;
+    --muted: #6B7280;
+    --label: #9CA3AF;
+    --white: #0d0f14;
+    --gold: #c94c2e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ——— NAV ——— */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 48px;
+    background: #f5f2ec;
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a { font-size: 13px; color: var(--muted); text-decoration: none; letter-spacing: 0.5px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-tag { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); background: rgba(74,255,212,0.08); border: 1px solid rgba(74,255,212,0.2); padding: 4px 12px; border-radius: 2px; }
+
+  /* ——— HERO ——— */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 0 48px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 70% 30%, rgba(124,111,255,0.15) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 60%, rgba(74,255,212,0.08) 0%, transparent 60%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: linear-gradient(to bottom, transparent, rgba(0,0,0,0.4) 30%, rgba(0,0,0,0.4) 70%, transparent);
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 900px; }
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 32px;
+  }
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 2px;
+  }
+  .tag-teal { background: rgba(74,255,212,0.1); color: var(--accent); border: 1px solid rgba(74,255,212,0.2); }
+  .tag-purple { background: rgba(124,111,255,0.1); color: var(--accent2); border: 1px solid rgba(124,111,255,0.2); }
+  .tag-gold { background: rgba(244,201,93,0.1); color: var(--gold); border: 1px solid rgba(244,201,93,0.2); }
+  .tag-red { background: rgba(255,107,107,0.1); color: var(--accent3); border: 1px solid rgba(255,107,107,0.2); }
+
+  .hero-divider { width: 1px; height: 16px; background: var(--border); }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 800;
+    font-size: clamp(42px, 6vw, 80px);
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: 18px; color: var(--label); max-width: 560px;
+    line-height: 1.65; margin-bottom: 48px;
+  }
+  .hero-meta {
+    display: flex; gap: 48px; flex-wrap: wrap;
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .meta-value { font-size: 14px; font-weight: 500; color: var(--text); }
+
+  /* ——— SCROLL INDICATOR ——— */
+  .scroll-line {
+    position: absolute; bottom: 32px; right: 48px; z-index: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .scroll-line span { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); writing-mode: vertical-rl; }
+  .scroll-line-bar { width: 1px; height: 60px; background: linear-gradient(to bottom, var(--accent), transparent); animation: scrollPulse 2s ease-in-out infinite; }
+  @keyframes scrollPulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+  /* ——— SECTIONS ——— */
+  section { padding: 100px 48px; }
+  .section-inner { max-width: 1100px; margin: 0 auto; }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::after { content: ''; flex: 1; max-width: 48px; height: 1px; background: var(--accent); opacity: 0.4; }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: clamp(28px, 3.5vw, 44px);
+    letter-spacing: -1px; line-height: 1.15;
+    margin-bottom: 20px; color: var(--white);
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600; font-size: 20px;
+    margin-bottom: 12px; color: var(--white);
+  }
+
+  p { color: var(--label); font-size: 16px; line-height: 1.75; margin-bottom: 16px; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ——— DIVIDER ——— */
+  .divider {
+    border: none;
+    height: 1px;
+    background: var(--border);
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* ——— OVERVIEW GRID ——— */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 48px;
+  }
+  .overview-cell {
+    background: var(--surface);
+    padding: 40px;
+  }
+  .overview-cell:nth-child(3),
+  .overview-cell:nth-child(4) { background: var(--surface2); }
+  .overview-cell h3 { font-size: 13px; font-family: 'DM Mono', monospace; font-weight: 400; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .overview-cell p { font-size: 15px; color: var(--text); }
+
+  /* ——— PROBLEM CARDS ——— */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px; margin-top: 48px;
+  }
+  .problem-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 32px;
+    position: relative; overflow: hidden;
+    transition: transform .2s, border-color .2s;
+  }
+  .problem-card:hover { transform: translateY(-2px); border-color: var(--text-primary); }
+  .problem-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  }
+  .problem-card.red::before { background: var(--accent3); }
+  .problem-card.purple::before { background: var(--accent2); }
+  .problem-card.gold::before { background: var(--gold); }
+  .problem-card.teal::before { background: var(--accent); }
+
+  .problem-icon { font-size: 28px; margin-bottom: 16px; }
+  .problem-card h3 { font-size: 16px; margin-bottom: 8px; }
+  .problem-card p { font-size: 14px; }
+
+  /* ——— INSIGHT ROW ——— */
+  .insight-list { margin-top: 48px; display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--border); border-radius: 2px; overflow: hidden; }
+  .insight-row {
+    display: grid; grid-template-columns: 200px 1fr 1fr;
+    background: var(--surface);
+    transition: background .2s;
+  }
+  .insight-row:hover { background: var(--surface2); }
+  .insight-row:nth-child(even) { background: var(--surface2); }
+  .insight-row:nth-child(even):hover { background: #1e2130; }
+  .insight-cell { padding: 24px 28px; border-right: 1px solid var(--border); font-size: 14px; }
+  .insight-cell:last-child { border-right: none; }
+  .insight-cell.label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; }
+  .insight-cell.observation { color: var(--text); }
+  .insight-cell.implication { color: var(--label); }
+
+  /* ——— JOURNEY MAP ——— */
+  .journey {
+    margin-top: 48px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow-x: auto;
+    padding: 40px;
+  }
+  .journey-table { min-width: 900px; width: 100%; border-collapse: collapse; }
+  .journey-table th {
+    font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
+    padding: 12px 20px; text-align: left; border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+  .journey-table td { padding: 16px 20px; font-size: 13px; vertical-align: top; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .journey-table tr:last-child td { border-bottom: none; }
+  .journey-table .row-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); font-weight: 400; }
+  .journey-table .pain { color: var(--accent3); }
+  .journey-table .opp { color: var(--accent); }
+  .journey-table .neutral { color: var(--label); }
+  .stage-header { display: flex; flex-direction: column; gap: 4px; }
+  .stage-num { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+  .highlight-stage { background: rgba(74,255,212,0.04); }
+
+  /* ——— FEATURE BREAKDOWN ——— */
+  .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 48px; }
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 36px;
+    position: relative; overflow: hidden;
+  }
+  .feature-card.featured {
+    grid-column: span 2;
+    background: linear-gradient(135deg, rgba(124,111,255,0.08) 0%, rgba(74,255,212,0.04) 100%);
+    border-color: rgba(124,111,255,0.2);
+  }
+  .feature-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+  .feature-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+  .feature-card h3 { font-size: 18px; margin-bottom: 10px; }
+
+  /* ——— PIPELINE ——— */
+  .pipeline {
+    display: flex; align-items: center; gap: 0;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 2px; overflow: hidden; margin-top: 32px;
+  }
+  .pipe-step {
+    flex: 1; padding: 20px 24px;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+  .pipe-step:last-child { border-right: none; }
+  .pipe-step::after {
+    content: '→';
+    position: absolute; right: -12px; top: 50%; transform: translateY(-50%);
+    color: var(--accent); font-size: 14px; z-index: 1;
+    background: var(--surface2); padding: 2px 4px;
+  }
+  .pipe-step:last-child::after { display: none; }
+  .pipe-num { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 4px; letter-spacing: 1px; }
+  .pipe-label { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .pipe-sub { font-size: 12px; color: var(--muted); }
+
+  /* ——— MODULE BADGES ——— */
+  .modules-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+  .module-badge {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 2px; padding: 14px 20px;
+    font-size: 13px; color: var(--text);
+  }
+  .module-badge .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ——— PROMPT LIBRARY ——— */
+  .prompt-showcase {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 32px;
+  }
+  .prompt-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .prompt-header-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .prompt-header-title { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+  .prompt-category { padding: 24px; border-bottom: 1px solid var(--border); }
+  .prompt-category:last-child { border-bottom: none; }
+  .prompt-cat-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px; }
+  .prompt-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .prompt-chip {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 2px; padding: 8px 14px; font-size: 13px; color: var(--label);
+    cursor: pointer; transition: all .15s;
+  }
+  .prompt-chip:hover { border-color: var(--accent); color: var(--accent); background: rgba(74,255,212,0.04); }
+  .prompt-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(74,255,212,0.08); }
+
+  /* ——— DECISIONS ——— */
+  .decision-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 48px; }
+  .decision-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 28px;
+  }
+  .decision-card h3 { font-size: 15px; margin-bottom: 8px; }
+  .decision-option {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .decision-option:last-child { border-bottom: none; }
+  .opt-icon { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; margin-top: 2px; }
+  .opt-chose { background: rgba(74,255,212,0.15); color: var(--accent); }
+  .opt-no { background: rgba(255,255,255,0.06); color: var(--muted); }
+  .opt-text { color: var(--label); line-height: 1.5; }
+  .opt-text strong { color: var(--text); display: block; font-weight: 500; margin-bottom: 2px; }
+
+  /* ——— METRICS ——— */
+  .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 48px; }
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 28px 24px;
+    text-align: center;
+  }
+  .metric-num {
+    font-family: 'Playfair Display', serif;
+    font-weight: 800; font-size: 40px;
+    line-height: 1; margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .metric-label { font-size: 13px; color: var(--muted); }
+
+  .qual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+  .qual-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--accent);
+    border-radius: 2px;
+    padding: 20px 24px;
+    font-size: 14px; color: var(--label);
+  }
+  .qual-card strong { display: block; font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; font-weight: 400; }
+
+  /* ——— REFLECTION ——— */
+  .reflection-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 48px; }
+  .reflection-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 32px;
+  }
+  .reflection-card h3 { font-size: 13px; font-family: 'DM Mono', monospace; font-weight: 400; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
+  .reflection-card.worked h3 { color: var(--accent); }
+  .reflection-card.improve h3 { color: var(--gold); }
+  .reflection-card.future h3 { color: var(--accent2); }
+  .reflection-card ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .reflection-card li { font-size: 14px; color: var(--label); padding-left: 16px; position: relative; }
+  .reflection-card li::before { content: '–'; position: absolute; left: 0; }
+
+  /* ——— MULTIMODAL ——— */
+  .modal-hero {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px;
+    background: var(--border); border: 1px solid var(--border);
+    border-radius: 2px; overflow: hidden; margin-top: 48px;
+  }
+  .modal-panel {
+    padding: 48px 36px; position: relative; overflow: hidden;
+    background: var(--surface);
+  }
+  .modal-panel.text-panel { background: linear-gradient(145deg, rgba(74,255,212,0.06) 0%, var(--surface) 60%); }
+  .modal-panel.speech-panel { background: linear-gradient(145deg, rgba(124,111,255,0.08) 0%, var(--surface) 60%); }
+  .modal-panel.file-panel { background: linear-gradient(145deg, rgba(244,201,93,0.06) 0%, var(--surface) 60%); }
+
+  .modal-icon {
+    width: 52px; height: 52px; border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; margin-bottom: 24px;
+  }
+  .modal-icon.teal { background: rgba(74,255,212,0.12); border: 1px solid rgba(74,255,212,0.2); }
+  .modal-icon.purple { background: rgba(124,111,255,0.12); border: 1px solid rgba(124,111,255,0.2); }
+  .modal-icon.gold { background: rgba(244,201,93,0.12); border: 1px solid rgba(244,201,93,0.2); }
+
+  .modal-panel h3 { font-size: 20px; margin-bottom: 10px; }
+  .modal-panel .modal-tag {
+    font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 16px; display: inline-block;
+    padding: 4px 10px; border-radius: 2px;
+  }
+  .modal-panel ul { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+  .modal-panel li { font-size: 13px; color: var(--label); padding-left: 18px; position: relative; line-height: 1.55; }
+  .modal-panel li::before { content: '→'; position: absolute; left: 0; font-size: 11px; }
+  .modal-panel li.teal::before { color: var(--accent); }
+  .modal-panel li.purple::before { color: var(--accent2); }
+  .modal-panel li.gold::before { color: var(--gold); }
+
+  /* Speech Waveform */
+  .waveform {
+    display: flex; align-items: center; gap: 3px;
+    height: 32px; margin-top: 24px;
+  }
+  .wave-bar {
+    width: 3px; border-radius: 2px; background: var(--accent2);
+    animation: wavePulse 1.2s ease-in-out infinite;
+  }
+  .wave-bar:nth-child(1)  { height: 8px;  animation-delay: 0s; }
+  .wave-bar:nth-child(2)  { height: 16px; animation-delay: .1s; }
+  .wave-bar:nth-child(3)  { height: 24px; animation-delay: .2s; }
+  .wave-bar:nth-child(4)  { height: 32px; animation-delay: .3s; }
+  .wave-bar:nth-child(5)  { height: 20px; animation-delay: .4s; }
+  .wave-bar:nth-child(6)  { height: 28px; animation-delay: .5s; }
+  .wave-bar:nth-child(7)  { height: 14px; animation-delay: .6s; }
+  .wave-bar:nth-child(8)  { height: 22px; animation-delay: .7s; }
+  .wave-bar:nth-child(9)  { height: 10px; animation-delay: .8s; }
+  .wave-bar:nth-child(10) { height: 18px; animation-delay: .9s; }
+  .wave-bar:nth-child(11) { height: 26px; animation-delay: 1s; }
+  .wave-bar:nth-child(12) { height: 6px;  animation-delay: 1.1s; }
+  @keyframes wavePulse { 0%,100%{opacity:0.3; transform:scaleY(0.6)} 50%{opacity:1; transform:scaleY(1)} }
+
+  /* File Drop Zone */
+  .file-drop {
+    margin-top: 24px;
+    border: 1px dashed rgba(244,201,93,0.3);
+    border-radius: 2px; padding: 16px;
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(244,201,93,0.04);
+  }
+  .file-drop-icon { font-size: 20px; }
+  .file-drop-info { display: flex; flex-direction: column; gap: 2px; }
+  .file-drop-name { font-size: 13px; color: var(--text); font-weight: 500; }
+  .file-drop-meta { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+
+  /* Text mock input */
+  .text-mock {
+    margin-top: 24px;
+    background: #f5f2ec;
+    border: 1px solid rgba(74,255,212,0.15);
+    border-radius: 2px; padding: 14px 16px;
+    font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent);
+    line-height: 1.6;
+  }
+  .text-cursor {
+    display: inline-block; width: 2px; height: 14px;
+    background: var(--accent); margin-left: 2px; vertical-align: middle;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* Modality comparison table */
+  .modality-table {
+    width: 100%; border-collapse: collapse; margin-top: 48px;
+    border: 1px solid var(--border); border-radius: 2px; overflow: hidden;
+  }
+  .modality-table th {
+    font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--muted); font-weight: 400;
+    padding: 16px 20px; text-align: left;
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+  }
+  .modality-table td {
+    padding: 16px 20px; font-size: 13px; color: var(--label);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: top;
+  }
+  .modality-table tr:last-child td { border-bottom: none; }
+  .modality-table tr:hover td { background: rgba(255,255,255,0.015); }
+  .modality-table .col-mode { font-weight: 500; color: var(--text); }
+  .check { color: var(--accent); }
+  .partial { color: var(--gold); }
+
+  /* ——— FOOTER ——— */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .footer-left { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 14px; letter-spacing: 1px; }
+  .footer-right { font-size: 13px; color: var(--muted); }
+
+  /* ——— ANIMATIONS ——— */
+  .fade-up {
+    opacity: 0; transform: translateY(24px);
+    animation: fadeUp .6s ease forwards;
+  }
+  @keyframes fadeUp { to { opacity: 1; transform: none; } }
+
+  .hero h1 { animation: fadeUp .8s .2s ease forwards; opacity: 0; }
+  .hero-sub { animation: fadeUp .8s .35s ease forwards; opacity: 0; }
+  .hero-meta { animation: fadeUp .8s .5s ease forwards; opacity: 0; }
+  .hero-eyebrow { animation: fadeUp .8s .05s ease forwards; opacity: 0; }
+
+  /* ——— PERSONA SECTION ——— */
+  .persona-grid { display: flex; flex-direction: column; gap: 32px; margin-top: 48px; }
+
+  .persona-block {
+    border: 1px solid var(--border);
+    border-radius: 2px; overflow: hidden;
+  }
+  .persona-block.primary-block { border-color: rgba(74,255,212,0.15); }
+  .persona-block.secondary-block { border-color: var(--text-primary); }
+
+  .persona-block-header {
+    padding: 28px 32px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .persona-block-title { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+
+  .persona-type-badge {
+    font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 4px 12px; border-radius: 2px;
+  }
+  .primary-badge { background: rgba(74,255,212,0.1); color: var(--accent); border: 1px solid rgba(74,255,212,0.25); }
+  .secondary-badge { background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid var(--border); }
+
+  .persona-freq-note { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .persona-block-desc { font-size: 14px; color: var(--label); margin: 0; }
+
+  .persona-cards {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 0; background: var(--border);
+  }
+  .secondary-cards { grid-template-columns: repeat(3, 1fr); }
+
+  .persona-card-item {
+    background: var(--surface2);
+    padding: 28px 28px 24px;
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .persona-card-item:last-child { border-right: none; }
+
+  .secondary-card-item { background: #f5f2ec; }
+
+  .persona-avatar-row {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .p-avatar {
+    width: 36px; height: 36px; border-radius: 2px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
+    color: var(--text); letter-spacing: 0.5px;
+  }
+  .p-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  .p-role { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .p-freq {
+    margin-left: auto; font-family: 'DM Mono', monospace; font-size: 10px;
+    color: var(--accent); background: rgba(74,255,212,0.08);
+    border: 1px solid rgba(74,255,212,0.2); padding: 3px 8px; border-radius: 6px;
+    white-space: nowrap;
+  }
+  .secondary-freq { color: var(--muted); background: rgba(255,255,255,0.04); border-color: var(--border); }
+
+  .p-quote {
+    font-size: 13px; color: var(--text); line-height: 1.6;
+    border-left: 2px solid var(--accent); padding-left: 12px;
+    font-style: italic; margin: 0;
+  }
+  .p-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .p-tag {
+    font-size: 11px; font-family: 'DM Mono', monospace;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    color: var(--muted); padding: 3px 8px; border-radius: 6px;
+  }
+  .p-pain { font-size: 12px; color: var(--label); margin-top: 4px; }
+  .p-secondary-note { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  .persona-callout {
+    display: flex; gap: 16px; align-items: flex-start;
+    background: rgba(74,255,212,0.05); border: 1px solid rgba(74,255,212,0.18);
+    border-radius: 2px; padding: 24px 28px; margin-top: 32px;
+    font-size: 14px; color: var(--label); line-height: 1.7;
+  }
+  .persona-callout-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+
+  @media (max-width: 860px) {
+    .persona-cards { grid-template-columns: 1fr; }
+    .persona-card-item { border-right: none; border-bottom: 1px solid var(--border); }
+    .persona-card-item:last-child { border-bottom: none; }
+  }
+
+  /* ——— COMPETITIVE ANALYSIS ——— */
+  .comp-map-row {
+    display: grid; grid-template-columns: 400px 1fr;
+    gap: 32px; align-items: start; margin-top: 48px;
+  }
+  @media (max-width: 900px) { .comp-map-row { grid-template-columns: 1fr; } }
+
+  .comp-map-wrap {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px; overflow: hidden;
+    padding: 16px;
+  }
+  .comp-map-svg { width: 100%; height: auto; display: block; border-radius: 2px; }
+  .comp-map-label-top, .comp-map-label-bottom, .comp-map-label-left, .comp-map-label-right {
+    font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px;
+    color: var(--muted); text-align: center; padding: 6px 0;
+  }
+  .comp-map-label-left, .comp-map-label-right {
+    display: inline-block; width: 50%; font-size: 10px;
+  }
+  .comp-map-label-left { text-align: left; }
+  .comp-map-label-right { text-align: right; }
+
+  .comp-map-insights { display: flex; flex-direction: column; gap: 12px; }
+  .comp-insight-card {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px; padding: 18px 20px;
+    font-size: 13px; line-height: 1.6;
+  }
+  .white-space-card { border-color: rgba(74,255,212,0.2); background: rgba(74,255,212,0.04); }
+  .comp-insight-num {
+    font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted);
+    flex-shrink: 0; width: 22px; margin-top: 2px;
+  }
+
+  /* Competitor table */
+  .comp-table-full {
+    width: 100%; border-collapse: collapse;
+    border: 1px solid var(--border); border-radius: 2px; overflow: hidden;
+    margin-top: 40px;
+  }
+  .comp-table-full th {
+    font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--muted); font-weight: 400;
+    padding: 14px 16px; text-align: left;
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+  }
+  .comp-table-full td {
+    padding: 14px 16px; font-size: 13px; color: var(--label);
+    border-bottom: 1px solid rgba(255,255,255,0.035); vertical-align: middle;
+  }
+  .comp-table-full tr:last-child td { border-bottom: none; }
+  .comp-table-full tr:hover td { background: rgba(255,255,255,0.012); }
+  .our-row td { background: rgba(74,255,212,0.03); }
+  .our-row:hover td { background: rgba(74,255,212,0.05) !important; }
+
+  .comp-name-cell { font-weight: 500; color: var(--text); font-size: 13px; }
+  .comp-sub { display: block; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--muted); font-weight: 400; margin-top: 2px; }
+
+  .cp {
+    display: inline-block; font-size: 11px; font-family: 'DM Mono', monospace;
+    padding: 3px 8px; border-radius: 6px; white-space: nowrap;
+  }
+  .cp.win { background: rgba(74,255,212,0.1); color: var(--accent); border: 1px solid rgba(74,255,212,0.2); }
+  .cp.partial { background: rgba(244,201,93,0.1); color: var(--gold); border: 1px solid rgba(244,201,93,0.2); }
+  .cp.no { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid var(--border); }
+
+  /* Gap grid */
+  .gap-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; margin-top: 40px;
+  }
+  @media (max-width: 760px) { .gap-grid { grid-template-columns: 1fr; } }
+
+  .gap-card {
+    border-radius: 2px; padding: 28px;
+    border: 1px solid var(--border);
+  }
+  .gap-card.opp { background: var(--surface); border-left: 3px solid var(--accent); }
+  .gap-card.threat { background: var(--surface); border-left: 3px solid var(--accent3); }
+  .gap-card h3 { font-size: 16px; margin-bottom: 8px; }
+  .gap-card p { font-size: 14px; }
+  .gap-card-eyebrow {
+    font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .opp-eyebrow { color: var(--accent); }
+  .threat-eyebrow { color: var(--accent3); }
+  .gap-outcome {
+    margin-top: 14px; font-size: 12px; font-family: 'DM Mono', monospace;
+    color: var(--muted); padding-top: 12px; border-top: 1px solid var(--border);
+  }
+
+  /* ——— PLACEHOLDER IMAGES ——— */
+  .ph-wrap {
+    position: relative; border-radius: 2px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .ph-wrap svg { display: block; width: 100%; height: auto; }
+  .ph-caption {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+  }
+  .ph-caption-left { display: flex; align-items: center; gap: 8px; }
+  .ph-caption-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .ph-caption-hint { font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(74,255,212,0.5); letter-spacing: 0.5px; }
+  .ph-badge { font-family: 'DM Mono', monospace; font-size: 10px; background: rgba(255,255,255,0.05); color: var(--muted); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); letter-spacing: 1px; text-transform: uppercase; }
+
+  /* Hero floating mockup */
+  .hero-mockup {
+    position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+    width: 52%; z-index: 1; opacity: 0.85;
+    filter: drop-shadow(0 32px 80px rgba(0,0,0,0.8));
+  }
+  .hero-mockup svg { border-radius: 2px; }
+
+  /* Two-col image + text layout */
+  .split-row { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; margin-top: 48px; }
+  .split-row.reverse { direction: rtl; }
+  .split-row.reverse > * { direction: ltr; }
+  @media (max-width: 900px) { .split-row { grid-template-columns: 1fr; } .hero-mockup { display: none; } }
+
+  /* ——— RESPONSIVE ——— */
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    section { padding: 72px 24px; }
+    .hero { padding: 0 24px 60px; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .feature-grid { grid-template-columns: 1fr; }
+    .feature-card.featured { grid-column: span 1; }
+    .decision-grid { grid-template-columns: 1fr; }
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .qual-grid { grid-template-columns: 1fr; }
+    .reflection-grid { grid-template-columns: 1fr; }
+    .insight-row { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 8px; padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">XM Platform</div>
+  <ul class="nav-links">
+    <li><a href="index.html" style="color: var(--accent); font-weight: 700;">← Home</a></li>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#users">Users</a></li>
+    <li><a href="#competitive">Competitive</a></li>
+    <li><a href="#research">Research</a></li>
+    <li><a href="#solution">Solution</a></li>
+    <li><a href="#multimodal">Multimodal</a></li>
+    <li><a href="#impact">Impact</a></li>
+    <li><a href="#reflection">Reflection</a></li>
+  </ul>
+  <span class="nav-tag">Case Study</span>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <!-- Hero floating mockup -->
+  <div class="hero-mockup">
+    <svg viewBox="0 0 780 500" xmlns="http://www.w3.org/2000/svg" style="border-radius: 12px"> <defs> <linearGradient id="hg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0F1118"/><stop offset="100%" stop-color="#161922"/></linearGradient> <linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4AFFD4" stop-opacity="1"/><stop offset="100%" stop-color="#4AFFD4" stop-opacity="0.2"/></linearGradient> <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7C6FFF" stop-opacity="1"/><stop offset="100%" stop-color="#7C6FFF" stop-opacity="0.2"/></linearGradient> <linearGradient id="gauge1" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#FF6B6B"/><stop offset="50%" stop-color="#F4C95D"/><stop offset="100%" stop-color="#4AFFD4"/></linearGradient> <clipPath id="cp1"><rect width="780" height="500" rx="12"/></clipPath> </defs> <rect width="780" height="500" rx="12" fill="url(#hg1)" clip-path="url(#cp1)"/> <!-- subtle grid --> <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/></pattern> <rect width="780" height="500" fill="url(#grid)"/> <!-- Top nav bar --> <rect width="780" height="44" fill="rgba(7,8,12,0.9)"/> <circle cx="16" cy="22" r="6" fill="#4AFFD4" opacity="0.8"/> <circle cx="30" cy="22" r="6" fill="rgba(255,255,255,0.1)"/> <rect x="44" y="16" width="1" height="12" fill="rgba(255,255,255,0.1)"/> <rect x="54" y="19" width="60" height="6" rx="3" fill="rgba(255,255,255,0.12)"/> <rect x="120" y="19" width="4" height="6" rx="2" fill="rgba(255,255,255,0.07)"/> <rect x="130" y="19" width="80" height="6" rx="3" fill="rgba(255,255,255,0.07)"/> <!-- Tab bar --> <rect y="44" width="780" height="36" fill="rgba(15,17,24,0.95)"/> <rect x="16" y="56" width="56" height="6" rx="3" fill="#4AFFD4" opacity="0.9"/> <rect y="79" width="60" height="2" fill="#4AFFD4" opacity="0.6"/> <rect x="88" y="56" width="72" height="6" rx="3" fill="rgba(255,255,255,0.1)"/> <rect x="176" y="56" width="56" height="6" rx="3" fill="rgba(255,255,255,0.07)"/> <rect x="248" y="56" width="64" height="6" rx="3" fill="rgba(255,255,255,0.07)"/> <rect x="328" y="56" width="52" height="6" rx="3" fill="rgba(255,255,255,0.07)"/> <!-- Date range chip --> <rect x="16" y="90" width="130" height="22" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/> <rect x="28" y="97" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.2)"/> <rect x="42" y="99" width="64" height="4" rx="2" fill="rgba(255,255,255,0.2)"/> <rect x="110" y="99" width="10" height="4" rx="2" fill="rgba(255,255,255,0.1)"/> <!-- LEFT PANEL - Highlights --> <rect x="16" y="120" width="170" height="200" rx="10" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/> <rect x="28" y="132" width="50" height="5" rx="2.5" fill="rgba(255,255,255,0.35)"/> <rect x="28" y="146" width="30" height="4" rx="2" fill="#4AFFD4" opacity="0.7"/> <rect x="64" y="146" width="24" height="4" rx="2" fill="rgba(255,255,255,0.15)"/> <rect x="94" y="146" width="28" height="4" rx="2" fill="rgba(255,255,255,0.1)"/> <rect x="28" y="158" width="70" height="4" rx="2" fill="rgba(255,255,255,0.1)"/> <rect x="28" y="174" width="55" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/> <rect x="136" y="172" width="36" height="8" rx="3" fill="rgba(74,255,212,0.15)"/> <rect x="140" y="175" width="28" height="3" rx="1.5" fill="#4AFFD4" opacity="0.7"/> <rect x="28" y="190" width="45" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <rect x="28" y="204" width="55" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/> <rect x="136" y="202" width="36" height="8" rx="3" fill="rgba(255,107,107,0.15)"/> <rect x="140" y="205" width="28" height="3" rx="1.5" fill="#FF6B6B" opacity="0.7"/> <rect x="28" y="218" width="40" height="4" rx="2" fill="rgba(255,255,255,0.1)"/> <!-- CENTER PANEL - CES Gauge --> <rect x="196" y="120" width="210" height="200" rx="10" fill="rgba(255,255,255,0.03)" stroke="rgba(74,255,212,0.15)" stroke-width="0.8"/> <rect x="210" y="133" width="100" height="6" rx="3" fill="rgba(255,255,255,0.3)"/> <!-- gauge arc --> <path d="M 245 260 A 70 70 0 0 1 357 260" fill="none" stroke="url(#gauge1)" stroke-width="12" stroke-linecap="round"/> <!-- gauge needle --> <line x1="301" y1="260" x2="285" y2="210" stroke="rgba(255,255,255,0.9)" stroke-width="2" stroke-linecap="round"/> <circle cx="301" cy="260" r="5" fill="#1a1d27" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/> <rect x="270" y="270" width="24" height="12" rx="4" fill="rgba(244,201,93,0.15)"/> <rect x="274" y="274" width="16" height="4" rx="2" fill="#F4C95D" opacity="0.9"/> <rect x="212" y="290" width="16" height="4" rx="2" fill="rgba(255,255,255,0.2)"/> <rect x="358" y="290" width="16" height="4" rx="2" fill="rgba(255,255,255,0.2)"/> <!-- RIGHT PANEL - NPS Gauge --> <rect x="416" y="120" width="180" height="200" rx="10" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/> <rect x="428" y="133" width="80" height="6" rx="3" fill="rgba(255,255,255,0.25)"/> <path d="M 440 280 A 60 60 0 0 1 556 280" fill="none" stroke="url(#gauge1)" stroke-width="10" stroke-linecap="round"/> <line x1="498" y1="280" x2="498" y2="232" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round"/> <circle cx="498" cy="280" r="4" fill="#1a1d27" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/> <!-- Trend line chart --> <rect x="16" y="332" width="580" height="152" rx="10" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/> <rect x="28" y="344" width="100" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/> <!-- chart grid lines --> <line x1="28" y1="398" x2="580" y2="398" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/> <line x1="28" y1="420" x2="580" y2="420" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/> <line x1="28" y1="442" x2="580" y2="442" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/> <!-- trend line path --> <polyline points="28,365 80,375 132,373 184,395 236,397 288,396 340,396 392,397 444,396 496,397 548,396" fill="none" stroke="#4AFFD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> <!-- area fill --> <polygon points="28,365 80,375 132,373 184,395 236,397 288,396 340,396 392,397 444,396 496,397 548,396 548,470 28,470" fill="url(#gg)" opacity="0.12"/> <!-- milestone pins --> <circle cx="120" cy="400" r="5" fill="rgba(255,107,107,0.3)" stroke="#FF6B6B" stroke-width="1"/> <circle cx="270" cy="400" r="5" fill="rgba(255,107,107,0.3)" stroke="#FF6B6B" stroke-width="1"/> <circle cx="420" cy="400" r="5" fill="rgba(255,107,107,0.3)" stroke="#FF6B6B" stroke-width="1"/> <!-- X axis labels --> <rect x="60" y="458" width="28" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <rect x="160" y="458" width="28" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <rect x="260" y="458" width="28" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <rect x="360" y="458" width="28" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <rect x="460" y="458" width="28" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <!-- ===== AI ASSISTANT PANEL ===== --> <rect x="606" y="0" width="174" height="500" fill="rgba(10,11,16,0.97)" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/> <!-- Panel header --> <rect x="606" y="0" width="174" height="52" fill="rgba(15,17,24,1)"/> <circle cx="628" cy="26" r="10" fill="rgba(124,111,255,0.2)" stroke="rgba(124,111,255,0.4)" stroke-width="1"/> <rect x="623" y="23" width="10" height="6" rx="1" fill="#7C6FFF" opacity="0.8"/> <rect x="644" y="20" width="80" height="5" rx="2.5" fill="rgba(255,255,255,0.35)"/> <rect x="644" y="30" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/> <rect x="766" y="18" width="8" height="8" rx="2" fill="rgba(255,255,255,0.1)"/> <line x1="606" y1="52" x2="780" y2="52" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/> <!-- AI chat bubble - assistant --> <rect x="616" y="62" width="140" height="52" rx="8" fill="rgba(124,111,255,0.12)" stroke="rgba(124,111,255,0.2)" stroke-width="0.5"/> <rect x="624" y="70" width="100" height="3.5" rx="1.75" fill="rgba(255,255,255,0.25)"/> <rect x="624" y="78" width="120" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/> <rect x="624" y="86" width="88" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/> <rect x="624" y="94" width="56" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/> <!-- user bubble --> <rect x="626" y="124" width="130" height="32" rx="8" fill="rgba(74,255,212,0.1)" stroke="rgba(74,255,212,0.2)" stroke-width="0.5"/> <rect x="634" y="132" width="100" height="3.5" rx="1.75" fill="rgba(74,255,212,0.5)"/> <rect x="634" y="140" width="72" height="3.5" rx="1.75" fill="rgba(74,255,212,0.3)"/> <!-- AI reply bubble --> <rect x="616" y="166" width="140" height="64" rx="8" fill="rgba(124,111,255,0.12)" stroke="rgba(124,111,255,0.2)" stroke-width="0.5"/> <rect x="624" y="174" width="108" height="3.5" rx="1.75" fill="rgba(255,255,255,0.25)"/> <rect x="624" y="182" width="120" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/> <rect x="624" y="190" width="96" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/> <rect x="624" y="198" width="80" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/> <rect x="624" y="208" width="56" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/> <!-- Preview confirm card --> <rect x="616" y="240" width="140" height="72" rx="8" fill="rgba(74,255,212,0.06)" stroke="rgba(74,255,212,0.25)" stroke-width="0.8"/> <rect x="624" y="249" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.3)"/> <rect x="624" y="258" width="110" height="3" rx="1.5" fill="rgba(255,255,255,0.12)"/> <rect x="624" y="265" width="95" height="3" rx="1.5" fill="rgba(255,255,255,0.12)"/> <rect x="624" y="272" width="80" height="3" rx="1.5" fill="rgba(255,255,255,0.1)"/> <rect x="624" y="283" width="52" height="18" rx="6" fill="rgba(74,255,212,0.2)" stroke="rgba(74,255,212,0.4)" stroke-width="0.8"/> <rect x="629" y="289" width="42" height="6" rx="3" fill="#4AFFD4" opacity="0.8"/> <rect x="682" y="283" width="40" height="18" rx="6" fill="rgba(255,255,255,0.05)"/> <rect x="686" y="289" width="32" height="6" rx="3" fill="rgba(255,255,255,0.2)"/> <!-- Prompt library chips --> <rect x="616" y="322" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/> <rect x="616" y="333" width="140" height="22" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/> <rect x="624" y="340" width="86" height="4" rx="2" fill="rgba(255,255,255,0.2)"/> <rect x="616" y="360" width="140" height="22" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/> <rect x="624" y="367" width="96" height="4" rx="2" fill="rgba(255,255,255,0.15)"/> <rect x="616" y="387" width="140" height="22" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/> <rect x="624" y="394" width="76" height="4" rx="2" fill="rgba(255,255,255,0.15)"/> <!-- Input bar --> <rect x="606" y="426" width="174" height="74" fill="rgba(10,11,16,0.98)"/> <line x1="606" y1="426" x2="780" y2="426" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/> <rect x="616" y="436" width="148" height="34" rx="8" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/> <rect x="624" y="450" width="60" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <rect x="726" y="438" width="28" height="28" rx="7" fill="rgba(124,111,255,0.25)" stroke="rgba(124,111,255,0.4)" stroke-width="0.8"/> <path d="M 735 452 L 740 456 L 745 448" fill="none" stroke="#7C6FFF" stroke-width="1.5" stroke-linecap="round"/> <!-- mic icon bottom --> <rect x="616" y="478" width="16" height="16" rx="4" fill="rgba(255,255,255,0.05)"/> <rect x="620" y="482" width="8" height="8" rx="2" fill="rgba(255,255,255,0.2)"/> <rect x="636" y="478" width="16" height="16" rx="4" fill="rgba(255,255,255,0.05)"/> <rect x="640" y="482" width="8" height="8" rx="2" fill="rgba(255,255,255,0.15)"/> </svg> </div> <div class="hero-content"> <div class="hero-eyebrow"> <span class="tag tag-teal">AI / UX Design</span> <span class="hero-divider"></span> <span class="tag tag-purple">SaaS · B2B</span> <span class="hero-divider"></span> <span class="tag tag-gold">Experience Management</span> </div> <h1>Designing a<br><em>Conversational AI</em><br>for an XM Platform</h1> <p class="hero-sub">How we embedded a natural-language AI assistant across every module of a SaaS Experience Management Platform — supporting text, speech, and file inputs — translating plain English into live API actions, reducing task time by 60%, and putting the power of data analysts in every user's hands.</p> <div class="hero-meta"> <div class="meta-item"> <span class="meta-label">Role</span> <span class="meta-value">Lead Product Designer</span> </div> <div class="meta-item"> <span class="meta-label">Platform</span> <span class="meta-value">SaaS XM · Web</span> </div> <div class="meta-item"> <span class="meta-label">Scope</span> <span class="meta-value">End-to-End AI Feature</span> </div> <div class="meta-item"> <span class="meta-label">Timeline</span> <span class="meta-value">[PLACEHOLDER]</span> </div> </div> </div> <div class="scroll-line"> <span>Scroll</span> <div class="scroll-line-bar"></div> </div> </section> <hr class="divider"> <!-- OVERVIEW --> <section id="overview"> <div class="section-inner"> <div class="section-label">01 · Overview</div> <h2>One assistant.<br>Every module. Zero friction.</h2> <p>The XM Platform helps enterprises collect, analyse, and act on experience data across the customer and employee lifecycle. Powerful — but complex. Non-technical users routinely needed analyst support to filter dashboards, configure surveys, or interpret reports.</p> <p>The AI Assistant changes this. Embedded across Survey Creation, Survey Distribution, Reports, CX Dashboard, and Custom Dashboard — it lets users type or speak naturally, and the system translates intent into live API calls that execute immediately.</p> <div class="overview-grid"> <div class="overview-cell"> <h3>The Problem</h3> <p>Power users could unlock deep insights; everyone else was stuck. High cognitive load, steep learning curves, and analyst bottlenecks meant most platform capability went unused.</p>
+      </div>
+      <div class="overview-cell">
+        <h3>The Opportunity</h3>
+        <p>LLM-powered natural language interfaces could close the gap between intent and action — but only if the UX made the AI feel trustworthy, fast, and genuinely useful within each context.</p>
+      </div>
+      <div class="overview-cell">
+        <h3>My Role</h3>
+        <p>Led UX strategy, interaction design, and prompt-library architecture. Collaborated with Product, Engineering, and Data Science across all five module integrations from discovery to launch.</p>
+      </div>
+      <div class="overview-cell">
+        <h3>Primary Users</h3>
+        <p>CX Managers, HR Business Partners, and Operations teams who use the platform daily but don't have a technical or data background. Decision-makers who need answers fast.</p>
+      </div>
+    </div>
+
+    <!-- Platform architecture image placeholder -->
+    <div style="margin-top:32px" class="ph-wrap">
+      <svg viewBox="0 0 1100 220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="archbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0F1118"/><stop offset="100%" stop-color="#161922"/></linearGradient>
+        </defs>
+        <rect width="1100" height="220" fill="url(#archbg)"/>
+        <pattern id="dotgrid" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="0.8" fill="rgba(255,255,255,0.06)"/></pattern>
+        <rect width="1100" height="220" fill="url(#dotgrid)"/>
+        <!-- Central AI core -->
+        <rect x="440" y="60" width="220" height="100" rx="14" fill="rgba(124,111,255,0.12)" stroke="rgba(124,111,255,0.35)" stroke-width="1.2"/>
+        <rect x="462" y="85" width="120" height="7" rx="3.5" fill="rgba(124,111,255,0.8)"/>
+        <rect x="462" y="98" width="176" height="4.5" rx="2.25" fill="rgba(255,255,255,0.2)"/>
+        <rect x="462" y="108" width="150" height="4" rx="2" fill="rgba(255,255,255,0.12)"/>
+        <rect x="462" y="118" width="136" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <rect x="462" y="130" width="100" height="4" rx="2" fill="rgba(255,255,255,0.08)"/>
+        <!-- Connector lines -->
+        <line x1="172" y1="110" x2="440" y2="110" stroke="rgba(74,255,212,0.25)" stroke-width="1" stroke-dasharray="5 3"/>
+        <line x1="288" y1="110" x2="440" y2="110" stroke="rgba(74,255,212,0.25)" stroke-width="1" stroke-dasharray="5 3"/>
+        <line x1="660" y1="110" x2="928" y2="110" stroke="rgba(74,255,212,0.25)" stroke-width="1" stroke-dasharray="5 3"/>
+        <line x1="660" y1="110" x2="795" y2="110" stroke="rgba(74,255,212,0.25)" stroke-width="1" stroke-dasharray="5 3"/>
+        <!-- Left modules -->
+        <!-- Survey Creation -->
+        <rect x="20" y="70" width="140" height="80" rx="10" fill="rgba(74,255,212,0.06)" stroke="rgba(74,255,212,0.2)" stroke-width="0.8"/>
+        <rect x="32" y="84" width="8" height="8" rx="2" fill="rgba(74,255,212,0.4)"/>
+        <rect x="44" y="86" width="72" height="5" rx="2.5" fill="rgba(255,255,255,0.3)"/>
+        <rect x="32" y="100" width="112" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="32" y="108" width="96" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="32" y="116" width="72" height="3.5" rx="1.75" fill="rgba(255,255,255,0.08)"/>
+        <rect x="32" y="128" width="52" height="14" rx="5" fill="rgba(74,255,212,0.12)" stroke="rgba(74,255,212,0.3)" stroke-width="0.5"/>
+        <rect x="36" y="132" width="44" height="6" rx="3" fill="rgba(74,255,212,0.6)"/>
+        <!-- Survey Distribution -->
+        <rect x="170" y="70" width="140" height="80" rx="10" fill="rgba(74,255,212,0.04)" stroke="rgba(74,255,212,0.15)" stroke-width="0.8"/>
+        <rect x="182" y="84" width="8" height="8" rx="2" fill="rgba(124,111,255,0.5)"/>
+        <rect x="194" y="86" width="80" height="5" rx="2.5" fill="rgba(255,255,255,0.25)"/>
+        <rect x="182" y="100" width="110" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="182" y="108" width="90" height="3.5" rx="1.75" fill="rgba(255,255,255,0.08)"/>
+        <rect x="182" y="116" width="68" height="3.5" rx="1.75" fill="rgba(255,255,255,0.06)"/>
+        <rect x="182" y="128" width="52" height="14" rx="5" fill="rgba(124,111,255,0.12)" stroke="rgba(124,111,255,0.3)" stroke-width="0.5"/>
+        <rect x="186" y="132" width="44" height="6" rx="3" fill="rgba(124,111,255,0.6)"/>
+        <!-- Right modules -->
+        <!-- Reports -->
+        <rect x="660" y="70" width="140" height="80" rx="10" fill="rgba(244,201,93,0.06)" stroke="rgba(244,201,93,0.2)" stroke-width="0.8"/>
+        <rect x="672" y="84" width="8" height="8" rx="2" fill="rgba(244,201,93,0.5)"/>
+        <rect x="684" y="86" width="56" height="5" rx="2.5" fill="rgba(255,255,255,0.3)"/>
+        <rect x="672" y="100" width="110" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="672" y="108" width="88" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="672" y="116" width="68" height="3.5" rx="1.75" fill="rgba(255,255,255,0.08)"/>
+        <rect x="672" y="128" width="52" height="14" rx="5" fill="rgba(244,201,93,0.12)" stroke="rgba(244,201,93,0.3)" stroke-width="0.5"/>
+        <rect x="676" y="132" width="44" height="6" rx="3" fill="rgba(244,201,93,0.6)"/>
+        <!-- CX Dashboard -->
+        <rect x="810" y="70" width="140" height="80" rx="10" fill="rgba(255,107,107,0.06)" stroke="rgba(255,107,107,0.2)" stroke-width="0.8"/>
+        <rect x="822" y="84" width="8" height="8" rx="2" fill="rgba(255,107,107,0.5)"/>
+        <rect x="834" y="86" width="72" height="5" rx="2.5" fill="rgba(255,255,255,0.3)"/>
+        <rect x="822" y="100" width="110" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="822" y="108" width="94" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="822" y="116" width="70" height="3.5" rx="1.75" fill="rgba(255,255,255,0.08)"/>
+        <rect x="822" y="128" width="52" height="14" rx="5" fill="rgba(255,107,107,0.12)" stroke="rgba(255,107,107,0.3)" stroke-width="0.5"/>
+        <rect x="826" y="132" width="44" height="6" rx="3" fill="rgba(255,107,107,0.6)"/>
+        <!-- Custom Dashboard -->
+        <rect x="955" y="70" width="125" height="80" rx="10" fill="rgba(96,165,250,0.06)" stroke="rgba(96,165,250,0.2)" stroke-width="0.8"/>
+        <rect x="967" y="84" width="8" height="8" rx="2" fill="rgba(96,165,250,0.5)"/>
+        <rect x="979" y="86" width="72" height="5" rx="2.5" fill="rgba(255,255,255,0.25)"/>
+        <rect x="967" y="100" width="98" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="967" y="108" width="80" height="3.5" rx="1.75" fill="rgba(255,255,255,0.08)"/>
+        <rect x="967" y="128" width="52" height="14" rx="5" fill="rgba(96,165,250,0.12)" stroke="rgba(96,165,250,0.3)" stroke-width="0.5"/>
+        <rect x="971" y="132" width="44" height="6" rx="3" fill="rgba(96,165,250,0.6)"/>
+        <!-- Module labels at bottom -->
+        <rect x="64" y="164" width="56" height="4" rx="2" fill="rgba(74,255,212,0.4)"/>
+        <rect x="207" y="164" width="70" height="4" rx="2" fill="rgba(124,111,255,0.4)"/>
+        <rect x="706" y="164" width="44" height="4" rx="2" fill="rgba(244,201,93,0.4)"/>
+        <rect x="846" y="164" width="64" height="4" rx="2" fill="rgba(255,107,107,0.4)"/>
+        <rect x="980" y="164" width="72" height="4" rx="2" fill="rgba(96,165,250,0.4)"/>
+        <!-- Center label -->
+        <rect x="490" y="176" width="120" height="4" rx="2" fill="rgba(124,111,255,0.3)"/>
+      </svg>
+      <div class="ph-caption">
+        <div class="ph-caption-left">
+          <span class="ph-badge">IMG 01</span>
+          <span class="ph-caption-label">Platform Module Architecture — AI Assistant integration across all 5 modules</span>
+        </div>
+        <span class="ph-caption-hint">↑ Replace with final architecture diagram</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="problem">
+  <div class="section-inner">
+    <div class="section-label">02 · Problem Framing</div>
+    <h2>The gap between<br>intent and execution</h2>
+    <p>Through stakeholder interviews and session recording analysis, four core friction patterns emerged across the platform. These weren't edge cases — they were the everyday experience of the majority of our users.</p>
+
+    <div class="problem-grid">
+      <div class="problem-card red">
+        <div class="problem-icon">🧱</div>
+        <h3>Steep Cognitive Load</h3>
+        <p>Users needed to know which filter, which widget, and which menu path — before they could even ask their question. The tool demanded expertise it hadn't taught.</p>
+      </div>
+      <div class="problem-card purple">
+        <div class="problem-icon">⏳</div>
+        <h3>Analyst Bottleneck</h3>
+        <p>Non-technical users raised internal tickets for dashboard edits, custom report slices, or survey logic changes — adding days of wait time to routine tasks.</p>
+      </div>
+      <div class="problem-card gold">
+        <div class="problem-icon">🔀</div>
+        <h3>Context Switching</h3>
+        <p>Insights lived across modules. Getting a complete picture required navigating Reports, CX Dashboard, and Comparison views separately — losing context each time.</p>
+      </div>
+      <div class="problem-card teal">
+        <div class="problem-icon">🧭</div>
+        <h3>Discoverability Failure</h3>
+        <p>Platform capabilities (tag filtering, comparison views, NPS drill-downs) were often unknown to users. Features existed; they just couldn't find them without training.</p>
+      </div>
+    </div>
+
+    <!-- IMG: Session recording heatmap -->
+    <div style="margin-top:40px" class="ph-wrap">
+      <svg viewBox="0 0 1100 300" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="hmbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d0e15"/><stop offset="100%" stop-color="#111319"/></linearGradient>
+          <radialGradient id="heat1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#FF6B6B" stop-opacity="0.6"/><stop offset="100%" stop-color="#FF6B6B" stop-opacity="0"/></radialGradient>
+          <radialGradient id="heat2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#F4C95D" stop-opacity="0.45"/><stop offset="100%" stop-color="#F4C95D" stop-opacity="0"/></radialGradient>
+          <radialGradient id="heat3" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#FF6B6B" stop-opacity="0.4"/><stop offset="100%" stop-color="#FF6B6B" stop-opacity="0"/></radialGradient>
+          <radialGradient id="heat4" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#4AFFD4" stop-opacity="0.3"/><stop offset="100%" stop-color="#4AFFD4" stop-opacity="0"/></radialGradient>
+        </defs>
+        <rect width="1100" height="300" fill="url(#hmbg)"/>
+        <pattern id="hmg" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="rgba(255,255,255,0.025)" stroke-width="0.4"/></pattern>
+        <rect width="1100" height="300" fill="url(#hmg)"/>
+
+        <!-- Left label panel -->
+        <rect x="0" y="0" width="180" height="300" fill="rgba(7,8,12,0.6)"/>
+        <rect x="16" y="20" width="80" height="5" rx="2.5" fill="rgba(255,107,107,0.6)"/>
+        <rect x="16" y="32" width="148" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="16" y="42" width="130" height="4" rx="2" fill="rgba(255,255,255,0.12)"/>
+
+        <!-- Heatmap stat items -->
+        <rect x="16" y="65" width="148" height="36" rx="6" fill="rgba(255,107,107,0.08)" stroke="rgba(255,107,107,0.2)" stroke-width="0.6"/>
+        <rect x="24" y="72" width="64" height="6" rx="3" fill="rgba(255,107,107,0.8)"/>
+        <rect x="24" y="82" width="100" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="24" y="89" width="80" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+
+        <rect x="16" y="110" width="148" height="36" rx="6" fill="rgba(244,201,93,0.07)" stroke="rgba(244,201,93,0.2)" stroke-width="0.6"/>
+        <rect x="24" y="117" width="72" height="6" rx="3" fill="rgba(244,201,93,0.8)"/>
+        <rect x="24" y="127" width="108" height="3.5" rx="1.75" fill="rgba(255,255,255,0.18)"/>
+        <rect x="24" y="134" width="88" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+
+        <rect x="16" y="155" width="148" height="36" rx="6" fill="rgba(255,107,107,0.07)" stroke="rgba(255,107,107,0.18)" stroke-width="0.6"/>
+        <rect x="24" y="162" width="56" height="6" rx="3" fill="rgba(255,107,107,0.7)"/>
+        <rect x="24" y="172" width="116" height="3.5" rx="1.75" fill="rgba(255,255,255,0.18)"/>
+        <rect x="24" y="179" width="92" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+
+        <rect x="16" y="200" width="148" height="36" rx="6" fill="rgba(74,255,212,0.06)" stroke="rgba(74,255,212,0.15)" stroke-width="0.6"/>
+        <rect x="24" y="207" width="80" height="6" rx="3" fill="rgba(74,255,212,0.7)"/>
+        <rect x="24" y="217" width="110" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="24" y="224" width="86" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+
+        <!-- Main heatmap area — platform UI mockup with overlaid heat -->
+        <!-- Top bar -->
+        <rect x="180" y="0" width="920" height="34" fill="rgba(10,11,16,0.9)"/>
+        <rect x="196" y="13" width="60" height="5" rx="2.5" fill="rgba(74,255,212,0.5)"/>
+        <rect x="264" y="13" width="72" height="5" rx="2.5" fill="rgba(255,255,255,0.1)"/>
+        <rect x="344" y="13" width="52" height="5" rx="2.5" fill="rgba(255,255,255,0.07)"/>
+        <!-- Sidebar on left -->
+        <rect x="180" y="34" width="40" height="266" fill="rgba(7,8,12,0.7)"/>
+        <!-- Content zones -->
+        <rect x="220" y="44" width="148" height="120" rx="6" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+        <rect x="228" y="53" width="48" height="4" rx="2" fill="rgba(255,255,255,0.25)"/>
+        <rect x="228" y="62" width="120" height="3" rx="1.5" fill="rgba(255,255,255,0.1)"/>
+        <rect x="228" y="70" width="100" height="3" rx="1.5" fill="rgba(255,255,255,0.08)"/>
+        <rect x="228" y="118" width="64" height="20" rx="6" fill="rgba(255,255,255,0.06)"/>
+        <rect x="228" y="130" width="52" height="6" rx="3" fill="rgba(255,255,255,0.15)"/>
+
+        <!-- Filter panels - top area (many clicks) -->
+        <rect x="376" y="44" width="360" height="50" rx="6" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+        <rect x="384" y="54" width="32" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="424" y="50" width="60" height="12" rx="4" fill="rgba(255,255,255,0.06)"/>
+        <rect x="492" y="50" width="60" height="12" rx="4" fill="rgba(255,255,255,0.06)"/>
+        <rect x="560" y="50" width="60" height="12" rx="4" fill="rgba(255,255,255,0.06)"/>
+        <rect x="628" y="50" width="60" height="12" rx="4" fill="rgba(255,255,255,0.06)"/>
+        <rect x="384" y="68" width="48" height="4" rx="2" fill="rgba(255,255,255,0.15)"/>
+        <rect x="440" y="68" width="40" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+
+        <!-- Chart area -->
+        <rect x="376" y="104" width="360" height="180" rx="6" fill="rgba(255,255,255,0.015)" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <polyline points="384,220 420,210 456,208 492,230 528,232 564,231 600,230 636,231 672,230 708,231" fill="none" stroke="rgba(74,255,212,0.3)" stroke-width="1.5"/>
+
+        <!-- Right panel — filter config (high friction) -->
+        <rect x="744" y="44" width="336" height="240" rx="6" fill="rgba(255,255,255,0.015)" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <rect x="754" y="56" width="80" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/>
+        <rect x="754" y="70" width="300" height="28" rx="5" fill="rgba(255,255,255,0.04)"/>
+        <rect x="762" y="79" width="80" height="4" rx="2" fill="rgba(255,255,255,0.15)"/>
+        <rect x="754" y="104" width="300" height="28" rx="5" fill="rgba(255,255,255,0.03)"/>
+        <rect x="762" y="113" width="64" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <rect x="754" y="138" width="300" height="28" rx="5" fill="rgba(255,255,255,0.03)"/>
+        <rect x="762" y="147" width="72" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <rect x="754" y="220" width="80" height="24" rx="6" fill="rgba(74,255,212,0.1)"/>
+        <rect x="762" y="228" width="64" height="8" rx="3" fill="rgba(74,255,212,0.4)"/>
+
+        <!-- HEAT OVERLAYS -->
+        <!-- Filter row - very hot (user stuck here) -->
+        <ellipse cx="500" cy="57" rx="120" ry="24" fill="url(#heat1)" opacity="0.85"/>
+        <!-- Filter config right panel - hot -->
+        <ellipse cx="900" cy="130" rx="130" ry="70" fill="url(#heat3)" opacity="0.7"/>
+        <!-- Filter add button - hot -->
+        <ellipse cx="820" cy="232" rx="60" ry="18" fill="url(#heat1)" opacity="0.6"/>
+        <!-- Highlights - warm (moderate use) -->
+        <ellipse cx="290" cy="100" rx="70" ry="40" fill="url(#heat2)" opacity="0.5"/>
+        <!-- Chart - cool (low friction) -->
+        <ellipse cx="556" cy="190" rx="90" ry="50" fill="url(#heat4)" opacity="0.4"/>
+
+        <!-- Annotation callouts -->
+        <rect x="415" y="84" width="160" height="18" rx="5" fill="rgba(255,107,107,0.15)" stroke="rgba(255,107,107,0.35)" stroke-width="0.7"/>
+        <rect x="421" y="89" width="120" height="4" rx="2" fill="rgba(255,107,107,0.7)"/>
+        <rect x="421" y="96" width="88" height="3" rx="1.5" fill="rgba(255,107,107,0.4)"/>
+
+        <rect x="744" y="270" width="200" height="18" rx="5" fill="rgba(255,107,107,0.12)" stroke="rgba(255,107,107,0.3)" stroke-width="0.7"/>
+        <rect x="751" y="275" width="150" height="4" rx="2" fill="rgba(255,107,107,0.6)"/>
+        <rect x="751" y="282" width="110" height="3" rx="1.5" fill="rgba(255,107,107,0.35)"/>
+      </svg>
+      <div class="ph-caption">
+        <div class="ph-caption-left">
+          <span class="ph-badge">IMG 04</span>
+          <span class="ph-caption-label">Session Recording Analysis — Click heatmap showing friction peaks at filter configuration & analytics config panels</span>
+        </div>
+        <span class="ph-caption-hint">↑ Replace with Hotjar / FullStory heatmap export annotated in Figma</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="users">
+  <div class="section-inner">
+    <div class="section-label">03 · Users</div>
+    <h2>Who we were<br>actually designing for</h2>
+    <p>Before research began, the product team had no explicitly mapped persona split. The AI assistant had been scoped as a "power user feature." Research revealed the opposite: non-technical daily operators were the majority — and the ones being failed hardest. Getting this right changed every design decision that followed.</p>
+
+    <div class="persona-grid">
+      <!-- PRIMARY -->
+      <div class="persona-block primary-block">
+        <div class="persona-block-header">
+          <div class="persona-block-title">
+            <span class="persona-type-badge primary-badge">Primary Users</span>
+            <span class="persona-freq-note">Daily active · 80%+ of sessions</span>
+          </div>
+          <p class="persona-block-desc">Non-technical operators who run the platform day-to-day. They have business expertise but hit walls when the tool demands technical fluency. The AI assistant was designed <em>for</em> them.</p>
+        </div>
+        <div class="persona-cards">
+          <div class="persona-card-item">
+            <div class="persona-avatar-row">
+              <div class="p-avatar" style="background:rgba(74,255,212,0.12);border:1px solid rgba(74,255,212,0.25);">CX</div>
+              <div>
+                <div class="p-name">CX Manager</div>
+                <div class="p-role">Customer Experience · Ops</div>
+              </div>
+              <span class="p-freq">3–5×/week</span>
+            </div>
+            <blockquote class="p-quote">"I know what I want to see — I just can't get the dashboard to show it without calling someone."</blockquote>
+            <div class="p-tags"><span class="p-tag">Filter-heavy workflows</span><span class="p-tag">NPS / CES tracking</span><span class="p-tag">Reporting to leadership</span></div>
+            <div class="p-pain">🔴 Key pain: Analyst dependency for every non-standard view</div>
+          </div>
+          <div class="persona-card-item">
+            <div class="persona-avatar-row">
+              <div class="p-avatar" style="background:rgba(124,111,255,0.12);border:1px solid rgba(124,111,255,0.25);">HR</div>
+              <div>
+                <div class="p-name">HR Business Partner</div>
+                <div class="p-role">People & Culture</div>
+              </div>
+              <span class="p-freq">2–4×/week</span>
+            </div>
+            <blockquote class="p-quote">"Building the survey logic takes me half a day because the UI doesn't match how I think about it."</blockquote>
+            <div class="p-tags"><span class="p-tag">Employee surveys</span><span class="p-tag">Pulse tracking</span><span class="p-tag">Engagement trends</span></div>
+            <div class="p-pain">🔴 Key pain: Survey logic builder too complex for non-technical users</div>
+          </div>
+          <div class="persona-card-item">
+            <div class="persona-avatar-row">
+              <div class="p-avatar" style="background:rgba(244,201,93,0.12);border:1px solid rgba(244,201,93,0.25);">OPS</div>
+              <div>
+                <div class="p-name">Operations Analyst</div>
+                <div class="p-role">Business Operations</div>
+              </div>
+              <span class="p-freq">4–6×/week</span>
+            </div>
+            <blockquote class="p-quote">"I need answers in 10 minutes for a standup. It takes me 40 minutes to find the right filter combination."</blockquote>
+            <div class="p-tags"><span class="p-tag">Cross-module views</span><span class="p-tag">Distribution setup</span><span class="p-tag">Report slicing</span></div>
+            <div class="p-pain">🔴 Key pain: Context-switching across modules to assemble one answer</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECONDARY -->
+      <div class="persona-block secondary-block">
+        <div class="persona-block-header">
+          <div class="persona-block-title">
+            <span class="persona-type-badge secondary-badge">Secondary Users</span>
+            <span class="persona-freq-note">Setup, governance & review</span>
+          </div>
+          <p class="persona-block-desc">Technical or executive users who configure the platform, audit outputs, or consume insights. The AI must accommodate them without being designed primarily for them.</p>
+        </div>
+        <div class="persona-cards secondary-cards">
+          <div class="persona-card-item secondary-card-item">
+            <div class="persona-avatar-row">
+              <div class="p-avatar" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.2);">IT</div>
+              <div><div class="p-name">IT / Platform Admin</div><div class="p-role">Infrastructure & Integrations</div></div>
+              <span class="p-freq secondary-freq">Setup only</span>
+            </div>
+            <div class="p-secondary-note">Configures SSO, manages data connections, and sets role-based access. Rarely uses the assistant — but must trust that AI-initiated actions respect permission boundaries.</div>
+          </div>
+          <div class="persona-card-item secondary-card-item">
+            <div class="persona-avatar-row">
+              <div class="p-avatar" style="background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.2);">EX</div>
+              <div><div class="p-name">Executive Sponsor</div><div class="p-role">C-Suite / VP</div></div>
+              <span class="p-freq secondary-freq">Monthly reviews</span>
+            </div>
+            <div class="p-secondary-note">Consumes AI-generated summaries and dashboard exports shared by primary users. Values clarity and speed — not configuration depth.</div>
+          </div>
+          <div class="persona-card-item secondary-card-item">
+            <div class="persona-avatar-row">
+              <div class="p-avatar" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);">DA</div>
+              <div><div class="p-name">Data Analyst</div><div class="p-role">Analytics & BI</div></div>
+              <span class="p-freq secondary-freq">Intensive, periodic</span>
+            </div>
+            <div class="p-secondary-note">Uses the platform for deep cross-tabs and custom report builds. Appreciates AI shortcuts for routine filters — prefers manual control for complex queries. Needs slash-command mode.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="persona-callout">
+      <span class="persona-callout-icon">⚡</span>
+      <div><strong style="color:var(--text)">Design priority:</strong> Build the AI assistant to give primary users analyst-grade capability with zero technical barrier. Let secondary users override or go deeper through slash-commands and settings — but never let their edge cases dictate the primary interaction model.</div>
+    </div>
+
+    <!-- IMG: Persona cards Figma export -->
+    <div style="margin-top:32px" class="ph-wrap">
+      <svg viewBox="0 0 1100 240" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="pcbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0c0d13"/><stop offset="100%" stop-color="#111319"/></linearGradient>
+        </defs>
+        <rect width="1100" height="240" fill="url(#pcbg)"/>
+        <pattern id="pcg" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="0.6" fill="rgba(255,255,255,0.05)"/></pattern>
+        <rect width="1100" height="240" fill="url(#pcg)"/>
+
+        <!-- Figma-style frame border top -->
+        <rect x="0" y="0" width="1100" height="28" fill="rgba(7,8,12,0.9)"/>
+        <rect x="12" y="10" width="8" height="8" rx="2" fill="rgba(74,255,212,0.4)"/>
+        <rect x="28" y="12" width="80" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="116" y="12" width="1" height="4" fill="rgba(255,255,255,0.1)"/>
+        <rect x="124" y="12" width="100" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <rect x="480" y="10" width="140" height="8" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <rect x="492" y="13" width="116" height="2" rx="1" fill="rgba(255,255,255,0.12)"/>
+
+        <!-- PRIMARY — 3 persona cards side by side -->
+        <!-- Card 1: CX Manager -->
+        <rect x="24" y="40" width="300" height="184" rx="12" fill="rgba(74,255,212,0.05)" stroke="rgba(74,255,212,0.2)" stroke-width="0.8"/>
+        <rect x="36" y="52" width="40" height="40" rx="10" fill="rgba(74,255,212,0.15)" stroke="rgba(74,255,212,0.3)" stroke-width="0.8"/>
+        <rect x="48" y="65" width="16" height="14" rx="3" fill="rgba(74,255,212,0.6)"/>
+        <rect x="84" y="56" width="100" height="6" rx="3" fill="rgba(255,255,255,0.4)"/>
+        <rect x="84" y="68" width="72" height="4" rx="2" fill="rgba(74,255,212,0.5)"/>
+        <rect x="84" y="78" width="56" height="4" rx="2" fill="rgba(255,255,255,0.15)"/>
+        <rect x="36" y="102" width="1" height="110" fill="rgba(74,255,212,0.15)"/>
+        <rect x="46" y="102" width="260" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="46" y="110" width="240" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="46" y="118" width="220" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="46" y="134" width="60" height="4" rx="2" fill="rgba(74,255,212,0.4)"/>
+        <rect x="46" y="144" width="260" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="46" y="152" width="240" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="46" y="167" width="48" height="14" rx="5" fill="rgba(255,107,107,0.1)" stroke="rgba(255,107,107,0.25)" stroke-width="0.5"/>
+        <rect x="52" y="171" width="36" height="4" rx="2" fill="rgba(255,107,107,0.5)"/>
+        <rect x="102" y="167" width="52" height="14" rx="5" fill="rgba(244,201,93,0.08)" stroke="rgba(244,201,93,0.2)" stroke-width="0.5"/>
+        <rect x="108" y="171" width="40" height="4" rx="2" fill="rgba(244,201,93,0.4)"/>
+        <rect x="162" y="167" width="60" height="14" rx="5" fill="rgba(74,255,212,0.08)" stroke="rgba(74,255,212,0.2)" stroke-width="0.5"/>
+        <rect x="168" y="171" width="48" height="4" rx="2" fill="rgba(74,255,212,0.4)"/>
+
+        <!-- Card 2: HR Business Partner -->
+        <rect x="400" y="40" width="300" height="184" rx="12" fill="rgba(124,111,255,0.05)" stroke="rgba(124,111,255,0.2)" stroke-width="0.8"/>
+        <rect x="412" y="52" width="40" height="40" rx="10" fill="rgba(124,111,255,0.15)" stroke="rgba(124,111,255,0.3)" stroke-width="0.8"/>
+        <rect x="424" y="65" width="16" height="14" rx="3" fill="rgba(124,111,255,0.6)"/>
+        <rect x="460" y="56" width="88" height="6" rx="3" fill="rgba(255,255,255,0.4)"/>
+        <rect x="460" y="68" width="100" height="4" rx="2" fill="rgba(124,111,255,0.5)"/>
+        <rect x="460" y="78" width="60" height="4" rx="2" fill="rgba(255,255,255,0.15)"/>
+        <rect x="412" y="102" width="1" height="110" fill="rgba(124,111,255,0.15)"/>
+        <rect x="422" y="102" width="260" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="422" y="110" width="244" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="422" y="118" width="228" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="422" y="134" width="60" height="4" rx="2" fill="rgba(124,111,255,0.4)"/>
+        <rect x="422" y="144" width="260" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="422" y="152" width="228" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="422" y="167" width="48" height="14" rx="5" fill="rgba(255,107,107,0.1)" stroke="rgba(255,107,107,0.25)" stroke-width="0.5"/>
+        <rect x="428" y="171" width="36" height="4" rx="2" fill="rgba(255,107,107,0.5)"/>
+        <rect x="478" y="167" width="60" height="14" rx="5" fill="rgba(124,111,255,0.08)" stroke="rgba(124,111,255,0.2)" stroke-width="0.5"/>
+        <rect x="484" y="171" width="48" height="4" rx="2" fill="rgba(124,111,255,0.4)"/>
+
+        <!-- Card 3: Ops Analyst -->
+        <rect x="776" y="40" width="300" height="184" rx="12" fill="rgba(244,201,93,0.04)" stroke="rgba(244,201,93,0.18)" stroke-width="0.8"/>
+        <rect x="788" y="52" width="40" height="40" rx="10" fill="rgba(244,201,93,0.14)" stroke="rgba(244,201,93,0.25)" stroke-width="0.8"/>
+        <rect x="800" y="65" width="16" height="14" rx="3" fill="rgba(244,201,93,0.6)"/>
+        <rect x="836" y="56" width="80" height="6" rx="3" fill="rgba(255,255,255,0.35)"/>
+        <rect x="836" y="68" width="88" height="4" rx="2" fill="rgba(244,201,93,0.5)"/>
+        <rect x="836" y="78" width="64" height="4" rx="2" fill="rgba(255,255,255,0.12)"/>
+        <rect x="788" y="102" width="1" height="110" fill="rgba(244,201,93,0.15)"/>
+        <rect x="798" y="102" width="260" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="798" y="110" width="236" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="798" y="118" width="216" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="798" y="134" width="60" height="4" rx="2" fill="rgba(244,201,93,0.4)"/>
+        <rect x="798" y="144" width="252" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="798" y="152" width="224" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="798" y="167" width="48" height="14" rx="5" fill="rgba(255,107,107,0.1)" stroke="rgba(255,107,107,0.25)" stroke-width="0.5"/>
+        <rect x="804" y="171" width="36" height="4" rx="2" fill="rgba(255,107,107,0.5)"/>
+        <rect x="854" y="167" width="60" height="14" rx="5" fill="rgba(244,201,93,0.08)" stroke="rgba(244,201,93,0.2)" stroke-width="0.5"/>
+        <rect x="860" y="171" width="48" height="4" rx="2" fill="rgba(244,201,93,0.4)"/>
+
+        <!-- Labels under each card -->
+        <rect x="118" y="232" width="116" height="4" rx="2" fill="rgba(74,255,212,0.35)"/>
+        <rect x="478" y="232" width="148" height="4" rx="2" fill="rgba(124,111,255,0.35)"/>
+        <rect x="866" y="232" width="120" height="4" rx="2" fill="rgba(244,201,93,0.35)"/>
+      </svg>
+      <div class="ph-caption">
+        <div class="ph-caption-left">
+          <span class="ph-badge">IMG 05</span>
+          <span class="ph-caption-label">Persona Cards (Figma) — CX Manager · HR Business Partner · Operations Analyst · goals, quotes, pain points, tags</span>
+        </div>
+        <span class="ph-caption-hint">↑ Replace with Figma persona frame exports</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="competitive">
+  <div class="section-inner">
+    <div class="section-label">04 · Competitive Analysis</div>
+    <h2>Where every competitor<br>left the gap</h2>
+    <p>Before committing to an AI-native conversation model, I audited six direct and adjacent competitors across the XM, BI, and AI assistant categories. The goal was not to benchmark features — it was to identify where the category was failing non-technical users and where a well-scoped natural language layer could create durable differentiation.</p>
+
+    <!-- Positioning map + summary -->
+    <div class="comp-map-row">
+      <div class="comp-map-wrap">
+        <div class="comp-map-label-top">High AI Capability ↑</div>
+        <div class="comp-map-label-bottom">↓ Low AI Capability</div>
+        <div class="comp-map-label-left">← Non-Technical</div>
+        <div class="comp-map-label-right">Technical →</div>
+        <svg viewBox="0 0 380 320" xmlns="http://www.w3.org/2000/svg" class="comp-map-svg">
+          <rect width="380" height="320" fill="var(--surface2)" rx="12"/>
+          <!-- grid -->
+          <line x1="190" y1="20" x2="190" y2="300" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+          <line x1="20" y1="160" x2="360" y2="160" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+          <!-- quadrant fills -->
+          <rect x="20" y="20" width="170" height="140" rx="4" fill="rgba(74,255,212,0.03)"/>
+          <text x="105" y="38" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="rgba(74,255,212,0.3)" letter-spacing="1">WHITE SPACE</text>
+          <!-- Competitor dots -->
+          <!-- Qualtrics: high AI, technical -->
+          <circle cx="300" cy="60" r="8" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+          <text x="300" y="48" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="rgba(255,255,255,0.4)">Qualtrics</text>
+          <!-- Medallia: mid AI, technical -->
+          <circle cx="280" cy="100" r="7" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+          <text x="280" y="88" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="rgba(255,255,255,0.35)">Medallia</text>
+          <!-- SurveyMonkey: low AI, semi-tech -->
+          <circle cx="230" cy="230" r="7" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+          <text x="230" y="248" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="rgba(255,255,255,0.3)">SurveyMonkey</text>
+          <!-- Typeform: low AI, non-technical -->
+          <circle cx="100" cy="220" r="7" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+          <text x="100" y="238" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="rgba(255,255,255,0.3)">Typeform</text>
+          <!-- ChatGPT/Claude: high AI, non-technical but generic -->
+          <circle cx="80" cy="55" r="7" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+          <text x="80" y="43" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="rgba(255,255,255,0.3)">Generic LLMs</text>
+          <!-- Tableau: high AI, very technical -->
+          <circle cx="340" cy="80" r="7" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+          <text x="340" y="68" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="rgba(255,255,255,0.3)">Tableau</text>
+          <!-- Our product: high AI, non-technical — in the white space -->
+          <circle cx="95" cy="65" r="0" fill="none"/>
+          <circle cx="95" cy="72" r="12" fill="rgba(74,255,212,0.08)" stroke="rgba(74,255,212,0.0)" stroke-width="0">
+            <animate attributeName="r" values="12;20;12" dur="2.5s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.4;0;0.4" dur="2.5s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="95" cy="72" r="9" fill="rgba(74,255,212,0.2)" stroke="rgba(74,255,212,0.6)" stroke-width="1.5"/>
+          <text x="95" y="61" text-anchor="middle" font-family="DM Mono,monospace" font-size="8" fill="rgba(74,255,212,0.9)" font-weight="500">XM AI Assistant</text>
+          <text x="95" y="51" text-anchor="middle" font-family="DM Mono,monospace" font-size="7" fill="rgba(74,255,212,0.5)">← target position</text>
+        </svg>
+      </div>
+      <div class="comp-map-insights">
+        <div class="comp-insight-card">
+          <div class="comp-insight-num">01</div>
+          <div><strong style="color:var(--text)">High AI + technical</strong><br><span style="color:var(--muted);font-size:13px;">Qualtrics and Medallia have AI features — but they require analyst-level setup. They serve the buyer, not the daily operator.</span></div>
+        </div>
+        <div class="comp-insight-card">
+          <div class="comp-insight-num">02</div>
+          <div><strong style="color:var(--text)">Non-technical + no AI</strong><br><span style="color:var(--muted);font-size:13px;">Typeform and SurveyMonkey are accessible but have no NL-to-action capability. Users still navigate manually.</span></div>
+        </div>
+        <div class="comp-insight-card">
+          <div class="comp-insight-num">03</div>
+          <div><strong style="color:var(--text)">Generic LLMs — no platform context</strong><br><span style="color:var(--muted);font-size:13px;">ChatGPT / Claude are accessible and AI-native — but have no XM data access and can't execute API actions inside the platform.</span></div>
+        </div>
+        <div class="comp-insight-card white-space-card">
+          <div class="comp-insight-num" style="color:var(--accent)">⬡</div>
+          <div><strong style="color:var(--accent)">The white space</strong><br><span style="color:var(--label);font-size:13px;">High AI capability + non-technical access + platform-native execution. No competitor occupies this position. This is what we built for.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Competitor table -->
+    <table class="comp-table-full">
+      <thead>
+        <tr>
+          <th>Competitor</th>
+          <th>NL / Conversational UI</th>
+          <th>Platform-native actions</th>
+          <th>Context-aware (per module)</th>
+          <th>Prompt library</th>
+          <th>Non-technical access</th>
+          <th>Multimodal input</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="our-row">
+          <td class="comp-name-cell">XM AI Assistant<span class="comp-sub">This project · XM Platform</span></td>
+          <td><span class="cp win">✓ Native NL</span></td>
+          <td><span class="cp win">✓ API execution</span></td>
+          <td><span class="cp win">✓ All 5 modules</span></td>
+          <td><span class="cp win">✓ Module-aware</span></td>
+          <td><span class="cp win">✓ Core goal</span></td>
+          <td><span class="cp win">✓ Text · Speech · File</span></td>
+        </tr>
+        <tr>
+          <td class="comp-name-cell">Qualtrics iQ<span class="comp-sub">Enterprise XM</span></td>
+          <td><span class="cp partial">Partial — analytics only</span></td>
+          <td><span class="cp no">No — insight display only</span></td>
+          <td><span class="cp no">No</span></td>
+          <td><span class="cp no">No</span></td>
+          <td><span class="cp no">Requires analyst setup</span></td>
+          <td><span class="cp no">Text only</span></td>
+        </tr>
+        <tr>
+          <td class="comp-name-cell">Medallia Athena<span class="comp-sub">Enterprise CX</span></td>
+          <td><span class="cp partial">Partial — query interface</span></td>
+          <td><span class="cp no">No</span></td>
+          <td><span class="cp no">Single surface</span></td>
+          <td><span class="cp no">No</span></td>
+          <td><span class="cp no">High technical bar</span></td>
+          <td><span class="cp no">Text only</span></td>
+        </tr>
+        <tr>
+          <td class="comp-name-cell">Typeform AI<span class="comp-sub">Survey creation</span></td>
+          <td><span class="cp partial">Partial — survey gen only</span></td>
+          <td><span class="cp no">No — create only</span></td>
+          <td><span class="cp no">No</span></td>
+          <td><span class="cp no">No</span></td>
+          <td><span class="cp win">✓ Accessible</span></td>
+          <td><span class="cp no">Text only</span></td>
+        </tr>
+        <tr>
+          <td class="comp-name-cell">SurveyMonkey Genius<span class="comp-sub">Mid-market surveys</span></td>
+          <td><span class="cp no">No</span></td>
+          <td><span class="cp no">No</span></td>
+          <td><span class="cp no">No</span></td>
+          <td><span class="cp no">No</span></td>
+          <td><span class="cp win">✓ Accessible</span></td>
+          <td><span class="cp no">None</span></td>
+        </tr>
+        <tr>
+          <td class="comp-name-cell">Generic LLMs (ChatGPT etc.)<span class="comp-sub">General AI assistants</span></td>
+          <td><span class="cp win">✓ Full NL</span></td>
+          <td><span class="cp no">No — no platform access</span></td>
+          <td><span class="cp no">No XM context</span></td>
+          <td><span class="cp no">Generic only</span></td>
+          <td><span class="cp win">✓ Accessible</span></td>
+          <td><span class="cp win">✓ Text · Speech · Image</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Gap analysis -->
+    <div class="gap-grid">
+      <div class="gap-card opp">
+        <div class="gap-card-eyebrow opp-eyebrow">Gap → Opportunity 01</div>
+        <h3>No cross-module AI exists in XM</h3>
+        <p>Every competitor's AI is scoped to a single surface — a survey builder, a dashboard, or an analytics query. None connects across the full platform lifecycle. Our assistant's cross-module awareness is an unoccupied position.</p>
+        <div class="gap-outcome">→ Became: unified AI context layer across all 5 modules</div>
+      </div>
+      <div class="gap-card opp">
+        <div class="gap-card-eyebrow opp-eyebrow">Gap → Opportunity 02</div>
+        <h3>AI shows insights but never acts</h3>
+        <p>Qualtrics and Medallia surface AI-generated insights as read-only text. They describe what to do — but the user still has to navigate the UI to do it. No competitor closes the loop from insight to executed API action.</p>
+        <div class="gap-outcome">→ Became: NL → API translation with preview-and-confirm execution</div>
+      </div>
+      <div class="gap-card opp">
+        <div class="gap-card-eyebrow opp-eyebrow">Gap → Opportunity 03</div>
+        <h3>Blank prompt = abandoned session</h3>
+        <p>Generic LLMs have the conversational UI — but no XM context and no prompt library. Platform-native tools have the context — but no conversational UI. Nobody combines contextual prompts with native data access.</p>
+        <div class="gap-outcome">→ Became: module-aware Prompt Library as the primary onboarding mechanism</div>
+      </div>
+      <div class="gap-card threat">
+        <div class="gap-card-eyebrow threat-eyebrow">Watch: Competitive Threat</div>
+        <h3>Qualtrics is moving toward NL</h3>
+        <p>Qualtrics has announced NL-querying features in their analytics layer. The window for establishing NL-to-action as a platform-wide capability — not just analytics — is 12–18 months before enterprise parity pressure arrives.</p>
+        <div class="gap-outcome">→ Ship cross-module execution and multimodal input before feature parity catches up</div>
+      </div>
+    </div>
+    <!-- IMG: Competitive audit screenshot panel -->
+    <div style="margin-top:40px" class="ph-wrap">
+      <svg viewBox="0 0 1100 260" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="cabg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0c0d14"/><stop offset="100%" stop-color="#101219"/></linearGradient>
+        </defs>
+        <rect width="1100" height="260" fill="url(#cabg)"/>
+        <pattern id="cag" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="rgba(255,255,255,0.028)" stroke-width="0.5"/></pattern>
+        <rect width="1100" height="260" fill="url(#cag)"/>
+
+        <!-- Section eyebrow -->
+        <rect x="16" y="14" width="140" height="5" rx="2.5" fill="rgba(255,255,255,0.18)"/>
+        <rect x="16" y="24" width="240" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+
+        <!-- 4 competitor screenshots tiled -->
+        <!-- Screenshot 1 — Qualtrics -->
+        <rect x="16" y="44" width="252" height="180" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.07)" stroke-width="0.6"/>
+        <rect x="16" y="44" width="252" height="28" fill="rgba(7,8,12,0.8)" rx="8"/>
+        <rect x="27" y="53" width="6" height="6" rx="1.5" fill="rgba(255,107,107,0.6)"/>
+        <rect x="38" y="53" width="6" height="6" rx="1.5" fill="rgba(244,201,93,0.4)"/>
+        <rect x="49" y="53" width="6" height="6" rx="1.5" fill="rgba(74,255,212,0.3)"/>
+        <rect x="65" y="54" width="80" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <!-- UI mockup inside -->
+        <rect x="24" y="80" width="236" height="28" rx="5" fill="rgba(255,255,255,0.04)"/>
+        <rect x="32" y="88" width="60" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="100" y="86" width="32" height="8" rx="3" fill="rgba(255,255,255,0.05)"/>
+        <rect x="140" y="86" width="32" height="8" rx="3" fill="rgba(255,255,255,0.05)"/>
+        <rect x="180" y="86" width="32" height="8" rx="3" fill="rgba(255,255,255,0.05)"/>
+        <rect x="24" y="116" width="100" height="80" rx="4" fill="rgba(255,255,255,0.025)"/>
+        <rect x="32" y="124" width="60" height="4" rx="2" fill="rgba(255,255,255,0.15)"/>
+        <rect x="32" y="133" width="80" height="40" rx="3" fill="rgba(255,255,255,0.03)"/>
+        <rect x="132" y="116" width="128" height="80" rx="4" fill="rgba(255,255,255,0.02)"/>
+        <rect x="140" y="124" width="80" height="4" rx="2" fill="rgba(255,255,255,0.15)"/>
+        <!-- Annotation badge — high friction -->
+        <rect x="106" y="90" width="148" height="16" rx="5" fill="rgba(255,107,107,0.2)" stroke="rgba(255,107,107,0.4)" stroke-width="0.7"/>
+        <rect x="112" y="95" width="100" height="4" rx="2" fill="rgba(255,107,107,0.7)"/>
+        <!-- Label -->
+        <rect x="68" y="232" width="120" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+
+        <!-- Screenshot 2 — Medallia -->
+        <rect x="284" y="44" width="252" height="180" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.07)" stroke-width="0.6"/>
+        <rect x="284" y="44" width="252" height="28" fill="rgba(7,8,12,0.8)" rx="8"/>
+        <rect x="295" y="53" width="6" height="6" rx="1.5" fill="rgba(255,107,107,0.6)"/>
+        <rect x="306" y="53" width="6" height="6" rx="1.5" fill="rgba(244,201,93,0.4)"/>
+        <rect x="317" y="53" width="6" height="6" rx="1.5" fill="rgba(74,255,212,0.3)"/>
+        <rect x="333" y="54" width="72" height="4" rx="2" fill="rgba(255,255,255,0.18)"/>
+        <rect x="292" y="80" width="236" height="16" rx="4" fill="rgba(255,255,255,0.03)"/>
+        <rect x="300" y="86" width="80" height="3" rx="1.5" fill="rgba(255,255,255,0.15)"/>
+        <rect x="292" y="104" width="112" height="112" rx="4" fill="rgba(255,255,255,0.025)"/>
+        <rect x="300" y="112" width="88" height="3.5" rx="1.75" fill="rgba(255,255,255,0.18)"/>
+        <rect x="300" y="120" width="72" height="3" rx="1.5" fill="rgba(255,255,255,0.1)"/>
+        <rect x="300" y="128" width="80" height="3" rx="1.5" fill="rgba(255,255,255,0.08)"/>
+        <rect x="300" y="172" width="60" height="16" rx="5" fill="rgba(255,255,255,0.06)"/>
+        <rect x="412" y="104" width="112" height="48" rx="4" fill="rgba(255,255,255,0.02)"/>
+        <rect x="412" y="160" width="112" height="48" rx="4" fill="rgba(255,255,255,0.02)"/>
+        <!-- Annotation -->
+        <rect x="352" y="148" width="172" height="16" rx="5" fill="rgba(244,201,93,0.15)" stroke="rgba(244,201,93,0.35)" stroke-width="0.7"/>
+        <rect x="358" y="153" width="128" height="4" rx="2" fill="rgba(244,201,93,0.6)"/>
+        <rect x="368" y="232" width="120" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+
+        <!-- Screenshot 3 — Typeform -->
+        <rect x="552" y="44" width="252" height="180" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.07)" stroke-width="0.6"/>
+        <rect x="552" y="44" width="252" height="28" fill="rgba(7,8,12,0.8)" rx="8"/>
+        <rect x="563" y="53" width="6" height="6" rx="1.5" fill="rgba(255,107,107,0.6)"/>
+        <rect x="574" y="53" width="6" height="6" rx="1.5" fill="rgba(244,201,93,0.4)"/>
+        <rect x="585" y="53" width="6" height="6" rx="1.5" fill="rgba(74,255,212,0.3)"/>
+        <rect x="601" y="54" width="60" height="4" rx="2" fill="rgba(255,255,255,0.15)"/>
+        <rect x="560" y="80" width="236" height="136" rx="4" fill="rgba(255,255,255,0.02)"/>
+        <rect x="630" y="100" width="120" height="8" rx="4" fill="rgba(255,255,255,0.25)"/>
+        <rect x="630" y="116" width="100" height="4" rx="2" fill="rgba(255,255,255,0.12)"/>
+        <rect x="580" y="140" width="200" height="32" rx="6" fill="rgba(74,255,212,0.08)" stroke="rgba(74,255,212,0.2)" stroke-width="0.5"/>
+        <rect x="648" y="152" width="64" height="8" rx="3" fill="rgba(74,255,212,0.4)"/>
+        <!-- Annotation — accessible but no AI -->
+        <rect x="572" y="192" width="220" height="16" rx="5" fill="rgba(74,255,212,0.1)" stroke="rgba(74,255,212,0.3)" stroke-width="0.7"/>
+        <rect x="578" y="197" width="160" height="4" rx="2" fill="rgba(74,255,212,0.6)"/>
+        <rect x="620" y="232" width="128" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+
+        <!-- Screenshot 4 — XM Platform (ours) -->
+        <rect x="820" y="44" width="264" height="180" rx="8" fill="rgba(74,255,212,0.03)" stroke="rgba(74,255,212,0.2)" stroke-width="0.8"/>
+        <rect x="820" y="44" width="264" height="28" fill="rgba(7,8,12,0.85)" rx="8"/>
+        <rect x="831" y="53" width="6" height="6" rx="1.5" fill="rgba(255,107,107,0.6)"/>
+        <rect x="842" y="53" width="6" height="6" rx="1.5" fill="rgba(244,201,93,0.4)"/>
+        <rect x="853" y="53" width="6" height="6" rx="1.5" fill="rgba(74,255,212,0.5)"/>
+        <rect x="869" y="54" width="80" height="4" rx="2" fill="rgba(74,255,212,0.4)"/>
+        <!-- AI drawer visible inside -->
+        <rect x="828" y="78" width="156" height="138" rx="4" fill="rgba(255,255,255,0.02)"/>
+        <rect x="992" y="78" width="84" height="138" rx="4" fill="rgba(124,111,255,0.08)" stroke="rgba(124,111,255,0.2)" stroke-width="0.6"/>
+        <rect x="999" y="86" width="70" height="4" rx="2" fill="rgba(124,111,255,0.5)"/>
+        <rect x="999" y="95" width="70" height="28" rx="5" fill="rgba(124,111,255,0.08)"/>
+        <rect x="1004" y="101" width="58" height="3" rx="1.5" fill="rgba(255,255,255,0.2)"/>
+        <rect x="1004" y="108" width="50" height="3" rx="1.5" fill="rgba(255,255,255,0.12)"/>
+        <rect x="999" y="130" width="70" height="20" rx="5" fill="rgba(74,255,212,0.08)"/>
+        <rect x="1004" y="135" width="58" height="3" rx="1.5" fill="rgba(74,255,212,0.5)"/>
+        <rect x="1004" y="141" width="44" height="3" rx="1.5" fill="rgba(74,255,212,0.3)"/>
+        <rect x="999" y="158" width="70" height="28" rx="5" fill="rgba(74,255,212,0.06)"/>
+        <rect x="1004" y="164" width="48" height="12" rx="4" fill="rgba(74,255,212,0.15)"/>
+        <rect x="1005" y="167" width="46" height="6" rx="2" fill="rgba(74,255,212,0.5)"/>
+        <!-- Annotation — our white space -->
+        <rect x="826" y="192" width="250" height="16" rx="5" fill="rgba(74,255,212,0.15)" stroke="rgba(74,255,212,0.4)" stroke-width="0.8"/>
+        <rect x="832" y="197" width="190" height="4" rx="2" fill="rgba(74,255,212,0.8)"/>
+        <rect x="896" y="232" width="140" height="4" rx="2" fill="rgba(74,255,212,0.4)"/>
+      </svg>
+      <div class="ph-caption">
+        <div class="ph-caption-left">
+          <span class="ph-badge">IMG 06</span>
+          <span class="ph-caption-label">Competitive Audit — Qualtrics · Medallia · Typeform · XM Platform annotated side-by-side (AI workflow flows)</span>
+        </div>
+        <span class="ph-caption-hint">↑ Replace with Figma competitive audit frame — annotated product screenshots</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="research">
+  <div class="section-inner">
+    <div class="section-label">05 · Research & Insights</div>
+    <h2>What users actually<br>needed to say</h2>
+    <p>We ran contextual interviews with 12 users across CX, HR, and Ops roles, analysed support ticket clusters, and reviewed session recordings. The core finding: users had clear questions — they just didn't know how to translate them into platform actions.</p>
+
+    <div class="insight-list">
+      <div class="insight-row" style="background:var(--surface2); border-bottom:1px solid var(--border);">
+        <div class="insight-cell label">Observation</div>
+        <div class="insight-cell label">User Need</div>
+        <div class="insight-cell label">Design Implication</div>
+      </div>
+      <div class="insight-row">
+        <div class="insight-cell label">Filter Blindness</div>
+        <div class="insight-cell observation">"I know I want to see detractor scores for APAC Q3 — I just can't find where to filter it."</div>
+        <div class="insight-cell implication">AI must translate business questions into filter combinations and execute them instantly.</div>
+      </div>
+      <div class="insight-row">
+        <div class="insight-cell label">Survey Logic Fear</div>
+        <div class="insight-cell observation">Users avoided branching logic in Survey Creator because the UI felt like code.</div>
+        <div class="insight-cell implication">NL input for survey logic should abstract away conditional rules entirely.</div>
+      </div>
+      <div class="insight-row">
+        <div class="insight-cell label">Blank Canvas Problem</div>
+        <div class="insight-cell observation">"I don't know what to ask the AI. I'm not sure what it can do."</div>
+        <div class="insight-cell implication">A context-aware prompt library is non-negotiable — remove the intimidation of an empty input.</div>
+      </div>
+      <div class="insight-row">
+        <div class="insight-cell label">Trust Deficit</div>
+        <div class="insight-cell observation">Early prototype testers were afraid the AI would "break something" or make irreversible changes.</div>
+        <div class="insight-cell implication">Show a preview of every action before execution. Always require confirmation for destructive operations.</div>
+      </div>
+      <div class="insight-row">
+        <div class="insight-cell label">Multi-module Queries</div>
+        <div class="insight-cell observation">"Can I compare NPS from last quarter with this quarter's survey responses in one place?"</div>
+        <div class="insight-cell implication">The assistant needs cross-module awareness — not just per-page context.</div>
+      </div>
+    </div>
+
+    <!-- Research artifacts placeholder -->
+    <div style="margin-top:32px" class="ph-wrap">
+      <svg viewBox="0 0 1100 260" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="rbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0F1118"/><stop offset="100%" stop-color="#0a0c13"/></linearGradient>
+        </defs>
+        <rect width="1100" height="260" fill="url(#rbg)"/>
+        <pattern id="rg" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="rgba(255,255,255,0.025)" stroke-width="0.5"/></pattern>
+        <rect width="1100" height="260" fill="url(#rg)"/>
+        <!-- Section label -->
+        <rect x="24" y="20" width="120" height="5" rx="2.5" fill="rgba(74,255,212,0.4)"/>
+        <rect x="24" y="32" width="200" height="8" rx="4" fill="rgba(255,255,255,0.25)"/>
+        <!-- Affinity map clusters -->
+        <!-- Cluster 1: Discovery -->
+        <rect x="24" y="60" width="180" height="170" rx="10" fill="rgba(74,255,212,0.04)" stroke="rgba(74,255,212,0.15)" stroke-width="0.8" stroke-dasharray="4 3"/>
+        <rect x="34" y="70" width="80" height="5" rx="2.5" fill="rgba(74,255,212,0.5)"/>
+        <!-- sticky notes cluster 1 -->
+        <rect x="34" y="84" width="72" height="52" rx="5" fill="rgba(74,255,212,0.12)" stroke="rgba(74,255,212,0.25)" stroke-width="0.5" transform="rotate(-2 70 110)"/>
+        <rect x="38" y="92" width="56" height="3.5" rx="1.75" fill="rgba(255,255,255,0.3)" transform="rotate(-2 66 93)"/>
+        <rect x="38" y="100" width="48" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)" transform="rotate(-2 62 101)"/>
+        <rect x="38" y="108" width="40" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)" transform="rotate(-2 58 109)"/>
+        <rect x="116" y="84" width="72" height="52" rx="5" fill="rgba(74,255,212,0.08)" stroke="rgba(74,255,212,0.2)" stroke-width="0.5" transform="rotate(1.5 152 110)"/>
+        <rect x="120" y="92" width="56" height="3.5" rx="1.75" fill="rgba(255,255,255,0.25)" transform="rotate(1.5 148 93)"/>
+        <rect x="120" y="100" width="44" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="34" y="148" width="72" height="52" rx="5" fill="rgba(74,255,212,0.06)" stroke="rgba(74,255,212,0.15)" stroke-width="0.5" transform="rotate(1 70 174)"/>
+        <rect x="38" y="156" width="52" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="38" y="164" width="40" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="116" y="148" width="72" height="52" rx="5" fill="rgba(74,255,212,0.1)" stroke="rgba(74,255,212,0.2)" stroke-width="0.5" transform="rotate(-1 152 174)"/>
+        <rect x="120" y="156" width="48" height="3.5" rx="1.75" fill="rgba(255,255,255,0.25)"/>
+        <rect x="120" y="164" width="36" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <!-- Cluster 2: Pain Points -->
+        <rect x="224" y="60" width="200" height="170" rx="10" fill="rgba(255,107,107,0.04)" stroke="rgba(255,107,107,0.15)" stroke-width="0.8" stroke-dasharray="4 3"/>
+        <rect x="234" y="70" width="80" height="5" rx="2.5" fill="rgba(255,107,107,0.5)"/>
+        <rect x="234" y="84" width="80" height="52" rx="5" fill="rgba(255,107,107,0.1)" stroke="rgba(255,107,107,0.2)" stroke-width="0.5" transform="rotate(-1 274 110)"/>
+        <rect x="238" y="92" width="64" height="3.5" rx="1.75" fill="rgba(255,255,255,0.3)"/>
+        <rect x="238" y="100" width="52" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="238" y="108" width="44" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="324" y="84" width="80" height="52" rx="5" fill="rgba(255,107,107,0.07)" stroke="rgba(255,107,107,0.15)" stroke-width="0.5" transform="rotate(2 364 110)"/>
+        <rect x="328" y="92" width="64" height="3.5" rx="1.75" fill="rgba(255,255,255,0.25)"/>
+        <rect x="328" y="100" width="48" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="234" y="148" width="80" height="52" rx="5" fill="rgba(255,107,107,0.08)" stroke="rgba(255,107,107,0.18)" stroke-width="0.5"/>
+        <rect x="238" y="156" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.22)"/>
+        <rect x="238" y="164" width="44" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="324" y="148" width="80" height="52" rx="5" fill="rgba(255,107,107,0.06)" stroke="rgba(255,107,107,0.12)" stroke-width="0.5" transform="rotate(-1.5 364 174)"/>
+        <rect x="328" y="156" width="54" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <!-- Cluster 3: Opportunities -->
+        <rect x="444" y="60" width="200" height="170" rx="10" fill="rgba(124,111,255,0.04)" stroke="rgba(124,111,255,0.15)" stroke-width="0.8" stroke-dasharray="4 3"/>
+        <rect x="454" y="70" width="80" height="5" rx="2.5" fill="rgba(124,111,255,0.5)"/>
+        <rect x="454" y="84" width="80" height="52" rx="5" fill="rgba(124,111,255,0.1)" stroke="rgba(124,111,255,0.22)" stroke-width="0.5" transform="rotate(1 494 110)"/>
+        <rect x="458" y="92" width="64" height="3.5" rx="1.75" fill="rgba(255,255,255,0.3)"/>
+        <rect x="458" y="100" width="52" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="544" y="84" width="80" height="52" rx="5" fill="rgba(124,111,255,0.07)" stroke="rgba(124,111,255,0.15)" stroke-width="0.5"/>
+        <rect x="548" y="92" width="56" height="3.5" rx="1.75" fill="rgba(255,255,255,0.25)"/>
+        <rect x="454" y="148" width="80" height="52" rx="5" fill="rgba(124,111,255,0.08)" stroke="rgba(124,111,255,0.18)" stroke-width="0.5" transform="rotate(-1 494 174)"/>
+        <rect x="458" y="156" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.22)"/>
+        <rect x="544" y="148" width="80" height="52" rx="5" fill="rgba(124,111,255,0.06)" stroke="rgba(124,111,255,0.12)" stroke-width="0.5" transform="rotate(1.5 584 174)"/>
+        <!-- Interview quote cards right side -->
+        <rect x="668" y="60" width="200" height="78" rx="10" fill="rgba(244,201,93,0.06)" stroke="rgba(244,201,93,0.2)" stroke-width="0.8"/>
+        <rect x="680" y="72" width="60" height="4" rx="2" fill="rgba(244,201,93,0.5)"/>
+        <rect x="680" y="82" width="176" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="680" y="90" width="168" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="680" y="98" width="144" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="680" y="106" width="112" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="680" y="118" width="48" height="4" rx="2" fill="rgba(244,201,93,0.3)"/>
+        <rect x="668" y="152" width="200" height="78" rx="10" fill="rgba(74,255,212,0.06)" stroke="rgba(74,255,212,0.2)" stroke-width="0.8"/>
+        <rect x="680" y="164" width="60" height="4" rx="2" fill="rgba(74,255,212,0.5)"/>
+        <rect x="680" y="174" width="176" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="680" y="182" width="152" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="680" y="190" width="136" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="680" y="198" width="104" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="680" y="210" width="48" height="4" rx="2" fill="rgba(74,255,212,0.3)"/>
+        <!-- Stats panel far right -->
+        <rect x="888" y="60" width="188" height="78" rx="10" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="0.8"/>
+        <rect x="900" y="72" width="48" height="6" rx="3" fill="rgba(255,255,255,0.35)"/>
+        <rect x="900" y="84" width="164" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="900" y="92" width="140" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="900" y="104" width="100" height="16" rx="5" fill="rgba(74,255,212,0.1)"/>
+        <rect x="904" y="108" width="86" height="8" rx="3" fill="rgba(74,255,212,0.5)"/>
+        <rect x="888" y="152" width="188" height="78" rx="10" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="0.8"/>
+        <rect x="900" y="164" width="60" height="6" rx="3" fill="rgba(255,255,255,0.35)"/>
+        <rect x="900" y="176" width="164" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="900" y="184" width="144" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="900" y="196" width="100" height="16" rx="5" fill="rgba(255,107,107,0.1)"/>
+        <rect x="904" y="200" width="80" height="8" rx="3" fill="rgba(255,107,107,0.5)"/>
+        <!-- Cluster labels -->
+        <rect x="60" y="238" width="80" height="4" rx="2" fill="rgba(74,255,212,0.35)"/>
+        <rect x="268" y="238" width="88" height="4" rx="2" fill="rgba(255,107,107,0.35)"/>
+        <rect x="484" y="238" width="80" height="4" rx="2" fill="rgba(124,111,255,0.35)"/>
+        <rect x="716" y="238" width="80" height="4" rx="2" fill="rgba(244,201,93,0.35)"/>
+        <rect x="948" y="238" width="72" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+      </svg>
+      <div class="ph-caption">
+        <div class="ph-caption-left">
+          <span class="ph-badge">IMG 02</span>
+          <span class="ph-caption-label">Research Synthesis — Affinity clusters from 12 user interviews (Discovery · Pain Points · Opportunities)</span>
+        </div>
+        <span class="ph-caption-hint">↑ Replace with actual affinity map / Miro board export</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- JOURNEY MAP -->
+<section>
+    <h2>Before & after<br>the assistant</h2>
+    <p>Mapped against a B2B dual-persona model (decision-maker buyer vs. daily operational user). The highest-friction point — and the biggest design opportunity — was in daily platform usage, where users hit walls executing tasks they understood conceptually but couldn't navigate technically.</p>
+
+    <div class="journey">
+      <table class="journey-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th><div class="stage-header"><span class="stage-num">01</span>Login & Orient</div></th>
+            <th><div class="stage-header"><span class="stage-num">02</span>Locate Module</div></th>
+            <th class="highlight-stage"><div class="stage-header"><span class="stage-num">03</span>Execute Task ← friction peak</div></th>
+            <th><div class="stage-header"><span class="stage-num">04</span>Interpret Results</div></th>
+            <th><div class="stage-header"><span class="stage-num">05</span>Share / Act</div></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">Before AI</td>
+            <td class="neutral">Navigate to dashboard, check last session state</td>
+            <td class="neutral">Find correct module from sidebar</td>
+            <td class="pain">Manually set 4–7 filters, search for widget, raise ticket for custom view — 15–40 min wait</td>
+            <td class="neutral">Interpret charts manually, note data gaps</td>
+            <td class="neutral">Export CSV, paste into slide deck, share async</td>
+          </tr>
+          <tr>
+            <td class="row-label">After AI</td>
+            <td class="neutral">AI greets with contextual summary of recent changes</td>
+            <td class="neutral">Type intent — AI navigates or stays in context</td>
+            <td class="opp">Type query → AI previews action → confirm → executed instantly via API. Entire flow: under 30 seconds.</td>
+            <td class="opp">AI surfaces key insight with "Why this matters" annotation</td>
+            <td class="opp">One-click export with AI-generated summary pre-filled</td>
+          </tr>
+          <tr>
+            <td class="row-label">Pain ↓</td>
+            <td></td>
+            <td class="pain">↓ mild</td>
+            <td class="pain" style="font-weight:500">↓↓↓ critical — THIS IS THE DESIGN INTERVENTION</td>
+            <td class="pain">↓ moderate</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- IMG: Journey map Figma export -->
+    <div style="margin-top:32px" class="ph-wrap">
+      <svg viewBox="0 0 1100 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="jmbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0c0d13"/><stop offset="100%" stop-color="#111219"/></linearGradient>
+          <linearGradient id="emoline" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#4AFFD4"/>
+            <stop offset="40%" stop-color="#FF6B6B"/>
+            <stop offset="60%" stop-color="#FF6B6B"/>
+            <stop offset="100%" stop-color="#4AFFD4"/>
+          </linearGradient>
+        </defs>
+        <rect width="1100" height="200" fill="url(#jmbg)"/>
+        <pattern id="jmg" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="11" cy="11" r="0.6" fill="rgba(255,255,255,0.04)"/></pattern>
+        <rect width="1100" height="200" fill="url(#jmg)"/>
+
+        <!-- Stage columns -->
+        <!-- Stage headers row -->
+        <rect x="0" y="0" width="1100" height="32" fill="rgba(7,8,12,0.7)"/>
+        <!-- Stage labels -->
+        <rect x="16" y="12" width="56" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <!-- Col dividers -->
+        <line x1="196" y1="0" x2="196" y2="200" stroke="rgba(255,255,255,0.05)" stroke-width="0.8"/>
+        <line x1="392" y1="0" x2="392" y2="200" stroke="rgba(255,255,255,0.05)" stroke-width="0.8"/>
+        <line x1="588" y1="0" x2="588" y2="200" stroke="rgba(74,255,212,0.12)" stroke-width="1.2"/>
+        <line x1="784" y1="0" x2="784" y2="200" stroke="rgba(255,255,255,0.05)" stroke-width="0.8"/>
+        <line x1="980" y1="0" x2="980" y2="200" stroke="rgba(255,255,255,0.05)" stroke-width="0.8"/>
+
+        <!-- Stage header text placeholders -->
+        <rect x="66" y="14" width="64" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="258" y="14" width="72" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="454" y="14" width="68" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="610" y="14" width="120" height="4" rx="2" fill="rgba(74,255,212,0.5)"/>
+        <rect x="852" y="14" width="76" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="1020" y="14" width="64" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+
+        <!-- Stage num chips -->
+        <rect x="16" y="10" width="44" height="12" rx="4" fill="rgba(255,255,255,0.06)"/>
+        <rect x="22" y="14" width="32" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="212" y="10" width="40" height="12" rx="4" fill="rgba(255,255,255,0.06)"/>
+        <rect x="408" y="10" width="40" height="12" rx="4" fill="rgba(255,255,255,0.06)"/>
+        <rect x="592" y="10" width="14" height="12" rx="4" fill="rgba(74,255,212,0.15)"/>
+        <rect x="788" y="10" width="40" height="12" rx="4" fill="rgba(255,255,255,0.06)"/>
+        <rect x="984" y="10" width="40" height="12" rx="4" fill="rgba(255,255,255,0.06)"/>
+
+        <!-- Row 1: User actions -->
+        <rect x="8" y="40" width="180" height="4" rx="2" fill="rgba(255,255,255,0.12)"/>
+        <rect x="204" y="40" width="180" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="400" y="40" width="180" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="596" y="40" width="180" height="3.5" rx="1.75" fill="rgba(74,255,212,0.25)"/>
+        <rect x="792" y="40" width="180" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="988" y="40" width="100" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+
+        <!-- Row 2: Pain points -->
+        <rect x="8" y="56" width="4" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <rect x="16" y="56" width="176" height="3" rx="1.5" fill="rgba(255,255,255,0.06)"/>
+        <rect x="204" y="56" width="4" height="4" rx="2" fill="rgba(255,107,107,0.5)"/>
+        <rect x="212" y="56" width="172" height="3" rx="1.5" fill="rgba(255,107,107,0.2)"/>
+        <rect x="400" y="56" width="4" height="4" rx="2" fill="rgba(255,107,107,0.7)"/>
+        <rect x="408" y="56" width="172" height="3" rx="1.5" fill="rgba(255,107,107,0.25)"/>
+        <!-- Friction peak highlight -->
+        <rect x="588" y="48" width="196" height="50" rx="4" fill="rgba(255,107,107,0.07)" stroke="rgba(255,107,107,0.2)" stroke-width="0.6" stroke-dasharray="3 2"/>
+        <rect x="596" y="56" width="4" height="4" rx="2" fill="rgba(255,107,107,0.9)"/>
+        <rect x="604" y="56" width="172" height="3" rx="1.5" fill="rgba(255,107,107,0.4)"/>
+        <rect x="604" y="63" width="140" height="3" rx="1.5" fill="rgba(255,107,107,0.25)"/>
+        <rect x="604" y="70" width="120" height="3" rx="1.5" fill="rgba(255,107,107,0.18)"/>
+        <rect x="792" y="56" width="4" height="4" rx="2" fill="rgba(244,201,93,0.5)"/>
+        <rect x="800" y="56" width="172" height="3" rx="1.5" fill="rgba(244,201,93,0.2)"/>
+
+        <!-- Emotion curve -->
+        <polyline points="20,130 216,128 412,122 440,118 490,110 540,96 608,82 660,78 700,80 784,92 800,102 900,116 980,122 1092,124"
+          fill="none" stroke="url(#emoline)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Emotion curve label -->
+        <rect x="8" y="148" width="72" height="4" rx="2" fill="rgba(255,255,255,0.12)"/>
+
+        <!-- Emotion dots -->
+        <circle cx="98" cy="130" r="4" fill="rgba(74,255,212,0.3)" stroke="rgba(74,255,212,0.6)" stroke-width="1"/>
+        <circle cx="294" cy="124" r="4" fill="rgba(244,201,93,0.3)" stroke="rgba(244,201,93,0.5)" stroke-width="1"/>
+        <circle cx="660" cy="78" r="6" fill="rgba(255,107,107,0.25)" stroke="rgba(255,107,107,0.7)" stroke-width="1.2"/>
+        <circle cx="882" cy="110" r="4" fill="rgba(244,201,93,0.3)" stroke="rgba(244,201,93,0.5)" stroke-width="1"/>
+        <circle cx="1036" cy="123" r="4" fill="rgba(74,255,212,0.3)" stroke="rgba(74,255,212,0.5)" stroke-width="1"/>
+
+        <!-- Opportunity annotation at friction peak -->
+        <rect x="596" y="155" width="148" height="18" rx="5" fill="rgba(74,255,212,0.1)" stroke="rgba(74,255,212,0.3)" stroke-width="0.7"/>
+        <rect x="602" y="160" width="100" height="4" rx="2" fill="rgba(74,255,212,0.6)"/>
+        <rect x="602" y="167" width="80" height="3" rx="1.5" fill="rgba(74,255,212,0.3)"/>
+
+        <!-- Row labels left column -->
+        <rect x="8" y="38" width="32" height="4" rx="2" fill="rgba(255,255,255,0.12)"/>
+        <rect x="8" y="54" width="28" height="4" rx="2" fill="rgba(255,107,107,0.3)"/>
+        <rect x="8" y="148" width="44" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <rect x="8" y="178" width="52" height="4" rx="2" fill="rgba(74,255,212,0.2)"/>
+
+        <!-- Design intervention label -->
+        <rect x="596" y="180" width="188" height="14" rx="4" fill="rgba(74,255,212,0.08)"/>
+        <rect x="602" y="184" width="140" height="4" rx="2" fill="rgba(74,255,212,0.45)"/>
+      </svg>
+      <div class="ph-caption">
+        <div class="ph-caption-left">
+          <span class="ph-badge">IMG 07</span>
+          <span class="ph-caption-label">User Journey Map — 5-stage B2B flow with emotion curve, pain peaks & design intervention marker at Stage 03</span>
+        </div>
+        <span class="ph-caption-hint">↑ Replace with Figma journey map frame export</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="solution">
+  <div class="section-inner">
+    <div class="section-label">07 · Solution Design</div>
+    <h2>The AI assistant,<br>built from principles up</h2>
+    <p>Three design principles governed every decision: <strong style="color:var(--text)">Context over generic</strong> (the assistant knows which module you're in), <strong style="color:var(--text)">Preview before action</strong> (show what will happen before it does), and <strong style="color:var(--text)">Always escapable</strong> (users can always undo or cancel).</p>
+
+    <!-- NL → API Pipeline -->
+    <div style="margin-top:48px">
+      <h3>Natural Language → API Pipeline</h3>
+      <p style="margin-bottom:0">Every user message passes through a structured interpretation pipeline before any action is taken on the platform.</p>
+    </div>
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-num">01</div>
+        <div class="pipe-label">User Input</div>
+        <div class="pipe-sub">Text · Speech · File — any modality</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">02</div>
+        <div class="pipe-label">Context Injection</div>
+        <div class="pipe-sub">Current module + active filters + user role</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">03</div>
+        <div class="pipe-label">Intent Classification</div>
+        <div class="pipe-sub">Query / Action / Navigate / Create</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">04</div>
+        <div class="pipe-label">API Translation</div>
+        <div class="pipe-sub">Maps intent to platform API parameters</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">05</div>
+        <div class="pipe-label">Preview & Confirm</div>
+        <div class="pipe-sub">User reviews before any change is made</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">06</div>
+        <div class="pipe-label">Execution</div>
+        <div class="pipe-sub">API call fired, UI updates in real-time</div>
+      </div>
+    </div>
+
+    <!-- Modules -->
+    <div style="margin-top:56px">
+      <h3>Integrated across all platform modules</h3>
+      <p>The assistant panel is persistent — a collapsible side drawer — available from every module. Context switches automatically when the user changes screens.</p>
+    </div>
+    <div class="modules-grid">
+      <div class="module-badge"><div class="dot" style="background:#4AFFD4"></div>Survey Creation — Generates survey questions, logic branches, and scales from plain-English briefs</div>
+      <div class="module-badge"><div class="dot" style="background:#7C6FFF"></div>Survey Distribution — Configures audience segments, scheduling, and channel rules via conversation</div>
+      <div class="module-badge"><div class="dot" style="background:#F4C95D"></div>Reports — Filters, cross-tabs, and insight summaries triggered by natural-language queries</div>
+      <div class="module-badge"><div class="dot" style="background:#FF6B6B"></div>CX Dashboard — Smart tagging, comparison views, and filter application (as shown in the product)</div>
+      <div class="module-badge"><div class="dot" style="background:#60A5FA"></div>Custom Dashboard — Builds, edits, and arranges widgets from conversational instructions</div>
+    </div>
+
+    <!-- AI Drawer UI mockup placeholder -->
+    <div style="margin-top:40px" class="ph-wrap">
+      <svg viewBox="0 0 1100 380" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ubg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0d0e14"/><stop offset="100%" stop-color="#111318"/></linearGradient>
+          <linearGradient id="drawerbg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#0a0b10"/><stop offset="100%" stop-color="#0d0e14"/></linearGradient>
+        </defs>
+        <rect width="1100" height="380" fill="url(#ubg)"/>
+        <pattern id="ug" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/></pattern>
+        <rect width="1100" height="380" fill="url(#ug)"/>
+        <!-- Top nav -->
+        <rect width="1100" height="40" fill="rgba(7,8,12,0.95)"/>
+        <circle cx="16" cy="20" r="7" fill="#4AFFD4" opacity="0.7"/>
+        <rect x="32" y="16" width="1" height="8" fill="rgba(255,255,255,0.1)"/>
+        <rect x="40" y="17" width="80" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/>
+        <rect x="128" y="17" width="4" height="5" rx="2" fill="rgba(255,255,255,0.08)"/>
+        <rect x="138" y="17" width="120" height="5" rx="2.5" fill="rgba(255,255,255,0.08)"/>
+        <rect x="1040" y="14" width="24" height="12" rx="4" fill="rgba(124,111,255,0.3)"/>
+        <!-- Sidebar -->
+        <rect x="0" y="40" width="52" height="340" fill="rgba(7,8,12,0.9)"/>
+        <rect x="10" y="56" width="32" height="32" rx="8" fill="rgba(74,255,212,0.12)"/>
+        <rect x="18" y="68" width="16" height="8" rx="2" fill="rgba(74,255,212,0.5)"/>
+        <rect x="10" y="100" width="32" height="32" rx="8" fill="rgba(255,255,255,0.04)"/>
+        <rect x="18" y="112" width="16" height="8" rx="2" fill="rgba(255,255,255,0.15)"/>
+        <rect x="10" y="144" width="32" height="32" rx="8" fill="rgba(255,255,255,0.04)"/>
+        <rect x="18" y="156" width="16" height="8" rx="2" fill="rgba(255,255,255,0.12)"/>
+        <rect x="10" y="188" width="32" height="32" rx="8" fill="rgba(255,255,255,0.04)"/>
+        <rect x="18" y="200" width="16" height="8" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <rect x="10" y="232" width="32" height="32" rx="8" fill="rgba(255,255,255,0.04)"/>
+        <rect x="18" y="244" width="16" height="8" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <!-- Main content area - CX Dashboard -->
+        <rect x="52" y="40" width="720" height="340" fill="rgba(10,12,18,0.6)"/>
+        <!-- tab bar -->
+        <rect x="52" y="40" width="720" height="32" fill="rgba(12,13,18,0.9)"/>
+        <rect x="64" y="52" width="52" height="5" rx="2.5" fill="#4AFFD4" opacity="0.8"/>
+        <rect x="52" y="71" width="56" height="1.5" fill="#4AFFD4" opacity="0.5"/>
+        <rect x="128" y="52" width="72" height="5" rx="2.5" fill="rgba(255,255,255,0.12)"/>
+        <rect x="212" y="52" width="56" height="5" rx="2.5" fill="rgba(255,255,255,0.08)"/>
+        <rect x="280" y="52" width="64" height="5" rx="2.5" fill="rgba(255,255,255,0.08)"/>
+        <!-- date chip -->
+        <rect x="64" y="82" width="120" height="20" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <rect x="76" y="89" width="68" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <!-- Highlights panel -->
+        <rect x="64" y="112" width="155" height="250" rx="8" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <rect x="74" y="122" width="50" height="5" rx="2.5" fill="rgba(255,255,255,0.3)"/>
+        <rect x="74" y="134" width="110" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <rect x="74" y="152" width="60" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/>
+        <rect x="168" y="150" width="36" height="10" rx="3" fill="rgba(74,255,212,0.12)"/>
+        <rect x="171" y="153" width="30" height="4" rx="2" fill="#4AFFD4" opacity="0.7"/>
+        <rect x="74" y="170" width="40" height="4" rx="2" fill="rgba(255,255,255,0.08)"/>
+        <rect x="74" y="188" width="60" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/>
+        <rect x="168" y="186" width="36" height="10" rx="3" fill="rgba(255,107,107,0.12)"/>
+        <rect x="171" y="189" width="30" height="4" rx="2" fill="#FF6B6B" opacity="0.7"/>
+        <!-- CES gauge card -->
+        <rect x="232" y="112" width="190" height="160" rx="8" fill="rgba(255,255,255,0.025)" stroke="rgba(74,255,212,0.15)" stroke-width="0.8"/>
+        <rect x="244" y="122" width="100" height="5" rx="2.5" fill="rgba(255,255,255,0.3)"/>
+        <path d="M 262 232 A 60 60 0 0 1 372 232" fill="none" stroke="url(#gauge1)" stroke-width="10" stroke-linecap="round"/>
+        <line x1="317" y1="232" x2="300" y2="192" stroke="rgba(255,255,255,0.8)" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="317" cy="232" r="4" fill="#111318" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+        <rect x="296" y="240" width="24" height="12" rx="4" fill="rgba(244,201,93,0.15)"/>
+        <rect x="299" y="244" width="18" height="4" rx="2" fill="#F4C95D" opacity="0.8"/>
+        <!-- NPS gauge card -->
+        <rect x="432" y="112" width="160" height="160" rx="8" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <rect x="444" y="122" width="80" height="5" rx="2.5" fill="rgba(255,255,255,0.25)"/>
+        <path d="M 455 232 A 55 55 0 0 1 565 232" fill="none" stroke="url(#gauge1)" stroke-width="9" stroke-linecap="round"/>
+        <line x1="510" y1="232" x2="510" y2="192" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="510" cy="232" r="4" fill="#111318" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+        <!-- Trend chart -->
+        <rect x="64" y="274" width="528" height="108" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+        <rect x="76" y="284" width="80" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <line x1="76" y1="320" x2="580" y2="320" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <line x1="76" y1="340" x2="580" y2="340" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <polyline points="76,300 124,308 172,306 220,322 268,323 316,323 364,322 412,323 460,322 508,323 556,322" fill="none" stroke="#4AFFD4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <polygon points="76,300 124,308 172,306 220,322 268,323 316,323 364,322 412,323 460,322 508,323 556,322 556,370 76,370" fill="rgba(74,255,212,0.06)"/>
+        <!-- ===== AI ASSISTANT DRAWER ===== -->
+        <rect x="772" y="40" width="328" height="340" fill="url(#drawerbg)" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+        <!-- Drawer header -->
+        <rect x="772" y="40" width="328" height="52" fill="rgba(10,11,16,0.98)"/>
+        <circle cx="796" cy="66" r="12" fill="rgba(124,111,255,0.2)" stroke="rgba(124,111,255,0.4)" stroke-width="1"/>
+        <rect x="791" y="62" width="10" height="8" rx="1.5" fill="#7C6FFF" opacity="0.8"/>
+        <rect x="816" y="60" width="80" height="5" rx="2.5" fill="rgba(255,255,255,0.4)"/>
+        <rect x="816" y="70" width="120" height="4" rx="2" fill="rgba(255,255,255,0.15)"/>
+        <rect x="1080" y="55" width="12" height="12" rx="3" fill="rgba(255,255,255,0.08)"/>
+        <line x1="772" y1="92" x2="1100" y2="92" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+        <!-- Assistant message 1 -->
+        <rect x="784" y="104" width="260" height="64" rx="8" fill="rgba(124,111,255,0.1)" stroke="rgba(124,111,255,0.18)" stroke-width="0.5"/>
+        <rect x="796" y="114" width="180" height="4" rx="2" fill="rgba(255,255,255,0.3)"/>
+        <rect x="796" y="122" width="240" height="3.5" rx="1.75" fill="rgba(255,255,255,0.18)"/>
+        <rect x="796" y="130" width="210" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="796" y="138" width="160" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="796" y="148" width="80" height="4" rx="2" fill="rgba(124,111,255,0.35)"/>
+        <!-- User message -->
+        <rect x="804" y="180" width="244" height="30" rx="8" fill="rgba(74,255,212,0.09)" stroke="rgba(74,255,212,0.18)" stroke-width="0.5"/>
+        <rect x="816" y="190" width="180" height="4" rx="2" fill="rgba(74,255,212,0.5)"/>
+        <rect x="816" y="198" width="128" height="3.5" rx="1.75" fill="rgba(74,255,212,0.3)"/>
+        <!-- AI reply -->
+        <rect x="784" y="222" width="260" height="56" rx="8" fill="rgba(124,111,255,0.1)" stroke="rgba(124,111,255,0.18)" stroke-width="0.5"/>
+        <rect x="796" y="232" width="200" height="4" rx="2" fill="rgba(255,255,255,0.3)"/>
+        <rect x="796" y="240" width="240" height="3.5" rx="1.75" fill="rgba(255,255,255,0.18)"/>
+        <rect x="796" y="248" width="190" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="796" y="256" width="64" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <!-- Confirm action card -->
+        <rect x="784" y="288" width="260" height="60" rx="8" fill="rgba(74,255,212,0.06)" stroke="rgba(74,255,212,0.25)" stroke-width="0.8"/>
+        <rect x="796" y="298" width="100" height="4" rx="2" fill="rgba(255,255,255,0.3)"/>
+        <rect x="796" y="307" width="220" height="3" rx="1.5" fill="rgba(255,255,255,0.12)"/>
+        <rect x="796" y="314" width="190" height="3" rx="1.5" fill="rgba(255,255,255,0.1)"/>
+        <!-- action btns -->
+        <rect x="796" y="324" width="72" height="18" rx="6" fill="rgba(74,255,212,0.2)" stroke="rgba(74,255,212,0.4)" stroke-width="0.8"/>
+        <rect x="802" y="329" width="60" height="7" rx="3" fill="#4AFFD4" opacity="0.8"/>
+        <rect x="878" y="324" width="60" height="18" rx="6" fill="rgba(255,255,255,0.05)"/>
+        <rect x="882" y="329" width="52" height="7" rx="3" fill="rgba(255,255,255,0.2)"/>
+        <!-- Input area -->
+        <rect x="772" y="348" width="328" height="32" fill="rgba(8,9,12,0.98)"/>
+        <line x1="772" y1="348" x2="1100" y2="348" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+        <rect x="784" y="356" width="240" height="18" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.09)" stroke-width="0.5"/>
+        <rect x="792" y="362" width="80" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <!-- mic + send icons -->
+        <circle cx="1052" cy="365" r="8" fill="rgba(124,111,255,0.2)" stroke="rgba(124,111,255,0.35)" stroke-width="0.8"/>
+        <rect x="1049" y="362" width="6" height="6" rx="1.5" fill="#7C6FFF" opacity="0.7"/>
+        <circle cx="1076" cy="365" r="8" fill="rgba(74,255,212,0.2)" stroke="rgba(74,255,212,0.35)" stroke-width="0.8"/>
+        <path d="M 1073 368 L 1076 365 L 1079 368" fill="none" stroke="#4AFFD4" stroke-width="1.2" stroke-linecap="round"/>
+        <!-- Modality icons -->
+        <rect x="784" y="358" width="14" height="14" rx="3" fill="rgba(255,255,255,0.04)"/>
+        <rect x="787" y="361" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.2)"/>
+      </svg>
+      <div class="ph-caption">
+        <div class="ph-caption-left">
+          <span class="ph-badge">IMG 03</span>
+          <span class="ph-caption-label">AI Assistant — Side drawer open on CX Dashboard, showing conversation thread + action confirm card</span>
+        </div>
+        <span class="ph-caption-hint">↑ Replace with final UI screenshot / Figma export</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="multimodal">
+  <div class="section-inner">
+    <div class="section-label">08 · Multimodal Input</div>
+    <h2>Three ways to talk<br>to the platform</h2>
+    <p>A single AI intent layer supports three input modalities — text, speech, and file — each mapped to a distinct user context and need. Users move between them fluidly; the same pipeline interprets all three. No mode is second-class.</p>
+
+    <div class="modal-hero">
+
+      <!-- TEXT -->
+      <div class="modal-panel text-panel">
+        <div class="modal-icon teal">⌨️</div>
+        <span class="modal-tag" style="background:rgba(74,255,212,0.1);color:var(--accent);border:1px solid rgba(74,255,212,0.2);">Mode 01 · Text</span>
+        <h3>Type your intent</h3>
+        <p style="font-size:14px;">The primary input. Supports full natural-language queries, slash-command shortcuts, and in-line prompt chip selection. Works everywhere the assistant panel is open.</p>
+        <div class="text-mock">
+          Show NPS trend for APAC<br>filtered by detractors, Q1 2026<span class="text-cursor"></span>
+        </div>
+        <ul>
+          <li class="teal">Auto-complete for platform terminology (metric names, tag names, date ranges)</li>
+          <li class="teal">Slash "/" command triggers quick-action menu for power users</li>
+          <li class="teal">Inline prompt chips reduce typing to zero for common queries</li>
+          <li class="teal">Multi-turn conversation with context retained across follow-up messages</li>
+        </ul>
+      </div>
+
+      <!-- SPEECH -->
+      <div class="modal-panel speech-panel">
+        <div class="modal-icon purple">🎙️</div>
+        <span class="modal-tag" style="background:rgba(124,111,255,0.1);color:var(--accent2);border:1px solid rgba(124,111,255,0.2);">Mode 02 · Speech</span>
+        <h3>Speak your query</h3>
+        <p style="font-size:14px;">Voice input transcribed and interpreted in real-time. Built for on-the-go managers reviewing dashboards in meetings, on mobile, or away from a keyboard.</p>
+        <div class="waveform">
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        </div>
+        <ul style="margin-top:16px">
+          <li class="purple">Live transcription shown in the input field as the user speaks</li>
+          <li class="purple">Filler word and pause filtering before intent classification</li>
+          <li class="purple">Disambiguation prompt shown if query is ambiguous — user speaks or types to clarify</li>
+          <li class="purple">Voice confirmation supported — say "confirm" or "cancel" for action approval step</li>
+        </ul>
+      </div>
+
+      <!-- FILE -->
+      <div class="modal-panel file-panel">
+        <div class="modal-icon gold">📎</div>
+        <span class="modal-tag" style="background:rgba(244,201,93,0.1);color:var(--gold);border:1px solid rgba(244,201,93,0.2);">Mode 03 · File</span>
+        <h3>Upload for context</h3>
+        <p style="font-size:14px;">Users drag or attach files — CSVs, PDFs, images, or Excel sheets — and the assistant reads, interprets, and acts on them. Bridges external data into the platform workflow.</p>
+        <div class="file-drop">
+          <div class="file-drop-icon">📄</div>
+          <div class="file-drop-info">
+            <div class="file-drop-name">Q1_CX_Report_APAC.pdf</div>
+            <div class="file-drop-meta">PDF · 2.4 MB · Analysing…</div>
+          </div>
+        </div>
+        <ul style="margin-top:16px">
+          <li class="gold">PDF / Excel upload → AI extracts metrics and maps to dashboard fields</li>
+          <li class="gold">Image upload (e.g. screenshot of competitor survey) → AI drafts a matching survey structure</li>
+          <li class="gold">CSV import → AI suggests column mappings and triggers data ingestion flow</li>
+          <li class="gold">Drag-and-drop into any module — file type auto-detected, intent inferred from context</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Modality Comparison -->
+    <table class="modality-table">
+      <thead>
+        <tr>
+          <th>Input Mode</th>
+          <th>Primary Use Case</th>
+          <th>Supported In</th>
+          <th>Action Types</th>
+          <th>Confirmation Step</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-mode">⌨️ Text</td>
+          <td>Precise queries, power users, desktop</td>
+          <td>All modules</td>
+          <td>Query, Filter, Create, Navigate, Edit</td>
+          <td><span class="check">✓</span> Preview + 1-click confirm</td>
+        </tr>
+        <tr>
+          <td class="col-mode">🎙️ Speech</td>
+          <td>Hands-free, mobile, in-meeting reviews</td>
+          <td>CX Dashboard, Reports, Custom Dashboard</td>
+          <td>Query, Filter, Navigate</td>
+          <td><span class="check">✓</span> Voice or tap to confirm</td>
+        </tr>
+        <tr>
+          <td class="col-mode">📎 File</td>
+          <td>External data import, content seeding</td>
+          <td>Survey Creation, Reports, Custom Dashboard</td>
+          <td>Ingest, Map, Draft, Suggest</td>
+          <td><span class="check">✓</span> Field-mapping review before commit</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:20px; font-size:13px; color: var(--muted);">All three modalities share the same Intent Classification → API Translation → Preview → Execute pipeline. The input surface changes; the backend contract does not.</p>
+
+    <!-- IMG: Multimodal input states -->
+    <div style="margin-top:32px" class="ph-wrap">
+      <svg viewBox="0 0 1100 260" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="mmbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0c0d14"/><stop offset="100%" stop-color="#0f1018"/></linearGradient>
+        </defs>
+        <rect width="1100" height="260" fill="url(#mmbg)"/>
+        <pattern id="mmg" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="0.5" fill="rgba(255,255,255,0.045)"/></pattern>
+        <rect width="1100" height="260" fill="url(#mmg)"/>
+
+        <!-- Header strip -->
+        <rect x="0" y="0" width="1100" height="28" fill="rgba(7,8,12,0.8)"/>
+        <rect x="16" y="11" width="100" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/>
+        <rect x="130" y="13" width="200" height="3" rx="1.5" fill="rgba(255,255,255,0.1)"/>
+
+        <!-- ─── State 1: Text input ─── -->
+        <rect x="16" y="36" width="320" height="200" rx="10" fill="rgba(74,255,212,0.04)" stroke="rgba(74,255,212,0.18)" stroke-width="0.8"/>
+        <rect x="28" y="48" width="80" height="5" rx="2.5" fill="rgba(74,255,212,0.7)"/>
+        <rect x="28" y="58" width="140" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <!-- Input field -->
+        <rect x="28" y="74" width="296" height="36" rx="8" fill="rgba(0,0,0,0.3)" stroke="rgba(74,255,212,0.25)" stroke-width="0.8"/>
+        <rect x="38" y="88" width="140" height="4" rx="2" fill="rgba(74,255,212,0.45)"/>
+        <rect x="182" y="86" width="2" height="8" rx="1" fill="rgba(74,255,212,0.8)">
+          <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+        </rect>
+        <!-- Autocomplete dropdown -->
+        <rect x="28" y="114" width="220" height="20" rx="5" fill="rgba(74,255,212,0.08)" stroke="rgba(74,255,212,0.2)" stroke-width="0.5"/>
+        <rect x="36" y="120" width="100" height="4" rx="2" fill="rgba(74,255,212,0.5)"/>
+        <rect x="28" y="138" width="220" height="16" rx="5" fill="rgba(255,255,255,0.04)"/>
+        <rect x="36" y="143" width="80" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="28" y="158" width="220" height="16" rx="5" fill="rgba(255,255,255,0.03)"/>
+        <rect x="36" y="163" width="92" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <!-- Prompt chips row -->
+        <rect x="28" y="186" width="80" height="16" rx="6" fill="rgba(74,255,212,0.1)" stroke="rgba(74,255,212,0.25)" stroke-width="0.5"/>
+        <rect x="33" y="191" width="70" height="4" rx="2" fill="rgba(74,255,212,0.5)"/>
+        <rect x="116" y="186" width="80" height="16" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <rect x="121" y="191" width="60" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="204" y="186" width="72" height="16" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <rect x="209" y="191" width="56" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <!-- Text label -->
+        <rect x="130" y="242" width="60" height="4" rx="2" fill="rgba(74,255,212,0.4)"/>
+
+        <!-- ─── State 2: Speech input ─── -->
+        <rect x="356" y="36" width="320" height="200" rx="10" fill="rgba(124,111,255,0.04)" stroke="rgba(124,111,255,0.18)" stroke-width="0.8"/>
+        <rect x="368" y="48" width="80" height="5" rx="2.5" fill="rgba(124,111,255,0.7)"/>
+        <rect x="368" y="58" width="160" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <!-- Mic button -->
+        <circle cx="516" cy="110" r="36" fill="rgba(124,111,255,0.1)" stroke="rgba(124,111,255,0.25)" stroke-width="1"/>
+        <circle cx="516" cy="110" r="28" fill="rgba(124,111,255,0.15)" stroke="rgba(124,111,255,0.3)" stroke-width="0.8">
+          <animate attributeName="r" values="28;34;28" dur="1.8s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;0.3;1" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="516" cy="110" r="20" fill="rgba(124,111,255,0.3)" stroke="rgba(124,111,255,0.5)" stroke-width="1"/>
+        <rect x="511" y="100" width="10" height="14" rx="4" fill="rgba(124,111,255,0.9)"/>
+        <path d="M505 114 Q516 126 527 114" fill="none" stroke="rgba(124,111,255,0.8)" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Waveform underneath -->
+        <rect x="378" y="158" width="8" height="14" rx="3" fill="rgba(124,111,255,0.5)">
+          <animate attributeName="height" values="14;22;10;18;14" dur="0.8s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="392" y="153" width="8" height="24" rx="3" fill="rgba(124,111,255,0.5)">
+          <animate attributeName="height" values="24;10;28;16;24" dur="0.7s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="406" y="159" width="8" height="12" rx="3" fill="rgba(124,111,255,0.4)">
+          <animate attributeName="height" values="12;20;8;16;12" dur="0.9s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="420" y="155" width="8" height="20" rx="3" fill="rgba(124,111,255,0.5)">
+          <animate attributeName="height" values="20;12;26;14;20" dur="0.75s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="434" y="161" width="8" height="8" rx="3" fill="rgba(124,111,255,0.35)"/>
+        <!-- Transcription line -->
+        <rect x="370" y="188" width="296" height="20" rx="6" fill="rgba(0,0,0,0.25)" stroke="rgba(124,111,255,0.15)" stroke-width="0.6"/>
+        <rect x="378" y="195" width="140" height="4" rx="2" fill="rgba(124,111,255,0.4)"/>
+        <rect x="522" y="193" width="2" height="8" rx="1" fill="rgba(124,111,255,0.7)">
+          <animate attributeName="opacity" values="1;0;1" dur="0.9s" repeatCount="indefinite"/>
+        </rect>
+        <!-- Label -->
+        <rect x="455" y="242" width="60" height="4" rx="2" fill="rgba(124,111,255,0.4)"/>
+
+        <!-- ─── State 3: File upload ─── -->
+        <rect x="696" y="36" width="388" height="200" rx="10" fill="rgba(244,201,93,0.04)" stroke="rgba(244,201,93,0.18)" stroke-width="0.8"/>
+        <rect x="708" y="48" width="80" height="5" rx="2.5" fill="rgba(244,201,93,0.7)"/>
+        <rect x="708" y="58" width="180" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+        <!-- Drop zone -->
+        <rect x="708" y="74" width="360" height="96" rx="8" fill="rgba(244,201,93,0.05)" stroke="rgba(244,201,93,0.22)" stroke-width="0.8" stroke-dasharray="6 3"/>
+        <rect x="830" y="96" width="40" height="40" rx="8" fill="rgba(244,201,93,0.15)"/>
+        <rect x="842" y="108" width="16" height="20" rx="2" fill="rgba(244,201,93,0.5)"/>
+        <rect x="845" y="103" width="10" height="10" rx="1" fill="rgba(244,201,93,0.7)"/>
+        <rect x="776" y="147" width="148" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="800" y="155" width="100" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <!-- File parsing state -->
+        <rect x="708" y="178" width="360" height="44" rx="8" fill="rgba(0,0,0,0.2)" stroke="rgba(244,201,93,0.15)" stroke-width="0.6"/>
+        <rect x="720" y="186" width="28" height="28" rx="5" fill="rgba(244,201,93,0.12)"/>
+        <rect x="726" y="192" width="16" height="16" rx="2" fill="rgba(244,201,93,0.4)"/>
+        <rect x="756" y="190" width="120" height="4" rx="2" fill="rgba(255,255,255,0.3)"/>
+        <rect x="756" y="198" width="80" height="3.5" rx="1.75" fill="rgba(244,201,93,0.4)"/>
+        <rect x="756" y="205" width="200" height="3" rx="1.5" fill="rgba(255,255,255,0.08)"/>
+        <!-- Progress bar -->
+        <rect x="756" y="212" width="288" height="4" rx="2" fill="rgba(255,255,255,0.06)"/>
+        <rect x="756" y="212" width="160" height="4" rx="2" fill="rgba(244,201,93,0.45)"/>
+        <!-- Label -->
+        <rect x="850" y="242" width="60" height="4" rx="2" fill="rgba(244,201,93,0.4)"/>
+      </svg>
+      <div class="ph-caption">
+        <div class="ph-caption-left">
+          <span class="ph-badge">IMG 08</span>
+          <span class="ph-caption-label">Multimodal Input States — Text with autocomplete · Speech with live waveform · File upload with parse progress</span>
+        </div>
+        <span class="ph-caption-hint">↑ Replace with Figma UI state frames (text / speech / file active states)</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section>
+  <div class="section-inner">
+    <div class="section-label">09 · Prompt Library</div>
+    <h2>Curated starting points<br>for every context</h2>
+    <p>Research showed users froze at a blank AI input. The Prompt Library solves this: a curated set of module-specific, role-aware suggestions that appear before the user types — and adapt as soon as they do. It lowers the barrier to first use and teaches users what the AI can do by showing rather than telling.</p>
+
+    <div class="prompt-showcase">
+      <div class="prompt-header">
+        <div class="prompt-header-dot" style="background:#FF6B6B"></div>
+        <div class="prompt-header-dot" style="background:#F4C95D"></div>
+        <div class="prompt-header-dot" style="background:#4AFFD4"></div>
+        <span class="prompt-header-title">CX Dashboard — Prompt Library · Showing context-aware suggestions</span>
+      </div>
+      <div class="prompt-category">
+        <div class="prompt-cat-label" style="color:var(--accent)">📊 Analytics & Filters</div>
+        <div class="prompt-chips">
+          <div class="prompt-chip active">Show NPS by region for Q1 2026</div>
+          <div class="prompt-chip">Filter by detractors only</div>
+          <div class="prompt-chip">Compare this quarter vs last quarter</div>
+          <div class="prompt-chip">What's my weakest tag today?</div>
+          <div class="prompt-chip">Show trend for Employee Engagement</div>
+        </div>
+      </div>
+      <div class="prompt-category">
+        <div class="prompt-cat-label" style="color:var(--accent2)">⚙️ Dashboard Management</div>
+        <div class="prompt-chips">
+          <div class="prompt-chip">Add a CES gauge widget to this dashboard</div>
+          <div class="prompt-chip">Change date range to last 6 months</div>
+          <div class="prompt-chip">Duplicate this dashboard for APAC</div>
+          <div class="prompt-chip">Remove unused widgets</div>
+        </div>
+      </div>
+      <div class="prompt-category">
+        <div class="prompt-cat-label" style="color:var(--gold)">💡 Insights & Summaries</div>
+        <div class="prompt-chips">
+          <div class="prompt-chip">Summarise what changed this week</div>
+          <div class="prompt-chip">Why did CES drop in March?</div>
+          <div class="prompt-chip">What should I focus on to improve NPS?</div>
+          <div class="prompt-chip">Generate a stakeholder summary</div>
+        </div>
+      </div>
+      <div class="prompt-category">
+        <div class="prompt-cat-label" style="color:var(--accent3)">📋 Survey Builder</div>
+        <div class="prompt-chips">
+          <div class="prompt-chip">Create a 5-question CSAT survey for post-purchase</div>
+          <div class="prompt-chip">Add a skip logic rule if score is above 8</div>
+          <div class="prompt-chip">Translate this survey to Spanish</div>
+          <div class="prompt-chip">Make question 3 required</div>
+        </div>
+      </div>
+    </div>
+
+    <p style="margin-top:20px; font-size:13px;">Prompts are personalised based on: current module, user role, most recent platform actions, and the user's historical query patterns. High-frequency prompts surface first.</p>
+
+    <!-- IMG: Prompt library in-context (Survey Builder module) -->
+    <div style="margin-top:32px" class="ph-wrap">
+      <svg viewBox="0 0 1100 280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="plbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0c0d13"/><stop offset="100%" stop-color="#101219"/></linearGradient>
+        </defs>
+        <rect width="1100" height="280" fill="url(#plbg)"/>
+        <pattern id="plg" width="22" height="22" patternUnits="userSpaceOnUse"><path d="M22 0H0V22" fill="none" stroke="rgba(255,255,255,0.025)" stroke-width="0.4"/></pattern>
+        <rect width="1100" height="280" fill="url(#plg)"/>
+
+        <!-- Top nav -->
+        <rect x="0" y="0" width="1100" height="36" fill="rgba(7,8,12,0.92)"/>
+        <circle cx="18" cy="18" r="7" fill="#4AFFD4" opacity="0.7"/>
+        <rect x="33" y="14" width="1" height="8" fill="rgba(255,255,255,0.08)"/>
+        <rect x="42" y="15" width="90" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/>
+        <rect x="140" y="15" width="4" height="5" fill="rgba(255,255,255,0.08)"/>
+        <rect x="152" y="15" width="100" height="5" rx="2.5" fill="rgba(255,255,255,0.08)"/>
+        <rect x="1016" y="10" width="72" height="16" rx="6" fill="rgba(124,111,255,0.2)" stroke="rgba(124,111,255,0.3)" stroke-width="0.6"/>
+        <rect x="1022" y="15" width="60" height="5" rx="2.5" fill="rgba(124,111,255,0.6)"/>
+
+        <!-- Sidebar -->
+        <rect x="0" y="36" width="44" height="244" fill="rgba(7,8,12,0.7)"/>
+        <rect x="6" y="50" width="32" height="32" rx="8" fill="rgba(74,255,212,0.12)"/>
+        <rect x="14" y="62" width="16" height="8" rx="2" fill="rgba(74,255,212,0.5)"/>
+        <rect x="6" y="92" width="32" height="32" rx="8" fill="rgba(255,255,255,0.04)"/>
+        <rect x="6" y="136" width="32" height="32" rx="8" fill="rgba(255,255,255,0.04)"/>
+        <rect x="6" y="180" width="32" height="32" rx="8" fill="rgba(255,255,255,0.04)"/>
+
+        <!-- Main content — Survey Builder module -->
+        <rect x="44" y="36" width="720" height="244" fill="rgba(9,10,15,0.5)"/>
+        <!-- Module header -->
+        <rect x="44" y="36" width="720" height="40" fill="rgba(12,13,18,0.9)"/>
+        <rect x="56" y="50" width="80" height="5" rx="2.5" fill="rgba(255,255,255,0.3)"/>
+        <rect x="148" y="48" width="64" height="9" rx="4" fill="rgba(74,255,212,0.12)" stroke="rgba(74,255,212,0.3)" stroke-width="0.5"/>
+        <rect x="156" y="51" width="48" height="4" rx="2" fill="rgba(74,255,212,0.5)"/>
+        <!-- Survey canvas -->
+        <rect x="56" y="84" width="500" height="180" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+        <!-- Question cards in canvas -->
+        <rect x="68" y="96" width="476" height="44" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+        <rect x="78" y="106" width="24" height="4" rx="2" fill="rgba(74,255,212,0.4)"/>
+        <rect x="78" y="114" width="240" height="4" rx="2" fill="rgba(255,255,255,0.3)"/>
+        <rect x="78" y="122" width="160" height="4" rx="2" fill="rgba(255,255,255,0.12)"/>
+        <rect x="68" y="148" width="476" height="44" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+        <rect x="78" y="158" width="24" height="4" rx="2" fill="rgba(124,111,255,0.4)"/>
+        <rect x="78" y="166" width="200" height="4" rx="2" fill="rgba(255,255,255,0.25)"/>
+        <rect x="78" y="174" width="140" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <rect x="68" y="200" width="476" height="28" rx="6" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.05)" stroke-width="0.5" stroke-dasharray="4 3"/>
+        <rect x="234" y="210" width="84" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <!-- Add question btn -->
+        <rect x="568" y="84" width="188" height="180" rx="8" fill="rgba(255,255,255,0.015)"/>
+        <rect x="578" y="94" width="100" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="578" y="106" width="168" height="28" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+        <rect x="586" y="116" width="80" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/>
+        <rect x="578" y="140" width="168" height="28" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+        <rect x="578" y="174" width="168" height="28" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+        <rect x="578" y="208" width="168" height="28" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+
+        <!-- ===== AI ASSISTANT DRAWER - RIGHT ===== -->
+        <rect x="764" y="36" width="336" height="244" fill="rgba(8,9,13,0.97)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+        <!-- Drawer header -->
+        <rect x="764" y="36" width="336" height="48" fill="rgba(10,11,16,0.98)"/>
+        <circle cx="786" cy="60" r="11" fill="rgba(124,111,255,0.2)" stroke="rgba(124,111,255,0.4)" stroke-width="0.8"/>
+        <rect x="782" y="56" width="8" height="8" rx="1.5" fill="#7C6FFF" opacity="0.8"/>
+        <rect x="804" y="56" width="80" height="5" rx="2.5" fill="rgba(255,255,255,0.4)"/>
+        <rect x="804" y="66" width="56" height="3.5" rx="1.75" fill="rgba(124,111,255,0.4)"/>
+        <line x1="764" y1="84" x2="1100" y2="84" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+
+        <!-- Prompt library opened -->
+        <rect x="772" y="92" width="60" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <!-- Category: Survey Builder (active) -->
+        <rect x="772" y="102" width="320" height="22" rx="6" fill="rgba(255,107,107,0.08)" stroke="rgba(255,107,107,0.2)" stroke-width="0.6"/>
+        <rect x="780" y="109" width="120" height="4" rx="2" fill="rgba(255,107,107,0.6)"/>
+        <!-- Prompt chips -->
+        <rect x="772" y="130" width="148" height="20" rx="6" fill="rgba(255,107,107,0.1)" stroke="rgba(255,107,107,0.25)" stroke-width="0.6"/>
+        <rect x="780" y="137" width="100" height="4" rx="2" fill="rgba(255,255,255,0.3)"/>
+        <rect x="772" y="154" width="160" height="20" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <rect x="780" y="161" width="128" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="772" y="178" width="140" height="20" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <rect x="780" y="185" width="108" height="4" rx="2" fill="rgba(255,255,255,0.18)"/>
+        <rect x="772" y="202" width="120" height="20" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <rect x="780" y="209" width="96" height="4" rx="2" fill="rgba(255,255,255,0.15)"/>
+        <!-- Category: Analytics -->
+        <rect x="772" y="228" width="320" height="18" rx="5" fill="rgba(74,255,212,0.06)" stroke="rgba(74,255,212,0.15)" stroke-width="0.5"/>
+        <rect x="780" y="234" width="100" height="4" rx="2" fill="rgba(74,255,212,0.4)"/>
+        <rect x="888" y="234" width="60" height="4" rx="2" fill="rgba(255,255,255,0.08)"/>
+        <!-- Input bar -->
+        <rect x="764" y="254" width="336" height="26" fill="rgba(7,8,12,0.98)"/>
+        <line x1="764" y1="254" x2="1100" y2="254" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>
+        <rect x="772" y="260" width="260" height="14" rx="5" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <rect x="778" y="264" width="60" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <circle cx="1072" cy="267" r="7" fill="rgba(74,255,212,0.2)" stroke="rgba(74,255,212,0.35)" stroke-width="0.7"/>
+        <circle cx="1052" cy="267" r="7" fill="rgba(124,111,255,0.15)" stroke="rgba(124,111,255,0.3)" stroke-width="0.7"/>
+      </svg>
+      <div class="ph-caption">
+        <div class="ph-caption-left">
+          <span class="ph-badge">IMG 09</span>
+          <span class="ph-caption-label">Prompt Library in Context — Survey Builder module · categorised chips · active state + module-aware suggestions</span>
+        </div>
+        <span class="ph-caption-hint">↑ Replace with Figma / product screenshot showing prompt library open in Survey Builder</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section>
+  <div class="section-inner">
+    <div class="section-label">10 · Key Design Decisions</div>
+    <h2>The choices that<br>defined the experience</h2>
+    <p>Every major decision involved trade-offs between speed, safety, and learnability. Here are the three that most shaped the final product.</p>
+
+    <div class="decision-grid">
+      <div class="decision-card">
+        <h3>Assistant UI Pattern</h3>
+        <div class="decision-option">
+          <div class="opt-icon opt-chose">✓</div>
+          <div class="opt-text"><strong>Persistent side drawer</strong>Stays in context without disrupting the current view. Collapses to icon. Always accessible.</div>
+        </div>
+        <div class="decision-option">
+          <div class="opt-icon opt-no">–</div>
+          <div class="opt-text"><strong>Floating bubble / chatbot</strong>Felt disconnected from page content. Users missed the link between query and result.</div>
+        </div>
+        <div class="decision-option">
+          <div class="opt-icon opt-no">–</div>
+          <div class="opt-text"><strong>Full-page AI mode</strong>Context loss when switching back to dashboard. Felt like leaving the product.</div>
+        </div>
+      </div>
+
+      <div class="decision-card">
+        <h3>Action Confirmation Model</h3>
+        <div class="decision-option">
+          <div class="opt-icon opt-chose">✓</div>
+          <div class="opt-text"><strong>Preview + single confirm</strong>Show a diff of what will change before execution. One click to approve. Builds trust without adding friction.</div>
+        </div>
+        <div class="decision-option">
+          <div class="opt-icon opt-no">–</div>
+          <div class="opt-text"><strong>Auto-execute all actions</strong>Faster, but early testing showed high anxiety — especially for survey publication and distribution changes.</div>
+        </div>
+        <div class="decision-option">
+          <div class="opt-icon opt-no">–</div>
+          <div class="opt-text"><strong>Multi-step confirm wizard</strong>Too slow. Users abandoned mid-flow. Defeat the purpose of "instant" AI interaction.</div>
+        </div>
+      </div>
+
+      <div class="decision-card">
+        <h3>Prompt Library Trigger</h3>
+        <div class="decision-option">
+          <div class="opt-icon opt-chose">✓</div>
+          <div class="opt-text"><strong>Always-visible chips</strong>Shown before typing begins. Updates contextually. Acts as education layer — teaches capability by showing examples.</div>
+        </div>
+        <div class="decision-option">
+          <div class="opt-icon opt-no">–</div>
+          <div class="opt-text"><strong>Triggered on "/" command</strong>Power users loved it; general users never discovered it. Adoption gap too large.</div>
+        </div>
+        <div class="decision-option">
+          <div class="opt-icon opt-no">–</div>
+          <div class="opt-text"><strong>None (blank input only)</strong>Research confirmed blank canvas paralysis. Drop-off rate in prototype was 68% before first AI interaction.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMG: Design iteration — 3 rejected vs chosen UI patterns -->
+    <div style="margin-top:40px" class="ph-wrap">
+      <svg viewBox="0 0 1100 240" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ddbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0b0c12"/><stop offset="100%" stop-color="#0f1018"/></linearGradient>
+        </defs>
+        <rect width="1100" height="240" fill="url(#ddbg)"/>
+        <pattern id="ddg" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="0.5" fill="rgba(255,255,255,0.04)"/></pattern>
+        <rect width="1100" height="240" fill="url(#ddg)"/>
+
+        <!-- Header -->
+        <rect x="16" y="12" width="120" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/>
+        <rect x="16" y="22" width="200" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/>
+
+        <!-- ─── Option A: Floating chatbot bubble ─── REJECTED -->
+        <rect x="16" y="38" width="240" height="164" rx="10" fill="rgba(255,107,107,0.04)" stroke="rgba(255,107,107,0.15)" stroke-width="0.8"/>
+        <rect x="16" y="38" width="240" height="24" fill="rgba(7,8,12,0.7)" rx="10"/>
+        <rect x="26" y="47" width="80" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="232" y="43" width="18" height="12" rx="4" fill="rgba(255,107,107,0.2)"/>
+        <rect x="234" y="47" width="14" height="4" rx="2" fill="rgba(255,107,107,0.5)"/>
+        <!-- Dashboard content blurred out -->
+        <rect x="24" y="70" width="224" height="60" rx="5" fill="rgba(255,255,255,0.015)"/>
+        <rect x="32" y="80" width="80" height="4" rx="2" fill="rgba(255,255,255,0.12)"/>
+        <rect x="32" y="90" width="120" height="3" rx="1.5" fill="rgba(255,255,255,0.07)"/>
+        <!-- Floating chatbot bubble in corner -->
+        <circle cx="212" cy="170" r="20" fill="rgba(255,107,107,0.18)" stroke="rgba(255,107,107,0.35)" stroke-width="1"/>
+        <rect x="205" y="164" width="14" height="12" rx="3" fill="rgba(255,107,107,0.6)"/>
+        <!-- Small chat popup -->
+        <rect x="140" y="130" width="96" height="36" rx="6" fill="rgba(255,107,107,0.1)" stroke="rgba(255,107,107,0.25)" stroke-width="0.6"/>
+        <rect x="148" y="138" width="72" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="148" y="146" width="56" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <!-- REJECTED stamp -->
+        <rect x="24" y="194" width="68" height="14" rx="4" fill="rgba(255,107,107,0.15)" stroke="rgba(255,107,107,0.3)" stroke-width="0.6"/>
+        <rect x="30" y="198" width="56" height="4" rx="2" fill="rgba(255,107,107,0.6)"/>
+        <rect x="24" y="212" width="224" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="24" y="219" width="180" height="3" rx="1.5" fill="rgba(255,255,255,0.07)"/>
+
+        <!-- ─── Option B: Full-page AI mode ─── REJECTED -->
+        <rect x="276" y="38" width="240" height="164" rx="10" fill="rgba(255,107,107,0.04)" stroke="rgba(255,107,107,0.15)" stroke-width="0.8"/>
+        <rect x="276" y="38" width="240" height="24" fill="rgba(7,8,12,0.7)" rx="10"/>
+        <rect x="286" y="47" width="80" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="492" y="43" width="18" height="12" rx="4" fill="rgba(255,107,107,0.2)"/>
+        <!-- Full page AI chat area -->
+        <rect x="284" y="68" width="224" height="130" rx="5" fill="rgba(255,255,255,0.015)"/>
+        <!-- Big chat input -->
+        <rect x="292" y="160" width="208" height="28" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+        <rect x="300" y="170" width="80" height="4" rx="2" fill="rgba(255,255,255,0.12)"/>
+        <!-- Chat messages floating, no context of dashboard -->
+        <rect x="292" y="76" width="160" height="28" rx="5" fill="rgba(124,111,255,0.1)"/>
+        <rect x="300" y="84" width="120" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="300" y="92" width="96" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="324" y="112" width="152" height="28" rx="5" fill="rgba(74,255,212,0.08)"/>
+        <rect x="332" y="120" width="100" height="3.5" rx="1.75" fill="rgba(74,255,212,0.4)"/>
+        <rect x="332" y="128" width="76" height="3.5" rx="1.75" fill="rgba(74,255,212,0.25)"/>
+        <!-- REJECTED -->
+        <rect x="284" y="194" width="68" height="14" rx="4" fill="rgba(255,107,107,0.15)" stroke="rgba(255,107,107,0.3)" stroke-width="0.6"/>
+        <rect x="290" y="198" width="56" height="4" rx="2" fill="rgba(255,107,107,0.6)"/>
+        <rect x="284" y="212" width="224" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="284" y="219" width="192" height="3" rx="1.5" fill="rgba(255,255,255,0.07)"/>
+
+        <!-- Arrow divider to chosen -->
+        <rect x="534" y="100" width="32" height="2" rx="1" fill="rgba(74,255,212,0.3)"/>
+        <polygon points="558,96 566,101 558,106" fill="rgba(74,255,212,0.4)"/>
+        <rect x="542" y="108" width="16" height="4" rx="2" fill="rgba(74,255,212,0.3)"/>
+
+        <!-- ─── CHOSEN: Persistent side drawer ─── -->
+        <rect x="584" y="38" width="500" height="164" rx="10" fill="rgba(74,255,212,0.04)" stroke="rgba(74,255,212,0.3)" stroke-width="1"/>
+        <rect x="584" y="38" width="500" height="24" fill="rgba(7,8,12,0.8)" rx="10"/>
+        <rect x="594" y="47" width="80" height="4" rx="2" fill="rgba(255,255,255,0.25)"/>
+        <rect x="1060" y="43" width="18" height="12" rx="4" fill="rgba(74,255,212,0.15)"/>
+        <!-- Dashboard content remains visible -->
+        <rect x="592" y="68" width="316" height="126" rx="4" fill="rgba(255,255,255,0.015)"/>
+        <rect x="600" y="78" width="80" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+        <rect x="600" y="88" width="200" height="40" rx="4" fill="rgba(255,255,255,0.025)"/>
+        <polyline points="608,112 630,106 652,108 674,118 696,119 718,118 740,119 762,118 784,119 806,118" fill="none" stroke="rgba(74,255,212,0.25)" stroke-width="1.2"/>
+        <rect x="600" y="134" width="300" height="52" rx="4" fill="rgba(255,255,255,0.015)"/>
+        <!-- AI drawer persistent on right -->
+        <rect x="916" y="62" width="160" height="134" rx="6" fill="rgba(124,111,255,0.08)" stroke="rgba(124,111,255,0.25)" stroke-width="0.8"/>
+        <rect x="924" y="70" width="80" height="4" rx="2" fill="rgba(124,111,255,0.5)"/>
+        <rect x="924" y="80" width="144" height="24" rx="5" fill="rgba(124,111,255,0.08)"/>
+        <rect x="930" y="88" width="100" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="930" y="95" width="80" height="3" rx="1.5" fill="rgba(255,255,255,0.12)"/>
+        <rect x="924" y="110" width="144" height="20" rx="5" fill="rgba(74,255,212,0.08)" stroke="rgba(74,255,212,0.2)" stroke-width="0.5"/>
+        <rect x="930" y="117" width="100" height="3.5" rx="1.75" fill="rgba(74,255,212,0.45)"/>
+        <rect x="924" y="135" width="144" height="28" rx="5" fill="rgba(74,255,212,0.06)" stroke="rgba(74,255,212,0.18)" stroke-width="0.5"/>
+        <rect x="930" y="141" width="60" height="12" rx="4" fill="rgba(74,255,212,0.18)"/>
+        <rect x="932" y="144" width="56" height="6" rx="2" fill="rgba(74,255,212,0.5)"/>
+        <rect x="924" y="170" width="144" height="18" rx="5" fill="rgba(0,0,0,0.25)" stroke="rgba(255,255,255,0.07)" stroke-width="0.4"/>
+        <rect x="930" y="175" width="60" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+        <!-- CHOSEN badge -->
+        <rect x="592" y="194" width="60" height="14" rx="4" fill="rgba(74,255,212,0.12)" stroke="rgba(74,255,212,0.3)" stroke-width="0.6"/>
+        <rect x="598" y="198" width="48" height="4" rx="2" fill="rgba(74,255,212,0.7)"/>
+        <rect x="592" y="212" width="464" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/>
+        <rect x="592" y="219" width="380" height="3" rx="1.5" fill="rgba(255,255,255,0.07)"/>
+      </svg>
+      <div class="ph-caption">
+        <div class="ph-caption-left">
+          <span class="ph-badge">IMG 10</span>
+          <span class="ph-caption-label">Design Decision — Floating bubble (✗) · Full-page AI (✗) → Persistent side drawer (✓) with rationale annotations</span>
+        </div>
+        <span class="ph-caption-hint">↑ Replace with Figma decision comparison frame showing explored vs. chosen pattern</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="impact">
+  <div class="section-inner">
+    <div class="section-label">09 · Impact & Outcomes</div>
+    <h2>Numbers that prove<br>the assistant works</h2>
+    <p>Measured over [PLACEHOLDER] following launch, compared against the pre-AI baseline across the same user cohort. Qualitative evidence gathered from in-app feedback prompts and follow-up interviews with 8 users.</p>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-num">↓60%</div>
+        <div class="metric-label">Average task completion time for filter + report queries</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num">[X]%</div>
+        <div class="metric-label">Reduction in analyst support tickets for routine dashboard tasks</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num">[X]%</div>
+        <div class="metric-label">Of users who opened the assistant used a Prompt Library chip on first session</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num">↑[X]</div>
+        <div class="metric-label">Increase in feature discovery rate (features accessed per session)</div>
+      </div>
+    </div>
+
+    <div class="qual-grid">
+      <div class="qual-card">
+        <strong>CX Manager · Post-launch interview</strong>
+        "I used to wait two days for someone to slice the NPS data by region. Now I just ask and it's done in seconds. It genuinely changed how I use the platform."
+      </div>
+      <div class="qual-card">
+        <strong>HR Business Partner · Usability test</strong>
+        "The prompt suggestions made me realise the platform could do things I didn't know existed. I discovered the comparison view from a chip."
+      </div>
+      <div class="qual-card">
+        <strong>Iteration delta</strong>
+        Reduced average steps to complete a filtered report view from 9 UI interactions to 1 confirmed AI action.
+      </div>
+      <div class="qual-card">
+        <strong>Prototype test (round 2 vs round 1)</strong>
+        Task completion without assistance: improved from 3/8 to 7/8 participants after the Prompt Library was introduced. Primary cited reason: "I knew where to start."
+      </div>
+    </div>
+
+    <!-- IMG: Before / after task flow comparison -->
+    <div style="margin-top:40px" class="ph-wrap">
+      <svg viewBox="0 0 1100 220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="babg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0b0c12"/><stop offset="100%" stop-color="#0f1018"/></linearGradient>
+        </defs>
+        <rect width="1100" height="220" fill="url(#babg)"/>
+        <pattern id="bag" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="rgba(255,255,255,0.025)" stroke-width="0.4"/></pattern>
+        <rect width="1100" height="220" fill="url(#bag)"/>
+
+        <!-- Column headers -->
+        <rect x="16" y="12" width="520" height="24" rx="6" fill="rgba(255,107,107,0.08)" stroke="rgba(255,107,107,0.2)" stroke-width="0.6"/>
+        <rect x="24" y="20" width="80" height="5" rx="2.5" fill="rgba(255,107,107,0.7)"/>
+        <rect x="112" y="20" width="200" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+
+        <rect x="564" y="12" width="520" height="24" rx="6" fill="rgba(74,255,212,0.07)" stroke="rgba(74,255,212,0.22)" stroke-width="0.6"/>
+        <rect x="572" y="20" width="80" height="5" rx="2.5" fill="rgba(74,255,212,0.7)"/>
+        <rect x="660" y="20" width="200" height="4" rx="2" fill="rgba(255,255,255,0.2)"/>
+
+        <!-- BEFORE: 9-step flow -->
+        <!-- Steps connected with arrows -->
+        <!-- step boxes -->
+        <rect x="16" y="48" width="72" height="36" rx="6" fill="rgba(255,107,107,0.08)" stroke="rgba(255,107,107,0.2)" stroke-width="0.6"/>
+        <rect x="22" y="58" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="22" y="65" width="48" height="3" rx="1.5" fill="rgba(255,255,255,0.1)"/>
+        <line x1="88" y1="66" x2="104" y2="66" stroke="rgba(255,107,107,0.3)" stroke-width="1"/>
+        <polygon points="102,63 108,66 102,69" fill="rgba(255,107,107,0.4)"/>
+
+        <rect x="108" y="48" width="72" height="36" rx="6" fill="rgba(255,107,107,0.07)" stroke="rgba(255,107,107,0.18)" stroke-width="0.5"/>
+        <rect x="114" y="58" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="114" y="65" width="44" height="3" rx="1.5" fill="rgba(255,255,255,0.1)"/>
+        <line x1="180" y1="66" x2="196" y2="66" stroke="rgba(255,107,107,0.3)" stroke-width="1"/>
+        <polygon points="194,63 200,66 194,69" fill="rgba(255,107,107,0.4)"/>
+
+        <rect x="200" y="48" width="72" height="36" rx="6" fill="rgba(255,107,107,0.09)" stroke="rgba(255,107,107,0.2)" stroke-width="0.6"/>
+        <rect x="206" y="58" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="206" y="65" width="52" height="3" rx="1.5" fill="rgba(255,255,255,0.1)"/>
+        <line x1="272" y1="66" x2="288" y2="66" stroke="rgba(255,107,107,0.3)" stroke-width="1"/>
+        <polygon points="286,63 292,66 286,69" fill="rgba(255,107,107,0.4)"/>
+
+        <rect x="292" y="48" width="72" height="36" rx="6" fill="rgba(255,107,107,0.07)" stroke="rgba(255,107,107,0.18)" stroke-width="0.5"/>
+        <rect x="298" y="58" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="298" y="65" width="40" height="3" rx="1.5" fill="rgba(255,255,255,0.1)"/>
+        <line x1="364" y1="66" x2="380" y2="66" stroke="rgba(255,107,107,0.3)" stroke-width="1"/>
+        <polygon points="378,63 384,66 378,69" fill="rgba(255,107,107,0.4)"/>
+
+        <!-- Row 2 before -->
+        <rect x="16" y="96" width="72" height="36" rx="6" fill="rgba(255,107,107,0.07)" stroke="rgba(255,107,107,0.18)" stroke-width="0.5"/>
+        <rect x="22" y="106" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.18)"/>
+        <rect x="22" y="113" width="44" height="3" rx="1.5" fill="rgba(255,255,255,0.08)"/>
+        <line x1="88" y1="114" x2="104" y2="114" stroke="rgba(255,107,107,0.25)" stroke-width="1"/>
+        <polygon points="102,111 108,114 102,117" fill="rgba(255,107,107,0.35)"/>
+
+        <rect x="108" y="96" width="72" height="36" rx="6" fill="rgba(255,107,107,0.07)" stroke="rgba(255,107,107,0.18)" stroke-width="0.5"/>
+        <rect x="114" y="106" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.18)"/>
+        <rect x="108" y="96" width="72" height="36" rx="6" fill="rgba(255,107,107,0.07)" stroke="rgba(255,107,107,0.18)" stroke-width="0.5"/>
+        <line x1="180" y1="114" x2="196" y2="114" stroke="rgba(255,107,107,0.25)" stroke-width="1"/>
+        <polygon points="194,111 200,114 194,117" fill="rgba(255,107,107,0.35)"/>
+
+        <rect x="200" y="96" width="72" height="36" rx="6" fill="rgba(255,107,107,0.08)" stroke="rgba(255,107,107,0.2)" stroke-width="0.6"/>
+        <rect x="206" y="106" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.18)"/>
+        <line x1="272" y1="114" x2="288" y2="114" stroke="rgba(255,107,107,0.25)" stroke-width="1"/>
+        <polygon points="286,111 292,114 286,117" fill="rgba(255,107,107,0.35)"/>
+
+        <rect x="292" y="96" width="72" height="36" rx="6" fill="rgba(255,107,107,0.08)" stroke="rgba(255,107,107,0.22)" stroke-width="0.7"/>
+        <rect x="298" y="106" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+        <rect x="298" y="113" width="44" height="3" rx="1.5" fill="rgba(255,255,255,0.12)"/>
+
+        <!-- Zig-zag connector -->
+        <line x1="384" y1="66" x2="416" y2="66" stroke="rgba(255,107,107,0.2)" stroke-width="1"/>
+        <line x1="416" y1="66" x2="416" y2="114" stroke="rgba(255,107,107,0.2)" stroke-width="1"/>
+        <line x1="416" y1="114" x2="400" y2="114" stroke="rgba(255,107,107,0.2)" stroke-width="1"/>
+
+        <!-- Result box before -->
+        <rect x="384" y="136" width="148" height="36" rx="6" fill="rgba(255,107,107,0.08)" stroke="rgba(255,107,107,0.2)" stroke-width="0.7"/>
+        <rect x="392" y="146" width="60" height="4" rx="2" fill="rgba(255,107,107,0.5)"/>
+        <rect x="392" y="154" width="100" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+
+        <!-- Step count -->
+        <rect x="16" y="186" width="300" height="18" rx="5" fill="rgba(255,107,107,0.08)"/>
+        <rect x="24" y="191" width="200" height="4" rx="2" fill="rgba(255,107,107,0.5)"/>
+
+        <!-- AFTER: 1-step flow -->
+        <!-- Single input box -->
+        <rect x="564" y="48" width="240" height="36" rx="6" fill="rgba(74,255,212,0.08)" stroke="rgba(74,255,212,0.25)" stroke-width="0.8"/>
+        <rect x="572" y="58" width="160" height="3.5" rx="1.75" fill="rgba(74,255,212,0.5)"/>
+        <rect x="572" y="65" width="100" height="3" rx="1.5" fill="rgba(74,255,212,0.25)"/>
+        <rect x="720" y="52" width="32" height="28" rx="6" fill="rgba(124,111,255,0.2)" stroke="rgba(124,111,255,0.35)" stroke-width="0.7"/>
+        <path d="M729 65 L736 70 L743 62" fill="none" stroke="#7C6FFF" stroke-width="1.5" stroke-linecap="round"/>
+
+        <!-- Arrow -->
+        <line x1="804" y1="66" x2="840" y2="66" stroke="rgba(74,255,212,0.5)" stroke-width="1.5"/>
+        <polygon points="838,62 846,66 838,70" fill="rgba(74,255,212,0.6)"/>
+
+        <!-- Confirm box -->
+        <rect x="848" y="48" width="200" height="36" rx="6" fill="rgba(74,255,212,0.06)" stroke="rgba(74,255,212,0.2)" stroke-width="0.7"/>
+        <rect x="856" y="56" width="80" height="3.5" rx="1.75" fill="rgba(255,255,255,0.3)"/>
+        <rect x="856" y="64" width="140" height="3" rx="1.5" fill="rgba(255,255,255,0.12)"/>
+        <rect x="856" y="70" width="60" height="10" rx="4" fill="rgba(74,255,212,0.15)"/>
+        <rect x="860" y="73" width="52" height="4" rx="2" fill="rgba(74,255,212,0.5)"/>
+
+        <!-- Arrow to result -->
+        <line x1="940" y1="90" x2="940" y2="116" stroke="rgba(74,255,212,0.4)" stroke-width="1.5"/>
+        <polygon points="936,114 940,122 944,114" fill="rgba(74,255,212,0.5)"/>
+
+        <!-- Result box after -->
+        <rect x="820" y="126" width="240" height="36" rx="6" fill="rgba(74,255,212,0.08)" stroke="rgba(74,255,212,0.3)" stroke-width="0.8"/>
+        <rect x="828" y="136" width="80" height="4" rx="2" fill="rgba(74,255,212,0.6)"/>
+        <rect x="828" y="144" width="160" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/>
+
+        <!-- Step count after -->
+        <rect x="564" y="186" width="200" height="18" rx="5" fill="rgba(74,255,212,0.08)"/>
+        <rect x="572" y="191" width="140" height="4" rx="2" fill="rgba(74,255,212,0.5)"/>
+
+        <!-- Center divider -->
+        <line x1="548" y1="36" x2="548" y2="220" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+        <rect x="524" y="100" width="48" height="20" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+        <rect x="530" y="107" width="36" height="6" rx="2" fill="rgba(255,255,255,0.2)"/>
+      </svg>
+      <div class="ph-caption">
+        <div class="ph-caption-left">
+          <span class="ph-badge">IMG 11</span>
+          <span class="ph-caption-label">Before/After Task Flow — 9-step manual filter flow (Before) → 1 NL input + confirm (After) · steps saved = 8</span>
+        </div>
+        <span class="ph-caption-hint">↑ Replace with Figma before/after task flow diagram with step annotations</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="reflection">
+  <div class="section-inner">
+    <div class="section-label">12 · Reflection</div>
+    <h2>What I learned<br>building this</h2>
+
+    <div class="reflection-grid">
+      <div class="reflection-card worked">
+        <h3>What Worked</h3>
+        <ul>
+          <li>Persistent side drawer kept AI contextually grounded — the right call over a chatbot popup</li>
+          <li>Module-aware Prompt Library solved blank-canvas paralysis and became the primary adoption driver</li>
+          <li>Preview-before-execute built the trust baseline needed for users to take AI-initiated actions seriously</li>
+          <li>Early Engineering collaboration ensured the NL → API translation was scoped to what the platform could actually do</li>
+        </ul>
+      </div>
+      <div class="reflection-card improve">
+        <h3>What I'd Improve</h3>
+        <ul>
+          <li>Earlier usability testing on multi-step intent (queries that span more than one module action) would have saved a late-stage redesign</li>
+          <li>The voice input path was de-scoped late — should have been deprioritised from the start, not removed after design was complete</li>
+          <li>Error states for failed API translations were underdesigned in v1 — users were left uncertain when the AI couldn't interpret a query</li>
+        </ul>
+      </div>
+      <div class="reflection-card future">
+        <h3>Next Steps</h3>
+        <ul>
+          <li>Proactive AI: assistant surfaces insights unprompted when anomalies are detected in live data</li>
+          <li>Conversation memory: retain context across sessions so users don't re-explain their role and preferences each time</li>
+          <li>Cross-module orchestration: single query triggers coordinated actions across Reports and Dashboard simultaneously</li>
+          <li>Voice-first mode for mobile app variant, targeted at on-the-go CX managers</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">XM Platform · Conversational AI Case Study</div>
+  <div class="footer-right">Every [PLACEHOLDER] token marks a gap requiring your real data before publishing. Do not substitute estimates.</div>
+</footer>
+
+</body>
+</html>

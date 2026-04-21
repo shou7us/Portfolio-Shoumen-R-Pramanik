@@ -1,0 +1,123 @@
+:root {
+  /* Typography */
+  --font-family-sans: "Proxima Nova", sans-serif;
+  --font-size-scale-01: 0.75rem; 
+  --font-size-scale-02: 0.875rem;
+  --font-size-scale-03: 1rem;
+  --font-size-scale-09: 1.125rem;
+  --font-size-scale-10: 1.5rem;
+  
+  --font-weight-light: 300;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* Radius */
+  --radius-regular: 0.188rem;
+  --radius-medium: 0.375rem;
+  --radius-large: 0.562rem;
+  --radius-x-large: 0.75rem;
+  --radius-full: 9999px;
+
+  /* Core Colors */
+  --color-core-50: #f9f9fc;
+  --color-core-100: #e1e6f5;
+  --color-core-500: #4068b1;
+  --color-core-800: #2a487d;
+  --color-core-900: #203864;
+
+  /* Brand Colors (Theme) */
+  --color-brand-50: #e5fffd;
+  --color-brand-100: #c8f1e9;
+  --color-brand-200: #afdfd7;
+  --color-brand-500: #006159;
+  --color-brand-800: #005a4f;
+  --color-brand-900: #004a41;
+
+  /* Grey Colors */
+  --color-grey-50: #f9fafc;
+  --color-grey-100: #f1f6f6;
+  --color-grey-200: #ebedf1;
+  --color-grey-500: #e3e7ea;
+  --color-grey-700: #e2e2e2;
+  --color-grey-800: #dee0e4;
+  --color-grey-900: #7d8393;
+
+  /* Error Colors */
+  --color-error-50: #fde9e8;
+  --color-error-100: #f8d0cd;
+  --color-error-200: #f6bab6;
+  --color-error-500: #e82015;
+  --color-error-800: #b81810;
+  --color-error-900: #a1150e;
+
+  /* Base */
+  --color-base-50: #ffffff;
+  --color-base-900: #20232a;
+
+  /* Ai Gradient Start/End */
+  --color-ai-start: #6c16ac;
+  --color-ai-end: #02becc;
+
+  /* Action Base Mapping (Usually brand maps to primary actions) */
+  --color-action-primary: var(--color-brand-500);
+  --color-action-primary-hover: var(--color-brand-800);
+  --color-action-primary-active: var(--color-brand-900);
+  --color-action-primary-soft: var(--color-brand-50);
+  --color-action-primary-soft-hover: var(--color-brand-100);
+
+  /* Action Dark/Base Mapping */
+  --color-action-dark: var(--color-base-900);
+  --color-action-dark-hover: var(--color-grey-900);
+  --color-action-dark-soft: var(--color-grey-50);
+
+  /* Button Sizing Tokens */
+  --btn-padding-v-sm: 0.25rem;
+  --btn-padding-h-sm: 0.5rem;
+  --btn-padding-v-md: 0.5rem;
+  --btn-padding-h-md: 1rem;
+  --btn-padding-v-lg: 0.75rem;
+  --btn-padding-h-lg: 1.5rem;
+  --btn-padding-v-xl: 1rem;
+  --btn-padding-h-xl: 2rem;
+  
+  --btn-icon-size-sm: 1rem;
+  --btn-icon-size-md: 1.25rem;
+  --btn-icon-size-lg: 1.5rem;
+}
+
+:root[data-theme="core"] {
+  --color-brand-50: var(--color-core-50);
+  --color-brand-100: var(--color-core-100);
+  --color-brand-200: #cad3f1;
+  --color-brand-500: var(--color-core-500);
+  --color-brand-800: var(--color-core-800);
+  --color-brand-900: var(--color-core-900);
+}
+
+:root[data-theme="cx"] {
+  --color-brand-50: #e3f1f1;
+  --color-brand-100: #c5e1df;
+  --color-brand-200: #b1d5cd;
+  --color-brand-500: #3e7880;
+  --color-brand-800: #346868;
+  --color-brand-900: #26514c;
+}
+
+:root[data-theme="assessment"] {
+  --color-brand-50: #efebf2;
+  --color-brand-100: #dbd0e2;
+  --color-brand-200: #c7b4d4;
+  --color-brand-500: #6c3f8e;
+  --color-brand-800: #593375;
+  --color-brand-900: #4c2b65;
+}
+
+:root[data-theme="shell"] {
+  --color-brand-50: #f0f1f2;
+  --color-brand-100: #e7e8ea;
+  --color-brand-200: #ccced4;
+  --color-brand-500: #5c6069;
+  --color-brand-800: #33353a;
+  --color-brand-900: #211e1f;
+}
+

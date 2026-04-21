@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script>
+  // Client-side protection against direct URLs
+  (function(){
+    let unlocked = false;
+    for (let i = 0; i < sessionStorage.length; i++) {
+      let key = sessionStorage.key(i);
+      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
+        unlocked = true; break;
+      }
+    }
+    if (!unlocked) { window.location.href = 'index.html'; }
+  })();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sogolytics Custom Dashboard — UX Case Study</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────
+   TOKENS
+───────────────────────────────────────────── */
+:root {
+  --bg: #f5f2ec;
+  --surface: #f5f2ec;
+  --surface-2:    #f0ebe1;
+  --border: #d9d4cc;
+  --border-hi:    rgba(13,15,20, 0.4);
+  --accent: #c94c2e;
+  --accent-dim:   rgba(201, 76, 46, 0.1);
+  --accent-glow:  rgba(201, 76, 46, 0.1);
+  --accent-bg:    rgba(201, 76, 46, 0.1);
+  --emerald: #2d7a4e;
+  --emerald-bg:   rgba(201, 76, 46, 0.1);
+  --amber: #c94c2e;
+  --amber-bg:     rgba(201, 76, 46, 0.1);
+  --red: #c94c2e;
+  --red-bg: rgba(201, 76, 46, 0.1);
+  --text-1:       #0d0f14;
+  --text-2:       #6b6560;
+  --text-3:       #6b6560;
+}
+
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; font-size:16px; }
+
+body {
+  background:var(--bg);
+  color:var(--text-1);
+  font-family:'DM Sans',sans-serif;
+  line-height:1.75;
+  overflow-x:hidden;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--accent-dim); border-radius: 2px; }
+
+/* ─────────────────────────────────────────────
+   NAV
+───────────────────────────────────────────── */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:200;
+  height:54px;
+  background: #f5f2ec;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center;
+  justify-content:space-between;
+  padding:0 60px;
+}
+.nav-brand {
+  font-family:'DM Mono',monospace;
+  font-size:10px; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--text-3);
+}
+.nav-links { display:flex; gap:28px; list-style:none; }
+.nav-links a {
+  font-size:11px; letter-spacing:.10em; text-transform:uppercase;
+  text-decoration:none; color:var(--text-3); transition:color .2s;
+}
+.nav-links a:hover { color:var(--accent); }
+.nav-badge {
+  font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.12em;
+  border:1px solid var(--accent-dim);
+  color:var(--accent);
+  padding:3px 10px; border-radius: 3px;
+}
+
+/* progress */
+#progress-bar {
+  position:fixed; top:54px; left:0; z-index:199;
+  height:2px; width:0%;
+  background:var(--accent);
+  transition:width .1s linear;
+}
+
+/* ─────────────────────────────────────────────
+   HERO
+───────────────────────────────────────────── */
+.hero {
+  min-height:100vh;
+  padding:130px 60px 90px;
+  display:grid;
+  grid-template-columns:1fr 400px;
+  gap:72px;
+  align-items:center;
+  border-bottom:1px solid var(--border);
+  position:relative; overflow:hidden;
+}
+/* grid lines bg */
+.hero::before {
+  content:'';
+  position:absolute; inset:0; pointer-events:none;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size:56px 56px;
+  opacity:.5;
+}
+/* blue glow */
+.hero::after {
+  content:'';
+  position:absolute; top:-160px; right:-140px;
+  width:680px; height:680px; pointer-events:none;
+  background:radial-gradient(circle, rgba(59,130,246,.10) 0%, transparent 62%);
+}
+.hero-left { position:relative; z-index:1; }
+.hero-eyebrow {
+  font-family:'DM Mono',monospace;
+  font-size:10px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:20px;
+  display:flex; align-items:center; gap:12px;
+}
+.hero-eyebrow::before {
+  content:''; width:28px; height:1px; background:var(--accent);
+}
+h1 {
+  font-family:'Playfair Display', serif;
+  font-size:clamp(34px,4.2vw,62px);
+  font-weight:700; line-height:1.04;
+  letter-spacing:-.025em; margin-bottom:28px;
+}
+h1 em { font-style:normal; color:var(--accent); }
+.hero-sub {
+  font-size:17px; color:var(--text-2); line-height:1.8;
+  max-width:560px; margin-bottom:44px;
+}
+.meta-strip {
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:1px; background:var(--border);
+  border:1px solid var(--border); border-radius: 2px;
+  overflow:hidden; margin-bottom:40px;
+}
+.meta-cell { background:var(--surface); padding:18px 22px; }
+.meta-lbl {
+  font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--text-3); margin-bottom:7px;
+}
+.meta-val { font-size:13px; font-weight:600; color:var(--text-1); line-height:1.3; }
+.tag-row { display:flex; flex-wrap:wrap; gap:8px; }
+.chip {
+  font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.10em; text-transform:uppercase;
+  color:var(--text-2); border:1px solid var(--border-hi);
+  padding:5px 11px; border-radius: 3px; transition:all .2s; cursor:default;
+}
+.chip:hover { border-color:var(--accent); color:var(--accent); }
+
+/* manifesto card */
+.manifesto-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius: 2px; padding:40px 36px;
+  position:relative; z-index:1; overflow:hidden;
+}
+.manifesto-card::before {
+  content:'"';
+  font-family:'Playfair Display', serif;
+  font-size:160px; line-height:1;
+  color:var(--accent); opacity:.08;
+  position:absolute; top:-28px; left:16px;
+  pointer-events:none;
+}
+.manifesto-lbl {
+  font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:24px;
+}
+.manifesto-text p {
+  font-family:'Playfair Display', serif;
+  font-size:17px; font-weight:700; line-height:1.5;
+  color:var(--text-1); margin-bottom:14px;
+}
+.manifesto-text p.sub {
+  font-family:'DM Sans',sans-serif;
+  font-size:14px; font-weight:400;
+  color:var(--text-2); margin-bottom:0;
+}
+.nda-note {
+  margin-top:28px; padding-top:20px;
+  border-top:1px solid var(--border);
+  font-size:11px; color:var(--text-3); font-style:italic;
+}
+
+/* ─────────────────────────────────────────────
+   LAYOUT PRIMITIVES
+───────────────────────────────────────────── */
+.wrap { max-width:1160px; margin:0 auto; padding:0 60px; }
+.sec { padding:96px 0; border-bottom:1px solid var(--border); }
+.sec:last-child { border-bottom:none; }
+
+.eyebrow {
+  font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:10px;
+  display:flex; align-items:center; gap:10px;
+}
+.eyebrow-num { color:var(--text-3); }
+h2 {
+  font-family:'Playfair Display', serif;
+  font-size:clamp(26px,2.8vw,40px);
+  font-weight:700; letter-spacing:-.02em; line-height:1.1;
+  margin-bottom:44px;
+}
+h3 {
+  font-family:'Playfair Display', serif;
+  font-size:19px; font-weight:700;
+  margin-bottom:16px; color:var(--text-1);
+}
+h4 {
+  font-family:'DM Sans',sans-serif;
+  font-size:14px; font-weight:600;
+  color:var(--text-1); margin-bottom:8px;
+}
+p { color:var(--text-2); margin-bottom:18px; }
+p:last-child { margin-bottom:0; }
+strong { color:var(--text-1); font-weight:600; }
+em.good { color:var(--emerald); font-style:normal; }
+em.warn { color:var(--amber); font-style:normal; }
+
+.two-col   { display:grid; grid-template-columns:1fr 1fr; gap:48px; }
+.three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:28px; }
+.four-col  { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:20px; }
+
+/* ─────────────────────────────────────────────
+   COMPONENTS
+───────────────────────────────────────────── */
+
+/* callout */
+.callout {
+  border-left:3px solid var(--accent);
+  background:var(--accent-bg);
+  border-radius: 0 2px 2px 0;
+  padding:20px 24px; margin:28px 0;
+}
+.callout.green { border-left-color:var(--emerald); background:var(--emerald-bg); }
+.callout.amber { border-left-color:var(--amber); background:var(--amber-bg); }
+.callout.red   { border-left-color:var(--red);   background:var(--red-bg); }
+.callout-lbl {
+  font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:8px;
+}
+.callout.green .callout-lbl { color:var(--emerald); }
+.callout.amber .callout-lbl { color:var(--amber); }
+.callout p { font-size:14px; color:var(--text-1); margin:0; }
+
+/* placeholder */
+.ph {
+  font-family:'DM Mono',monospace;
+  font-size:11px; color:var(--amber);
+  background:var(--amber-bg);
+  border:1px dashed rgba(245,158,11,.28);
+  border-radius: 5px; padding:8px 14px;
+  margin:10px 0; display:block;
+}
+.ph::before { content:'⚠ PLACEHOLDER — '; font-weight:500; }
+
+/* divider */
+.divider {
+  display:flex; align-items:center; gap:20px;
+  margin:52px 0 40px;
+}
+.divider::before,.divider::after {
+  content:''; flex:1; height:1px; background:var(--border);
+}
+.divider span {
+  font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--text-3);
+}
+
+/* stat card */
+.stat-card { background:var(--surface); border:1px solid var(--border); border-radius: 2px; padding:32px 28px; }
+.stat-num {
+  font-family:'Playfair Display', serif;
+  font-size:52px; font-weight:700;
+  color:var(--accent); line-height:1; margin-bottom:8px;
+}
+.stat-lbl { font-size:13px; color:var(--text-2); }
+.stat-note {
+  font-family:'DM Mono',monospace;
+  font-size:9px; color:var(--text-3);
+  letter-spacing:.1em; margin-top:6px;
+}
+
+/* info card */
+.icard {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius: 2px; padding:28px 24px;
+  transition:border-color .2s, transform .2s;
+}
+.icard:hover { border-color:var(--border-hi); transform:translateY(-2px); }
+.icard-icon { font-size:22px; margin-bottom:14px; display:block; }
+.icard h3 { font-size:15px; margin-bottom:10px; }
+.icard p { font-size:13px; color:var(--text-2); margin:0; }
+
+/* pill */
+.pill {
+  display:inline-flex; align-items:center; gap:5px;
+  font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.08em; font-weight:500;
+  padding:3px 9px; border-radius: 2px;
+}
+.pill::before { content:'●'; font-size:7px; }
+.pill-g { background:rgba(16,185,129,.10); color:var(--emerald); border:1px solid rgba(16,185,129,.18); }
+.pill-a { background:rgba(245,158,11,.10); color:var(--amber);   border:1px solid rgba(245,158,11,.18); }
+.pill-r { background:rgba(239,68,68,.10);  color:var(--red);     border:1px solid rgba(239,68,68,.18); }
+.pill-b { background:var(--accent-bg);     color:var(--accent);  border:1px solid rgba(59,130,246,.18); }
+.pill-n { background:rgba(255,255,255,.04);color:var(--text-3);  border:1px solid var(--border-hi); }
+
+/* table */
+.tbl-wrap { overflow-x:auto; margin:28px 0; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+thead tr { border-bottom:1px solid var(--accent-dim); }
+thead th {
+  font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--accent); padding:12px 18px; text-align:left; font-weight:500;
+}
+tbody tr { border-bottom:1px solid var(--border); transition:background .15s; }
+tbody tr:hover { background:var(--surface); }
+tbody td { padding:14px 18px; color:var(--text-2); vertical-align:top; }
+tbody td:first-child { color:var(--text-1); font-weight:500; }
+td.mono { font-family:'DM Mono',monospace; font-size:11px; }
+
+/* persona card */
+.persona {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius: 2px; overflow:hidden;
+}
+.persona-head {
+  padding:20px 24px; display:flex; align-items:center; gap:14px;
+  border-bottom:1px solid var(--border);
+}
+.persona-avatar {
+  width:40px; height:40px; border-radius: 50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; flex-shrink:0;
+}
+.persona-name { font-weight:600; font-size:15px; }
+.persona-role { font-size:12px; color:var(--text-2); margin-top:2px; }
+.persona-body { padding:20px 24px; }
+.persona-body p { font-size:13px; }
+
+/* timeline */
+.timeline { position:relative; padding-left:28px; margin:28px 0; }
+.timeline::before {
+  content:''; position:absolute;
+  left:0; top:10px; bottom:10px;
+  width:1px; background:var(--border-hi);
+}
+.tl-item { position:relative; margin-bottom:28px; }
+.tl-item:last-child { margin-bottom:0; }
+.tl-item::before {
+  content:''; position:absolute;
+  left:-32px; top:8px;
+  width:8px; height:8px; border-radius: 50%;
+  background:var(--accent);
+  
+}
+.tl-date {
+  font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--text-3); margin-bottom:5px;
+}
+.tl-title { font-weight:600; font-size:14px; color:var(--text-1); margin-bottom:5px; }
+.tl-body  { font-size:13px; color:var(--text-2); }
+
+/* gap row */
+.gap-list { display:grid; gap:10px; margin:28px 0; }
+.gap-row {
+  display:grid; grid-template-columns:2fr .7fr .7fr 1.8fr;
+  gap:14px; align-items:center;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius: 2px; padding:14px 18px;
+  transition:border-color .2s;
+}
+.gap-row:hover { border-color:var(--border-hi); }
+.gap-row.crit  { border-left:3px solid var(--red); }
+.gap-row.sig   { border-left:3px solid var(--amber); }
+.gap-row.road  { border-left:3px solid var(--text-3); }
+.gap-name { font-size:13px; font-weight:600; color:var(--text-1); }
+.gap-sol  { font-size:12px; color:var(--text-2); }
+
+/* positioning map */
+.pos-map {
+  position:relative; width:100%; max-width:480px;
+  aspect-ratio:1; background:var(--surface);
+  border:1px solid var(--border); border-radius: 2px;
+  margin:28px 0;
+}
+.pos-ax-h, .pos-ax-v {
+  position:absolute; background:var(--border-hi);
+}
+.pos-ax-h { left:8%; right:8%; top:50%; height:1px; }
+.pos-ax-v { top:8%; bottom:8%; left:50%; width:1px; }
+.ax-lbl {
+  position:absolute;
+  font-family:'DM Mono',monospace;
+  font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);
+}
+.pos-node {
+  position:absolute; transform:translate(-50%,-50%);
+  display:flex; flex-direction:column; align-items:center; gap:4px; cursor:default;
+}
+.pos-dot {
+  width:9px; height:9px; border-radius: 50%; background:var(--text-3);
+}
+.pos-node.target .pos-dot {
+  background:var(--accent);
+  
+  animation:glow 2.4s ease-in-out infinite;
+}
+@keyframes glow {
+  0%,100% {  }
+  50%      { box-shadow:0 0 0 12px rgba(59,130,246,.06), 0 0 30px var(--accent); }
+}
+.pos-lbl {
+  font-family:'DM Mono',monospace;
+  font-size:9px; color:var(--text-2); white-space:nowrap;
+}
+.pos-node.target .pos-lbl { color:var(--accent); font-weight:500; }
+
+/* journey map */
+.journey-wrap { overflow-x:auto; margin:32px 0; }
+.journey {
+  min-width:860px; border-collapse:collapse; width:100%; font-size:12px;
+}
+.journey th {
+  font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--text-3); padding:12px 14px;
+  background:var(--surface-2); border:1px solid var(--border);
+  text-align:center;
+}
+.journey td {
+  padding:12px 14px; border:1px solid var(--border);
+  background:var(--surface); color:var(--text-2);
+  vertical-align:top; text-align:center; line-height:1.5;
+}
+.journey .row-lbl {
+  font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--accent); text-align:left;
+  background:var(--surface-2); min-width:130px;
+}
+.journey .hl { background:var(--accent-bg); border-color:rgba(59,130,246,.2); color:var(--text-1); font-weight:500; }
+.journey .pain-hi { color:var(--red); font-weight:600; }
+.journey .pain-md { color:var(--amber); }
+.journey .pain-lo { color:var(--text-3); }
+
+/* widget taxonomy */
+.widget-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius: 2px; overflow:hidden; margin:28px 0; }
+.widget-cell { background:var(--surface); padding:24px 20px; }
+.widget-icon { font-size:24px; margin-bottom:12px; display:block; }
+.widget-name { font-family:'Playfair Display', serif; font-size:14px; font-weight:700; margin-bottom:8px; color:var(--text-1); }
+.widget-desc { font-size:12px; color:var(--text-2); margin:0; }
+
+/* interaction table */
+.int-grid { display:grid; gap:8px; margin:28px 0; }
+.int-row {
+  display:grid; grid-template-columns:1.2fr 1.6fr 1.6fr;
+  gap:12px; background:var(--surface);
+  border:1px solid var(--border); border-radius: 2px;
+  padding:14px 18px; align-items:start; transition:border-color .2s;
+}
+.int-row:hover { border-color:var(--border-hi); }
+.int-feature { font-size:13px; font-weight:600; color:var(--text-1); }
+.int-model   { font-size:12px; color:var(--text-2); }
+.int-why     { font-size:12px; color:var(--text-2); font-style:italic; }
+
+/* psychology table */
+.psy-grid { display:grid; gap:8px; margin:28px 0; }
+.psy-row {
+  display:grid; grid-template-columns:1fr 2.2fr;
+  gap:16px; background:var(--surface);
+  border:1px solid var(--border); border-radius: 2px;
+  padding:16px 20px; align-items:start;
+}
+.psy-principle { font-size:13px; font-weight:600; color:var(--accent); }
+.psy-application { font-size:13px; color:var(--text-2); }
+
+/* STAR card */
+.star-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius: 2px; overflow:hidden;
+}
+.star-head {
+  background:var(--surface-2); border-bottom:1px solid var(--border);
+  padding:18px 28px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.star-head-title { font-family:'Playfair Display', serif; font-size:17px; font-weight:700; }
+.star-row {
+  display:grid; grid-template-columns:100px 1fr;
+  border-bottom:1px solid var(--border);
+}
+.star-row:last-child { border-bottom:none; }
+.star-key {
+  font-family:'DM Mono',monospace;
+  font-size:9px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--accent); padding:20px 20px;
+  background:var(--surface-2); border-right:1px solid var(--border);
+  display:flex; align-items:flex-start; padding-top:22px;
+}
+.star-val { padding:20px 24px; font-size:13px; color:var(--text-2); line-height:1.65; }
+.star-val strong { color:var(--text-1); }
+
+/* colour swatch */
+.swatches { display:flex; flex-wrap:wrap; gap:14px; margin:28px 0; }
+.swatch { border-radius: 2px; overflow:hidden; width:148px; }
+.sw-colour { height:68px; }
+.sw-info {
+  background:var(--surface); border:1px solid var(--border);
+  border-top:none; border-radius: 0 0 2px 2px; padding:10px 12px;
+}
+.sw-name { font-size:12px; font-weight:600; color:var(--text-1); margin-bottom:3px; }
+.sw-hex  { font-family:'DM Mono',monospace; font-size:10px; color:var(--text-3); }
+
+/* type specimen */
+.type-specimen {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius: 2px; overflow:hidden; margin:28px 0;
+}
+.type-row {
+  display:grid; grid-template-columns:120px 1fr 80px;
+  gap:20px; padding:18px 24px;
+  border-bottom:1px solid var(--border); align-items:center;
+}
+.type-row:last-child { border-bottom:none; }
+.type-role { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); }
+.type-sample { font-size:18px; color:var(--text-1); }
+.type-spec { font-family:'DM Mono',monospace; font-size:9px; color:var(--text-3); text-align:right; }
+
+/* fade-in animation */
+.fade { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
+.fade.on { opacity:1; transform:translateY(0); }
+
+/* ─────────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────────── */
+footer {
+  padding:52px 60px;
+  display:flex; justify-content:space-between; align-items:center;
+  border-top:1px solid var(--border);
+}
+.ft-brand { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--text-3); }
+.ft-note  { font-size:12px; color:var(--text-3); font-style:italic; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-brand">UX Case Study</span>
+  <ul class="nav-links">
+    <li><a href="index.html" style="color: var(--accent); font-weight: 700;">← Home</a></li>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#market">Market</a></li>
+    <li><a href="#research">Research</a></li>
+    <li><a href="#design">Design</a></li>
+    <li><a href="#outcome">Outcome</a></li>
+    <li><a href="#reflection">Reflection</a></li>
+  </ul>
+  <span class="nav-badge">B2B SaaS · Enterprise</span>
+</nav>
+<div id="progress-bar"></div>
+
+<!-- ═══════════════════════════════════════════
+     HERO
+════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-left fade">
+    <div class="hero-eyebrow">Sogolytics &nbsp;·&nbsp; Experience Management Platform</div>
+    <h1>Designing <em>Decision Clarity</em> for a B2B Experience Management Platform</h1>
+    <p class="hero-sub">When Account Managers can't build dashboards confidently, enterprise clients can't act on their data. I designed a real-time, modular custom dashboard that closed four critical competitive gaps and replaced a manual email reporting chain with governed live sharing.</p>
+    <div class="meta-strip">
+      <div class="meta-cell">
+        <div class="meta-lbl">Role</div>
+        <div class="meta-val">Lead UX Designer</div>
+      </div>
+      <div class="meta-cell">
+        <div class="meta-lbl">Timeline</div>
+        <div class="meta-val">2 Months</div>
+      </div>
+      <div class="meta-cell">
+        <div class="meta-lbl">Team</div>
+        <div class="meta-val">1 Designer + 1 PM</div>
+      </div>
+      <div class="meta-cell">
+        <div class="meta-lbl">Platform</div>
+        <div class="meta-val">B2B SaaS · 3 Tiers</div>
+      </div>
+    </div>
+    <div class="tag-row">
+      <span class="chip">Interaction Design</span>
+      <span class="chip">Usability Testing</span>
+      <span class="chip">B2B Enterprise</span>
+      <span class="chip">Data Visualisation</span>
+      <span class="chip">Figma</span>
+      <span class="chip">Systems Thinking</span>
+      <span class="chip">10 Years Experience</span>
+    </div>
+  </div>
+
+  <div class="manifesto-card fade">
+    <div class="manifesto-lbl">Designer Manifesto</div>
+    <div class="manifesto-text">
+      <p>I design for the person who has to explain data to a room that doesn't trust it yet.</p>
+      <p class="sub">My work earns that trust — through clarity, not complexity. Precision at the builder layer produces confidence at the stakeholder layer.</p>
+    </div>
+    <p class="nda-note">Employer and product details shown at company level. Usability test completion data withheld under NDA. Full context available under mutual NDA.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     01 — PROJECT OVERVIEW
+════════════════════════════════════════════ -->
+<section class="sec" id="overview">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">01</span> Project Overview</div>
+    <h2>The Problem Behind the Problem</h2>
+
+    <div class="two-col">
+      <div class="fade">
+        <p>Sogolytics is a B2B SaaS Experience Management platform serving clients across three package tiers — from SMB through to enterprise. The platform excelled at survey data collection and reporting. But the <strong>analysis layer was failing</strong> both the people who build dashboards and the people who consume them.</p>
+        <p>Account Managers — the internal power users who configure dashboards on behalf of enterprise clients — had no canvas-based builder. Every insight lived in a separate static report, manually exported and emailed. Every configuration change required rebuilding from scratch.</p>
+        <div class="callout">
+          <div class="callout-lbl">Core Problem</div>
+          <p>The platform lacked a configurable analysis layer. Account Managers couldn't combine ratings, response tables, score summaries, and contextual labels into a single shared surface — creating a critical churn risk at the enterprise tier against competitors who had already moved to configurable dashboards.</p>
+        </div>
+      </div>
+
+      <div class="fade">
+        <h3>Two Personas. One Critical Handoff.</h3>
+        <div style="display:grid; gap:14px; margin-top:20px;">
+          <div class="persona">
+            <div class="persona-head">
+              <div class="persona-avatar" style="background:var(--accent-bg);">🏗</div>
+              <div>
+                <div class="persona-name">Account Manager</div>
+                <div class="persona-role">Sogolytics Internal · <strong style="color:var(--accent)">Builder</strong></div>
+              </div>
+            </div>
+            <div class="persona-body">
+              <p>Configures dashboards on behalf of enterprise clients. Primary usability test participant. Their workflow is the product — if setup breaks down, the client never sees value.</p>
+            </div>
+          </div>
+          <div class="persona">
+            <div class="persona-head">
+              <div class="persona-avatar" style="background:var(--emerald-bg);">📊</div>
+              <div>
+                <div class="persona-name">CX Manager / Marketing / PM</div>
+                <div class="persona-role">Client-side · <strong style="color:var(--emerald)">Consumer</strong></div>
+              </div>
+            </div>
+            <div class="persona-body">
+              <p>Reads, filters, and shares dashboards to drive decisions. Receives the dashboard the AM builds. Their trust in the data depends entirely on the AM's ability to surface the right signals.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     02 — HISTORY
+════════════════════════════════════════════ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">02</span> History &amp; Context</div>
+    <h2>What Past Approaches Failed to Solve</h2>
+    <div class="two-col">
+      <div class="fade">
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-date">Before this project</div>
+            <div class="tl-title">Static Export Reporting</div>
+            <div class="tl-body">Comprehensive PDF/email outputs with no real-time refresh, no shared live view, and no KPI prioritisation. Insights were comprehensive but not actionable.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-date">Previous iterations</div>
+            <div class="tl-title">Feature Sprawl Without Clarity</div>
+            <div class="tl-body">Each iteration added more report types — more charts, more filters, more data — but addressed breadth, not configurability. Cognitive load grew with every release.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-date">Competitive shift</div>
+            <div class="tl-title">Market Moved to Configurable Dashboards</div>
+            <div class="tl-body">Qualtrics and Polymer AI had moved to embedded, configurable dashboards. Enterprise accounts evaluating at renewal had new options. Churn risk was real.</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-date">This project</div>
+            <div class="tl-title">Canvas-First Dashboard Builder</div>
+            <div class="tl-body">Design for the Account Manager's workflow first. Their build experience is the product gateway — if that breaks down, the client never sees value, regardless of the data's quality.</div>
+          </div>
+        </div>
+      </div>
+      <div class="fade">
+        <div class="callout green">
+          <div class="callout-lbl">What We Refused to Repeat</div>
+          <p>"Adding more data outputs without asking what users actually need to act on."</p>
+        </div>
+        <h3 style="margin-top:36px;">Baseline Research — Pre-Design</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); border-radius: 2px; overflow:hidden; margin-top:20px;">
+          <div class="stat-card" style="border-radius: 0;">
+            <div class="stat-num">70%</div>
+            <div class="stat-lbl">wanted drag-and-drop dashboard</div>
+          </div>
+          <div class="stat-card" style="border-radius: 0;">
+            <div class="stat-num">65%</div>
+            <div class="stat-lbl">prioritised real-time over static reports</div>
+          </div>
+          <div class="stat-card" style="border-radius: 0; grid-column:1/-1;">
+            <div class="stat-num">80%</div>
+            <div class="stat-lbl">struggled with limited data visualisation options</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     03 — MARKET · COMPETITIVE · GAP
+════════════════════════════════════════════ -->
+<section class="sec" id="market">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">03</span> Market · Competitive · Gap Analysis</div>
+    <h2>A Competitive Position Gap, Not Just a Feature Request</h2>
+
+    <div class="divider"><span>TAM Analysis</span></div>
+
+    <div class="three-col fade">
+      <div class="icard">
+        <span class="icard-icon">📈</span>
+        <h3>Data Visualisation Market</h3>
+        <p>Global market projected at <strong>$10.2B by 2025</strong>, growing at ~10% CAGR. Dashboard tooling is high-growth — Sogolytics entering the canvas builder space is strategically timed.</p>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">🎯</span>
+        <h3>Experience Management Market</h3>
+        <p>CX software market projected at <strong>$14.9B by 2025</strong>. Sogolytics sits at the intersection of two expanding markets — survey collection and analytical dashboards.</p>
+        <span class="ph">Verify current market figure pre-publish</span>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">⚠️</span>
+        <h3>Serviceable Addressable Market</h3>
+        <p>Existing accounts = immediate monetisable surface. Accounts where AMs manually build/export = <strong>highest churn-risk segment</strong>, concentrated at mid and enterprise tier.</p>
+        <span class="ph">Enterprise accounts at risk pre-launch count</span>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:8px;">
+      <div class="callout-lbl">Strategic Framing</div>
+      <p>This wasn't a new-user acquisition play. It was a <strong>retention and upsell play</strong> — protecting enterprise accounts that were comparing Sogolytics against Qualtrics at renewal.</p>
+    </div>
+
+    <div class="divider"><span>Competitive Analysis</span></div>
+
+    <div class="tbl-wrap fade">
+      <table>
+        <thead>
+          <tr>
+            <th>Competitor</th>
+            <th>Core Strength</th>
+            <th>Dashboard Capability</th>
+            <th>Gap vs Sogolytics Opportunity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Qualtrics</td>
+            <td>Enterprise CX suite</td>
+            <td>Highly configurable, RBAC, enterprise-grade</td>
+            <td>Complex and expensive — SMB/mid-market priced out; heavy implementation overhead</td>
+          </tr>
+          <tr>
+            <td>Polymer AI</td>
+            <td>AI for non-analysts</td>
+            <td>Auto-generated charts from raw data</td>
+            <td>No drag-and-drop canvas; outputs generated not hand-configured</td>
+          </tr>
+          <tr>
+            <td>Databrain</td>
+            <td>Embedded analytics</td>
+            <td>AI-powered embedded dashboard for SaaS products</td>
+            <td>Developer-first — inaccessible to non-technical AMs without custom setup</td>
+          </tr>
+          <tr>
+            <td>Luzmo (Cumul.io)</td>
+            <td>Low-code embedded analytics</td>
+            <td>Embedded dashboards with AI capabilities</td>
+            <td>Integration-heavy; built for SaaS products adding analytics in, not for end users</td>
+          </tr>
+          <tr>
+            <td>DashboardFox</td>
+            <td>SMB drag-and-drop</td>
+            <td>Interactive drag-and-drop builder</td>
+            <td>No CX/survey data layer — generic BI, not experience-management native</td>
+          </tr>
+          <tr>
+            <td>Tinybird</td>
+            <td>Real-time data pipelines</td>
+            <td>Real-time dashboard tooling</td>
+            <td>Developer/data-engineer audience — no non-technical path</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top:52px; margin-bottom:4px;">Competitive Positioning Map</h3>
+    <p style="margin-bottom:0;">White space: high customisation + non-technical accessibility within a CX-native context. No competitor occupies this zone for the Sogolytics customer profile.</p>
+
+    <div style="display:grid; grid-template-columns:440px 1fr; gap:48px; align-items:start; margin-top:32px;">
+      <div>
+        <div class="pos-map">
+          <div class="pos-ax-h"></div>
+          <div class="pos-ax-v"></div>
+          <div class="ax-lbl" style="top:6%; left:50%; transform:translateX(-50%)">HIGH CUSTOMISATION</div>
+          <div class="ax-lbl" style="bottom:6%; left:50%; transform:translateX(-50%)">LOW CUSTOMISATION</div>
+          <div class="ax-lbl" style="left:3%; top:50%; transform:translateY(-50%) rotate(-90deg); transform-origin:center;">NON-TECHNICAL</div>
+          <div class="ax-lbl" style="right:0%; top:50%; transform:translateY(-50%) rotate(90deg); transform-origin:center;">DEVELOPER</div>
+
+          <div class="pos-node" style="top:22%; left:28%;"><div class="pos-dot"></div><div class="pos-lbl">Qualtrics</div></div>
+          <div class="pos-node" style="top:26%; left:64%;"><div class="pos-dot"></div><div class="pos-lbl">Luzmo</div></div>
+          <div class="pos-node" style="top:62%; left:36%;"><div class="pos-dot"></div><div class="pos-lbl">DashboardFox</div></div>
+          <div class="pos-node" style="top:70%; left:26%;"><div class="pos-dot"></div><div class="pos-lbl">Polymer AI</div></div>
+          <div class="pos-node" style="top:40%; left:70%;"><div class="pos-dot"></div><div class="pos-lbl">Databrain</div></div>
+          <div class="pos-node" style="top:54%; left:74%;"><div class="pos-dot"></div><div class="pos-lbl">Tinybird</div></div>
+          <div class="pos-node target" style="top:27%; left:26%;"><div class="pos-dot"></div><div class="pos-lbl">↗ Sogolytics Target</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="callout green">
+          <div class="callout-lbl">White Space Captured</div>
+          <p><strong>High customisation + non-technical accessibility</strong> in a CX/survey-native context. No competitor sits here for Sogolytics' customer profile.</p>
+        </div>
+        <div style="margin-top:24px;">
+          <h4>What this meant for every design decision:</h4>
+          <p style="font-size:14px;">Power features — segmentation, RBAC, advanced settings — had to be accessible to non-technical Account Managers. Not hidden behind documentation, not requiring training, not requiring a developer to configure.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><span>Gap Analysis — v1 Scope Decisions</span></div>
+
+    <div style="display:grid; grid-template-columns:2fr .7fr .7fr 1.8fr; gap:14px; padding:0 18px; margin-bottom:10px;">
+      <div style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);">User Need</div>
+      <div style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);">Severity</div>
+      <div style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);">Status</div>
+      <div style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);">Solution Designed</div>
+    </div>
+    <div class="gap-list fade">
+      <div class="gap-row crit">
+        <div class="gap-name">Drag-and-drop canvas builder for non-technical users</div>
+        <div><span class="pill pill-r">Critical</span></div>
+        <div><span class="pill pill-g">Resolved ✓</span></div>
+        <div class="gap-sol">4-widget canvas with snap-to-grid, visible drop zones, ghost preview on drag</div>
+      </div>
+      <div class="gap-row crit">
+        <div class="gap-name">Real-time data updates — no manual refresh</div>
+        <div><span class="pill pill-r">Critical</span></div>
+        <div><span class="pill pill-g">Resolved ✓</span></div>
+        <div class="gap-sol">Live data binding on all widgets — updates on filter change, no page reload</div>
+      </div>
+      <div class="gap-row crit">
+        <div class="gap-name">CX-native widget types (NPS, CSAT, Score, responses)</div>
+        <div><span class="pill pill-r">Critical</span></div>
+        <div><span class="pill pill-g">Resolved ✓</span></div>
+        <div class="gap-sol">Graph (NPS/CSAT/rating), Score (KPI), Table (sortable responses), Description (context)</div>
+      </div>
+      <div class="gap-row crit">
+        <div class="gap-name">Governed live sharing with access controls</div>
+        <div><span class="pill pill-r">Critical</span></div>
+        <div><span class="pill pill-g">Resolved ✓</span></div>
+        <div class="gap-sol">Dynamic link: password-protected, expiry-dated, filter + drill-down permissions inline at share</div>
+      </div>
+      <div class="gap-row sig">
+        <div class="gap-name">Widget + dashboard-level segmentation</div>
+        <div><span class="pill pill-a">Significant</span></div>
+        <div><span class="pill pill-g">Resolved ✓</span></div>
+        <div class="gap-sol">Dual segmentation: widget-level (isolated slice) + dashboard-level (global view change)</div>
+      </div>
+      <div class="gap-row sig">
+        <div class="gap-name">Recurring scheduled delivery</div>
+        <div><span class="pill pill-a">Significant</span></div>
+        <div><span class="pill pill-g">Resolved ✓</span></div>
+        <div class="gap-sol">Daily / Weekly / Monthly recurring email delivery to stakeholders who don't log in</div>
+      </div>
+      <div class="gap-row road">
+        <div class="gap-name">AI-driven trend and anomaly detection</div>
+        <div><span class="pill pill-n">Roadmap</span></div>
+        <div><span class="pill pill-b">Deferred →v2</span></div>
+        <div class="gap-sol">Deliberate scope decision — within 2-month constraint, core canvas shipped first</div>
+      </div>
+      <div class="gap-row road">
+        <div class="gap-name">Mobile-optimised dashboard view</div>
+        <div><span class="pill pill-n">Roadmap</span></div>
+        <div><span class="pill pill-b">Deferred →v2</span></div>
+        <div class="gap-sol">v2 roadmap — desktop-first for enterprise AM workflow validated</div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:12px;">
+      <div class="callout-lbl">Scope Decision — Systems Thinking Proof</div>
+      <p>4 critical gaps → 4 features shipped in v1. 2 significant gaps included as enhanced capability. 3 deferred by deliberate PM-aligned scoping. This wasn't scope creep prevention — it was <strong>competitive triage</strong> inside a 2-month window.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     04 — RESEARCH & USABILITY
+════════════════════════════════════════════ -->
+<section class="sec" id="research">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">04</span> Research &amp; Usability Testing</div>
+    <h2>The Moment That Defined the Entire Design</h2>
+
+    <div class="two-col">
+      <div class="fade">
+        <h3>In-House Usability Test</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); border-radius: 2px; overflow:hidden; margin-bottom:28px;">
+          <div class="stat-card" style="border-radius: 0;">
+            <div class="stat-num">7</div>
+            <div class="stat-lbl">Account Managers tested</div>
+            <div class="stat-note">Internal proxy users — builder persona</div>
+          </div>
+          <div class="stat-card" style="border-radius: 0;">
+            <div class="stat-num">100%</div>
+            <div class="stat-lbl">failure rate at drag-and-drop</div>
+            <div class="stat-note">Before design intervention</div>
+          </div>
+        </div>
+
+        <div class="callout red">
+          <div class="callout-lbl">Primary Finding</div>
+          <p>Every participant got stuck in the same place — dragging a widget from the left menu and not knowing where it would land on the canvas. The canvas was <strong>silent when it should have been speaking</strong>.</p>
+        </div>
+
+        <h4 style="margin-top:28px;">What the test revealed:</h4>
+        <p style="font-size:14px;">Participants weren't confused about what the dashboard could do — they were confused about <em>where things would land</em>. The gap between intent and feedback was the entire design problem, expressed in one repeated gesture across all 7 sessions.</p>
+        <p style="font-size:14px;">Secondary friction: widget type affordances (Graph vs Score vs Table) weren't visually distinct enough in the selection menu. AMs had to trial-and-error the right widget for each KPI type.</p>
+
+        <span class="ph">Completion rate delta — X/7 → Y/7 post-redesign (withheld under NDA)</span>
+      </div>
+
+      <div class="fade">
+        <h3>Design Responses — One Observation, Three Fixes</h3>
+        <div style="display:grid; gap:12px; margin-top:20px;">
+          <div class="icard">
+            <span class="icard-icon">👻</span>
+            <h3>Ghost Preview</h3>
+            <p>Live visual representation of the widget during drag — shows exactly where it will land before the user releases. Closed the loop between "I'm moving this" and "it will go here."</p>
+          </div>
+          <div class="icard">
+            <span class="icard-icon">🎯</span>
+            <h3>Visible Drop Zones</h3>
+            <p>Canvas zones illuminate on drag initiation — making valid placement areas explicit. Users no longer had to guess which regions accepted widget drops.</p>
+          </div>
+          <div class="icard">
+            <span class="icard-icon">⚡</span>
+            <h3>Widget Preview Thumbnails</h3>
+            <p>Added labelled visual previews to the left menu widget selection. AMs recognise what they need (NPS chart, response table) rather than having to remember a widget name and guess its output.</p>
+          </div>
+        </div>
+        <div class="callout green" style="margin-top:20px;">
+          <div class="callout-lbl">Outcome</div>
+          <p>Task completion improved post-redesign. The fix wasn't a tooltip or onboarding modal — it was a redesigned affordance. The guessing stopped.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><span>Success Targets — PM-Defined Pre-Launch</span></div>
+
+    <div class="callout amber" style="margin-bottom:32px;">
+      <div class="callout-lbl">Transparency Note</div>
+      <p>The following metrics are <strong>PM-defined targets set before launch</strong>, not measured post-launch outcomes. Post-launch measurement data is withheld under NDA. Senior designers set measurable targets upfront — that is a signal of product maturity, not a gap.</p>
+    </div>
+
+    <div class="three-col fade">
+      <div class="stat-card">
+        <div class="stat-num">50%</div>
+        <div class="stat-lbl">faster decision-making cycle</div>
+        <div class="stat-note">Pre-launch target · NDA applies to actuals</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">30%</div>
+        <div class="stat-lbl">increase in platform engagement</div>
+        <div class="stat-note">Pre-launch target · NDA applies to actuals</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="font-size:36px; padding-top:8px;">↑</div>
+        <div class="stat-lbl">retention rate improvement vs baseline</div>
+        <div class="stat-note">Pre-launch target · NDA applies to actuals</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     05 — DESIGN SYSTEM & INTERACTION
+════════════════════════════════════════════ -->
+<section class="sec" id="design">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">05</span> Design System &amp; Interaction</div>
+    <h2>Four Widget Types. One Complete Information Hierarchy.</h2>
+
+    <p style="max-width:680px; margin-bottom:36px;">The widget taxonomy wasn't arbitrary — it maps directly to how enterprise stakeholders consume data: headline first, trend second, detail on demand. AMs arrange widgets to match this reading order for each client's specific priorities.</p>
+
+    <div class="widget-grid fade">
+      <div class="widget-cell">
+        <span class="widget-icon">📊</span>
+        <div class="widget-name">Graph Widget</div>
+        <p class="widget-desc">Visualises NPS, CSAT, or any rating question. Shows patterns and distributions. <em class="good">Trend layer.</em></p>
+      </div>
+      <div class="widget-cell">
+        <span class="widget-icon">🔢</span>
+        <div class="widget-name">Score Widget</div>
+        <p class="widget-desc">Summarises project performance as a single metric. The headline number that leads a dashboard. <em class="good">KPI layer.</em></p>
+      </div>
+      <div class="widget-cell">
+        <span class="widget-icon">📋</span>
+        <div class="widget-name">Table Widget</div>
+        <p class="widget-desc">Sortable response-level data. Enables drill-down from aggregate to individual. <em class="good">Detail layer.</em></p>
+      </div>
+      <div class="widget-cell">
+        <span class="widget-icon">📝</span>
+        <div class="widget-name">Description Widget</div>
+        <p class="widget-desc">Adds text, headers, and context. Lets AMs annotate client-specific meaning onto data. <em class="good">Context layer.</em></p>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-bottom:40px;">
+      <div class="callout-lbl">Information Hierarchy Design Principle</div>
+      <p><strong>Description</strong> sets context → <strong>Score</strong> leads with the headline KPI → <strong>Graph</strong> shows pattern and trend → <strong>Table</strong> enables individual-response drill-down. Four widgets, four layers of progressive depth.</p>
+    </div>
+
+    <div class="divider"><span>Full Interaction System</span></div>
+
+    <div class="int-grid fade">
+      <div style="display:grid; grid-template-columns:1.2fr 1.6fr 1.6fr; gap:14px; padding:0 18px; margin-bottom:8px;">
+        <div style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);">Feature</div>
+        <div style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);">Interaction Model</div>
+        <div style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);">Design Rationale</div>
+      </div>
+      <div class="int-row">
+        <div class="int-feature">Widget Library</div>
+        <div class="int-model">Left panel · 4 typed widgets with labelled previews</div>
+        <div class="int-why">Reduces search load — AMs know what metric they need, not a system widget name. Recognition over recall.</div>
+      </div>
+      <div class="int-row" style="border-left:3px solid var(--accent);">
+        <div class="int-feature">Drag-to-Canvas <span class="pill pill-b" style="margin-left:4px;">Core Fix</span></div>
+        <div class="int-model">Ghost preview + visible drop zones + snap-to-grid</div>
+        <div class="int-why">Directly resolves 100% usability failure — canvas speaks during the drag, not after drop.</div>
+      </div>
+      <div class="int-row">
+        <div class="int-feature">Inline Configuration</div>
+        <div class="int-model">Project → Question/Metadata/Directory set post-drop, in-canvas</div>
+        <div class="int-why">Keeps AM in canvas context mid-build — no navigation away to configure.</div>
+      </div>
+      <div class="int-row">
+        <div class="int-feature">Widget Resize</div>
+        <div class="int-model">Drag lower-right corner</div>
+        <div class="int-why">Conventional resize affordance — no custom handle to learn. Zero onboarding required.</div>
+      </div>
+      <div class="int-row">
+        <div class="int-feature">Widget-Level Segmentation</div>
+        <div class="int-model">Segment by answer or activity on a single widget only</div>
+        <div class="int-why">Enables side-by-side comparisons within one dashboard without duplicating the entire view.</div>
+      </div>
+      <div class="int-row">
+        <div class="int-feature">Dashboard-Level Segmentation</div>
+        <div class="int-model">Single filter changes all widgets simultaneously</div>
+        <div class="int-why">Efficient for client review sessions — "show me only last quarter" updates the entire surface.</div>
+      </div>
+      <div class="int-row">
+        <div class="int-feature">Time Period Filter</div>
+        <div class="int-model">Persistent top-left dropdown: Today / Last 24hrs / Custom range</div>
+        <div class="int-why">Matches the #1 end-user behaviour: orient to recency before exploring detail.</div>
+      </div>
+      <div class="int-row">
+        <div class="int-feature">Advanced Settings</div>
+        <div class="int-model">Sort order, legend display, overall metrics toggle</div>
+        <div class="int-why">Power-user layer surfaced only after widget placement. Progressive disclosure — complexity is earned.</div>
+      </div>
+      <div class="int-row" style="border-left:3px solid var(--emerald);">
+        <div class="int-feature">Live Link Sharing</div>
+        <div class="int-model">Dynamic URL · password-protected · expiry date</div>
+        <div class="int-why">Replaces email export chain with a single governed, always-current link. No version-control chaos.</div>
+      </div>
+      <div class="int-row">
+        <div class="int-feature">Recurring Email Delivery</div>
+        <div class="int-model">Daily / Weekly / Monthly scheduled send</div>
+        <div class="int-why">Serves stakeholders who won't log into the platform — data arrives in workflow, increasing adoption without requiring login behaviour change.</div>
+      </div>
+      <div class="int-row">
+        <div class="int-feature">Recipient Permissions</div>
+        <div class="int-model">Allow/restrict: filter access + individual response drill-down, inline at share action</div>
+        <div class="int-why">Governance at point of share — access level visible before sharing, not discovered after. Enterprise compliance requirement, not a post-launch addition.</div>
+      </div>
+    </div>
+
+    <div class="callout green" style="margin-top:16px;">
+      <div class="callout-lbl">FAANG-Level Framing: This Is a Permission-Aware Multi-Surface Sharing System</div>
+      <p>Not just a chart builder. The decision to embed permissions <strong>inline at the share action</strong> — not buried in account settings — was a deliberate governance decision that prevented enterprise clients from accidentally over-sharing sensitive survey data. Org-level impact, designed into the UX.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     06 — PSYCHOLOGY & BEHAVIOUR
+════════════════════════════════════════════ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">06</span> Psychology &amp; Behaviour</div>
+    <h2>Every Interaction Decision Mapped Back to One Principle</h2>
+    <div class="callout" style="margin-bottom:36px;">
+      <div class="callout-lbl">Core Design Principle</div>
+      <p>Enterprise users making data-driven decisions under time pressure cannot afford to <em>find</em> insights — the dashboard has to <strong>surface</strong> them. Every cognitive load reduction choice served this principle.</p>
+    </div>
+    <div class="psy-grid fade">
+      <div style="display:grid; grid-template-columns:1fr 2.2fr; gap:16px; padding:0 20px; margin-bottom:8px;">
+        <div style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);">Principle</div>
+        <div style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3);">Application in Sogolytics Dashboard</div>
+      </div>
+      <div class="psy-row">
+        <div class="psy-principle">Progressive Disclosure</div>
+        <div class="psy-application">Step flow: Access → Create → Add Widget → Configure → Customise → Save. Advanced settings only surface after a widget is placed — complexity is earned, not front-loaded.</div>
+      </div>
+      <div class="psy-row" style="border-left:3px solid var(--accent); background:var(--accent-bg);">
+        <div class="psy-principle">Immediate Feedback <span class="pill pill-b" style="margin-left:4px; vertical-align:middle;">Core Fix</span></div>
+        <div class="psy-application">Ghost preview during drag closes the loop between "I'm moving this" and "it will land here." This single principle resolved the failure that affected 100% of usability test participants.</div>
+      </div>
+      <div class="psy-row">
+        <div class="psy-principle">Recognition Over Recall</div>
+        <div class="psy-application">Widget library uses labelled names + visual previews — AMs recognise what they need rather than remembering a system widget name and guessing its output shape.</div>
+      </div>
+      <div class="psy-row">
+        <div class="psy-principle">Segmentation Flexibility</div>
+        <div class="psy-application">Widget-level vs dashboard-level segmentation gives AMs fine-grained control without forcing them to build duplicate dashboards for different views within the same client account.</div>
+      </div>
+      <div class="psy-row">
+        <div class="psy-principle">Recipient Trust Calibration</div>
+        <div class="psy-application">Permissions at share time (filter / drill-down on/off) let AMs match data access to stakeholder trust level. A governance behaviour embedded in the sharing UX — not a separate admin screen.</div>
+      </div>
+      <div class="psy-row">
+        <div class="psy-principle">Habit Formation via Push</div>
+        <div class="psy-application">Recurring email delivery (Daily/Weekly/Monthly) shifts stakeholder behaviour from pull (log in to check) to push (data arrives in existing workflow) — increasing adoption without requiring new login behaviour.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     07 — JOURNEY MAP
+════════════════════════════════════════════ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">07</span> User Journey Map — B2B Dual Persona</div>
+    <h2>Where the Design Intervention Lives</h2>
+    <p style="max-width:680px; margin-bottom:12px;">Variant B applied — buyer and daily user are different people. The handoff point between Account Manager and end user is the highest-friction stage. The usability test correctly targeted this exact moment.</p>
+
+    <div class="journey-wrap fade">
+      <table class="journey">
+        <thead>
+          <tr>
+            <th style="text-align:left;">Persona / Stage</th>
+            <th>Awareness</th>
+            <th>Evaluation</th>
+            <th>Decision</th>
+            <th>Rollout</th>
+            <th>Adoption</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-lbl">Buyer<br><small style="color:var(--text-3)">Enterprise Client</small></td>
+            <td>Sees dashboard in demo — drag-and-drop canvas shown</td>
+            <td class="pain-md">Compares vs Qualtrics, existing tool ↓↓</td>
+            <td class="hl">← Signs off on package tier</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td class="row-lbl">Account Manager<br><small style="color:var(--text-3)">Sogolytics</small></td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="hl pain-hi">← Builds client dashboard<br>Add widgets → Configure → Set segments → Generate link<br>↓↓↓ <strong>DESIGN INTERVENTION</strong></td>
+            <td class="pain-md">Updates layouts, adds widgets, adjusts segments ↓</td>
+          </tr>
+          <tr>
+            <td class="row-lbl">End User<br><small style="color:var(--text-3)">CX / Mktg / PM</small></td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="pain-md">← First use. Applies time filter, shares with leadership ↓↓</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout green" style="margin-top:16px;">
+      <div class="callout-lbl">Journey Map Insight</div>
+      <p>The usability test correctly targeted Account Managers at the <strong>Rollout stage</strong> — precisely where the design intervention lives. A failure at AM onboarding to the builder = a failed client deployment = churn risk at the enterprise tier. Right stage, right persona, right test.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     08 — CIVICS & COMPLIANCE
+════════════════════════════════════════════ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">08</span> Compliance &amp; Governance</div>
+    <h2>Regulations That Shaped Design Decisions</h2>
+    <div class="two-col">
+      <div class="fade">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr><th>Standard</th><th>Scope</th><th>Design Impact</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>WCAG 2.1 AA</td>
+                <td>Data viz contrast, keyboard nav, screen reader</td>
+                <td>Limited, high-contrast colour palette; keyboard-accessible widget controls</td>
+              </tr>
+              <tr>
+                <td>GDPR / DPDP</td>
+                <td>EU/India client data in survey responses</td>
+                <td>Consent-aware data flows; export controls surfaced at share step</td>
+              </tr>
+              <tr>
+                <td>RBAC</td>
+                <td>Enterprise multi-user access</td>
+                <td>First-class feature — share action always surfaces permission controls inline, never in settings</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <span class="ph">WCAG audit coverage level confirmed during QA</span>
+        <span class="ph">Internal security review findings pre-launch</span>
+      </div>
+      <div class="fade">
+        <div class="callout">
+          <div class="callout-lbl">RBAC as UX, Not Admin</div>
+          <p>Role-based access control wasn't a post-launch addition. It was designed as a <strong>first-class UX feature</strong> — permission-setting appears inline at the point of sharing, visible before the share action fires, not discovered after a recipient gets the wrong access level.</p>
+        </div>
+        <p style="margin-top:20px; font-size:14px;">This decision had direct governance consequences for enterprise clients handling sensitive employee or customer survey data — particularly in financial services and healthcare verticals where accidental data exposure creates compliance risk.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     09 — OUTCOME & STAR CARD
+════════════════════════════════════════════ -->
+<section class="sec" id="outcome">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">09</span> Outcome &amp; STAR Summary</div>
+    <h2>What Shipped. What Changed. What Was Proven.</h2>
+
+    <div class="two-col" style="margin-bottom:52px;">
+      <div class="fade">
+        <h3>Before This Dashboard</h3>
+        <ul style="list-style:none; display:grid; gap:10px;">
+          <li style="display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--text-2);"><span style="color:var(--red); margin-top:2px;">✕</span> Static PDF and email exports only — no live data</li>
+          <li style="display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--text-2);"><span style="color:var(--red); margin-top:2px;">✕</span> No canvas builder — every insight required manual rebuild</li>
+          <li style="display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--text-2);"><span style="color:var(--red); margin-top:2px;">✕</span> No KPI prioritisation — one-size report for every client</li>
+          <li style="display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--text-2);"><span style="color:var(--red); margin-top:2px;">✕</span> Sharing = emailing an attachment — version chaos at scale</li>
+          <li style="display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--text-2);"><span style="color:var(--red); margin-top:2px;">✕</span> 100% AM failure rate at widget placement in usability test</li>
+        </ul>
+      </div>
+      <div class="fade">
+        <h3>After This Dashboard</h3>
+        <ul style="list-style:none; display:grid; gap:10px;">
+          <li style="display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--text-2);"><span style="color:var(--emerald); margin-top:2px;">✓</span> Real-time, live-bound widget canvas — data refreshes without page reload</li>
+          <li style="display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--text-2);"><span style="color:var(--emerald); margin-top:2px;">✓</span> 4-widget canvas builder — AMs self-configure per client without support</li>
+          <li style="display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--text-2);"><span style="color:var(--emerald); margin-top:2px;">✓</span> Dual segmentation — client-specific data slices without duplicate builds</li>
+          <li style="display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--text-2);"><span style="color:var(--emerald); margin-top:2px;">✓</span> Live link + recurring email sharing — single governed URL replaces email chain</li>
+          <li style="display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--text-2);"><span style="color:var(--emerald); margin-top:2px;">✓</span> Task completion improved post-redesign <em class="warn">(exact delta NDA)</em></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="star-card fade">
+      <div class="star-head">
+        <div class="star-head-title">STAR Card — Sogolytics Custom Dashboard</div>
+        <span class="pill pill-b">Card 01 of 01</span>
+      </div>
+      <div class="star-body">
+        <div class="star-row">
+          <div class="star-key">Situation</div>
+          <div class="star-val">Sogolytics enterprise Account Managers couldn't reliably build client dashboards — a <strong>100% failure rate at drag-and-drop widget placement</strong> was blocking the deployment workflow for a B2B SaaS serving 3 tiers including enterprise. Competitors (Qualtrics, Polymer AI) had already moved to configurable dashboards, creating churn risk at renewal.</div>
+        </div>
+        <div class="star-row">
+          <div class="star-key">Task</div>
+          <div class="star-val">Design a modular, real-time dashboard builder as <strong>sole designer, 1 PM, 2-month timeline</strong>. Scope: 4 widget types (Graph, Score, Table, Description), dual-level segmentation, governed live sharing with RBAC inline, recurring email delivery. Close 4 critical competitive gaps vs v1.</div>
+        </div>
+        <div class="star-row">
+          <div class="star-key">Action</div>
+          <div class="star-val">
+            Led competitive analysis identifying white-space opportunity (high customisation × non-technical users × CX-native). Ran in-house usability test with <strong>7 Account Managers</strong> using realistic client dashboard task. Identified drag-and-drop placement as 100% failure point — canvas gave no positional feedback. Redesigned with <strong>ghost preview + visible drop zones + snap-to-grid</strong>. Added widget preview thumbnails to selection menu. Built permission-aware sharing flow <strong>inline at point of share action</strong>, not in settings. Defined v1 scope — deferred AI detection and mobile optimisation as deliberate constraint decision with PM.
+          </div>
+        </div>
+        <div class="star-row">
+          <div class="star-key">Result</div>
+          <div class="star-val">
+            Task completion improved post-redesign <em class="warn">(exact delta withheld — NDA)</em>. <strong>4 critical competitive gaps closed in v1</strong>: drag-and-drop builder, real-time data, CX-native widgets, governed sharing. Replaced manual email export chain with dynamic permission-controlled live links. PM-defined targets: <strong>50% faster decision-making, 30% engagement increase</strong> (pre-launch benchmarks — actuals NDA). 2 significant gaps (segmentation, recurring delivery) shipped as enhanced capability.
+          </div>
+        </div>
+        <div class="star-row">
+          <div class="star-key">Tools</div>
+          <div class="star-val">Figma · In-house usability testing · Competitive analysis framework · Gap analysis · B2B Dual Persona journey mapping</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     10 — REFLECTION
+════════════════════════════════════════════ -->
+<section class="sec" id="reflection">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">10</span> Reflection &amp; Story</div>
+    <h2>What I'd Do Differently. What I'd Defend.</h2>
+
+    <div class="two-col" style="margin-bottom:52px;">
+      <div class="fade">
+        <h3>What I'd Do Differently</h3>
+        <div style="display:grid; gap:12px; margin-top:16px;">
+          <div class="icard">
+            <span class="icard-icon">🔁</span>
+            <h3>Re-test After the Fix</h3>
+            <p>We observed task completion improved post-redesign, but a formal second-round test with the same 7 AMs would have produced a defensible delta — not a qualitative observation. I'd build that into the timeline next time.</p>
+          </div>
+          <div class="icard">
+            <span class="icard-icon">📱</span>
+            <h3>Earlier Mobile Signal</h3>
+            <p>Mobile was deferred to v2 as a deliberate scope decision. Given that some end users consume dashboards on mobile, an early prototype test would have surfaced whether the deferral created adoption friction before launch rather than after.</p>
+          </div>
+        </div>
+      </div>
+      <div class="fade">
+        <h3>What I'd Defend</h3>
+        <div style="display:grid; gap:12px; margin-top:16px;">
+          <div class="icard">
+            <span class="icard-icon">🎯</span>
+            <h3>Fixing the Affordance, Not the Onboarding</h3>
+            <p>When all 7 AMs got stuck in the same place, the instinctive response is to add a tooltip or walkthrough. I redesigned the affordance instead. The interaction should speak for itself — documentation is a symptom of a design that doesn't.</p>
+          </div>
+          <div class="icard">
+            <span class="icard-icon">🔒</span>
+            <h3>Inline Permissions at Share</h3>
+            <p>Some PMs wanted to simplify the share flow by putting permissions in account settings. I pushed back — governance errors at enterprise scale are expensive. The friction of seeing permissions before sharing is deliberately lower than the friction of fixing a data exposure after.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-bottom:40px;">
+      <div class="callout-lbl">The Story in One Paragraph</div>
+      <p>Seven Account Managers. One task: build a dashboard for a client. Each of them knew the platform well. Each of them got stuck in the same place — dragging a widget from the left menu and not knowing where it would land on the canvas. It wasn't a knowledge problem. It was a feedback problem. The canvas was silent when it should have been speaking. The fix wasn't a tooltip or an onboarding modal. It was a ghost preview — a live signal that said <em>this is where it's going</em> before you let go. Task completion improved. The guessing stopped. <strong>A dashboard is only as trustworthy as the experience of building it. Precision at the builder layer produces confidence at the stakeholder layer.</strong></p>
+    </div>
+
+    <div class="divider"><span>Future Roadmap</span></div>
+    <div class="three-col fade">
+      <div class="icard">
+        <span class="icard-icon">🤖</span>
+        <h3>AI-Powered Insights</h3>
+        <p>Trend detection and anomaly surfacing — automatically flagging when an NPS score drops below baseline or a response pattern shifts. <span class="ph" style="display:inline; padding:2px 8px; font-size:10px;">v2 roadmap confirm</span></p>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">📱</span>
+        <h3>Mobile Optimisation</h3>
+        <p>Responsive dashboard view for end users consuming insights on mobile. Consumption-first, not build-first — the canvas builder stays desktop.</p>
+      </div>
+      <div class="icard">
+        <span class="icard-icon">🗣</span>
+        <h3>Voice &amp; NLP</h3>
+        <p>Hands-free data querying — "show me NPS for last month by region" as a natural language command rather than a manual filter sequence.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     11 — BRAND SYSTEM
+════════════════════════════════════════════ -->
+<section class="sec">
+  <div class="wrap">
+    <div class="eyebrow"><span class="eyebrow-num">11</span> Portfolio Brand System</div>
+    <h2>Enterprise Precision. Analytical Authority. Human Legibility.</h2>
+    <p style="max-width:600px; margin-bottom:36px;">Built for a senior IC targeting FAANG-calibre panels. Signals systems thinking and calm authority — not decorative creativity. Single-family type system (IBM Plex) signals design maturity.</p>
+
+    <div class="divider"><span>Colour System</span></div>
+    <div class="swatches fade">
+      <div class="swatch"><div class="sw-colour" style="background:#07090D;"></div><div class="sw-info"><div class="sw-name">Background</div><div class="sw-hex">#07090D</div></div></div>
+      <div class="swatch"><div class="sw-colour" style="background:#0D1018;"></div><div class="sw-info"><div class="sw-name">Surface</div><div class="sw-hex">#0D1018</div></div></div>
+      <div class="swatch"><div class="sw-colour" style="background:#3B82F6;"></div><div class="sw-info"><div class="sw-name">Accent Blue</div><div class="sw-hex">#3B82F6</div></div></div>
+      <div class="swatch"><div class="sw-colour" style="background:#10B981;"></div><div class="sw-info"><div class="sw-name">Emerald</div><div class="sw-hex">#10B981</div></div></div>
+      <div class="swatch"><div class="sw-colour" style="background:#F59E0B;"></div><div class="sw-info"><div class="sw-name">Amber</div><div class="sw-hex">#F59E0B</div></div></div>
+      <div class="swatch"><div class="sw-colour" style="background:#EF4444;"></div><div class="sw-info"><div class="sw-name">Red</div><div class="sw-hex">#EF4444</div></div></div>
+      <div class="swatch"><div class="sw-colour" style="background:#EEF0F4;"></div><div class="sw-info"><div class="sw-name">Text Primary</div><div class="sw-hex">#EEF0F4</div></div></div>
+      <div class="swatch"><div class="sw-colour" style="background:#8895A7; border:1px solid #333;"></div><div class="sw-info"><div class="sw-name">Text Secondary</div><div class="sw-hex">#8895A7</div></div></div>
+    </div>
+
+    <div class="divider"><span>Type System</span></div>
+    <div class="type-specimen fade">
+      <div class="type-row">
+        <div class="type-role">Display / Hero</div>
+        <div class="type-sample" style="font-family:'Playfair Display', serif; font-weight:700;">Designing Decision Clarity</div>
+        <div class="type-spec">Playfair Display 800</div>
+      </div>
+      <div class="type-row">
+        <div class="type-role">Section Heads</div>
+        <div class="type-sample" style="font-family:'Playfair Display', serif; font-weight:700; font-size:22px;">Interaction Design System</div>
+        <div class="type-spec">Playfair Display 700</div>
+      </div>
+      <div class="type-row">
+        <div class="type-role">Body Prose</div>
+        <div class="type-sample" style="font-family:'DM Sans',sans-serif; font-size:16px; color:#8895A7;">The canvas was silent when it should have been speaking.</div>
+        <div class="type-spec">IBM Plex 400</div>
+      </div>
+      <div class="type-row">
+        <div class="type-role">Data / Labels</div>
+        <div class="type-sample" style="font-family:'DM Mono',monospace; font-size:12px; color:#3B82F6; letter-spacing:.12em; text-transform:uppercase;">USABILITY · B2B SAAS · ENTERPRISE</div>
+        <div class="type-spec">DM Mono 400</div>
+      </div>
+    </div>
+
+    <div class="divider"><span>Glassmorphism Card Spec</span></div>
+    <div style="background:var(--surface); border:1px solid var(--border); border-radius: 2px; padding:28px 32px;">
+      <pre style="font-family:'DM Mono',monospace; font-size:12px; color:var(--text-2); line-height:1.8; overflow-x:auto;"><span style="color:var(--accent)">.glass-card</span> {
+  background: <span style="color:var(--emerald)">rgba(13, 16, 24, 0.85)</span>;
+  backdrop-filter: <span style="color:var(--emerald)">blur(12px) saturate(160%)</span>;
+  border: <span style="color:var(--emerald)">1px solid rgba(255, 255, 255, 0.06)</span>;
+  border-radius: <span style="color:var(--emerald)">12px</span>;
+  box-shadow: <span style="color:var(--emerald)">0 4px 24px rgba(0, 0, 0, 0.40)</span>;
+}</pre>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="ft-brand">Sogolytics · Custom Dashboard · UX Case Study</span>
+  <span class="ft-note">Employer and sensitive metrics anonymised at their request. Full context available under mutual NDA.</span>
+</footer>
+
+<script>
+// Progress bar
+const bar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+  bar.style.width = pct + '%';
+});
+
+// Fade-in on scroll
+const fades = document.querySelectorAll('.fade');
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); obs.unobserve(e.target); } });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+fades.forEach(el => obs.observe(el));
+
+// Active nav on scroll
+const sections = document.querySelectorAll('section[id]');
+const links = document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll', () => {
+  let cur = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) cur = s.id; });
+  links.forEach(a => {
+    a.style.color = a.getAttribute('href') === '#' + cur ? 'var(--accent)' : '';
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+{
+  "Default": {
+    "value": "{Core . 500}",
+    "type": "color"
+  },
+  "Hover": {
+    "value": "{Core . 800}",
+    "type": "color"
+  },
+  "Active": {
+    "value": "{Core . 900}",
+    "type": "color"
+  },
+  "Border -- Default": {
+    "value": "{Core . 50}",
+    "type": "color"
+  },
+  "Text Color -- Btn": {
+    "value": "{Core . 500}",
+    "type": "color"
+  },
+  "Border -- Hover": {
+    "value": "{Core . 200}",
+    "type": "color"
+  },
+  "Border -- Active": {
+    "value": "{Core . 200}",
+    "type": "color"
+  },
+  "Secondary -- Hover": {
+    "value": "{Core . 50}",
+    "type": "color"
+  },
+  "Secondary -- Active": {
+    "value": "{Core .  100}",
+    "type": "color"
+  },
+  "Tertiary -- Text Color": {
+    "value": "{Core . 500}",
+    "type": "color"
+  }
+}

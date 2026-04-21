@@ -1,0 +1,38 @@
+{
+  "Radius": {
+    "value": "{Regular}",
+    "type": "dimension"
+  },
+  "Spacing": {
+    "value": "{100}",
+    "type": "dimension"
+  },
+  "H-Padding": {
+    "value": "{200}",
+    "type": "dimension"
+  },
+  "V-Padding": {
+    "value": "{050}",
+    "type": "dimension"
+  },
+  "Full Padding": {
+    "value": "{050}",
+    "type": "dimension"
+  },
+  "Icon Size": {
+    "value": "{small}",
+    "type": "dimension"
+  },
+  "Icon Size large": {
+    "value": "{Regular}",
+    "type": "dimension"
+  },
+  "Min-width": {
+    "value": "6.562rem",
+    "type": "dimension"
+  },
+  "Pill": {
+    "value": "{Full}",
+    "type": "dimension"
+  }
+}

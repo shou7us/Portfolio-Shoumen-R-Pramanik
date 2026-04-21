@@ -1,0 +1,22 @@
+{
+  "Large": {
+    "value": "0.562rem",
+    "type": "dimension"
+  },
+  "Full": {
+    "value": "624.938rem",
+    "type": "dimension"
+  },
+  "Medium": {
+    "value": "0.375rem",
+    "type": "dimension"
+  },
+  "Regular": {
+    "value": "0.188rem",
+    "type": "dimension"
+  },
+  "X-Large": {
+    "value": "0.75rem",
+    "type": "dimension"
+  }
+}

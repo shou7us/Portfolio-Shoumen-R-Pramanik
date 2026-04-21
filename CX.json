@@ -1,0 +1,42 @@
+{
+  "Default": {
+    "value": "{CX . 500}",
+    "type": "color"
+  },
+  "Hover": {
+    "value": "{CX . 800}",
+    "type": "color"
+  },
+  "Active": {
+    "value": "{CX . 900}",
+    "type": "color"
+  },
+  "Border -- Default": {
+    "value": "{CX . 50}",
+    "type": "color"
+  },
+  "Text Color -- Btn": {
+    "value": "{CX . 500}",
+    "type": "color"
+  },
+  "Border -- Hover": {
+    "value": "{CX . 200}",
+    "type": "color"
+  },
+  "Border -- Active": {
+    "value": "{CX . 200}",
+    "type": "color"
+  },
+  "Secondary -- Hover": {
+    "value": "{CX . 50}",
+    "type": "color"
+  },
+  "Secondary -- Active": {
+    "value": "{CX .  100}",
+    "type": "color"
+  },
+  "Tertiary -- Text Color": {
+    "value": "{CX . 500}",
+    "type": "color"
+  }
+}
