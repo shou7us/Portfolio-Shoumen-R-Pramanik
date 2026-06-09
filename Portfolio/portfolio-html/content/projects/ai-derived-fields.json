@@ -1,0 +1,38 @@
+{
+  "coverImage": "/images/derived-field-cover.png",
+  "meta": {
+    "role": "Lead UX Designer — end-to-end ownership from capability definition to trust architecture",
+    "year": "2024",
+    "timeline": "[PLACEHOLDER: e.g. 14 weeks, discovery through beta]",
+    "team": "Product Manager · Engineering lead · Data science · Legal / Compliance",
+    "platform": "Enterprise Survey & Research Platform"
+  },
+  "slug": "ai-derived-fields",
+  "order": 4,
+  "visibility": "private",
+  "status": "published",
+  "highlight": false,
+  "title": "Designing AI that surfaces what analysts<br> <em>didn't know to ask for</em>",
+  "images": {
+    "wireframe": "/images/ai-derived-fields/wireframe.png",
+    "journeyMap": "/images/ai-derived-fields/journey-map.png",
+    "finals": [
+      "/images/ai-derived-fields/final-01.png",
+      "/images/ai-derived-fields/final-02.png",
+      "/images/ai-derived-fields/final-03.png"
+    ]
+  },
+  "tags": [
+    "AI / ML UX",
+    "0→1 Feature",
+    "Systems Design",
+    "B2B SaaS",
+    "Trust Architecture",
+    "Banking · Healthcare · CX"
+  ],
+  "id": "04",
+  "password": "srp2026",
+  "file": "case-study-derived-fields.html",
+  "description": "I led the end-to-end UX design of an AI feature that reads a contact Directory schema, infers the business domain, and proactively suggests computed fields — while also building formulas from natural language. I shaped the capability architecture, trust model, RBAC design, and sensitive-data policy across PM, engineering, data science, and legal.",
+  "ndaNote": "Employer and product details anonymised at their request. Full context available under mutual NDA."
+}

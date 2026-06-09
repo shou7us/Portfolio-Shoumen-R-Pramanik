@@ -2,17 +2,25 @@
 <html lang="en">
 <head>
 
+<style id="anti-flash">body { display: none !important; }</style>
 <script>
-  // Client-side protection against direct URLs
   (function(){
-    let unlocked = false;
-    for (let i = 0; i < sessionStorage.length; i++) {
-      let key = sessionStorage.key(i);
-      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
-        unlocked = true; break;
-      }
+    const slug = 'ai-powered-insights';
+    const key = 'unlocked_v2_' + slug;
+    const isUnlocked = sessionStorage.getItem(key) === btoa('srp2026');
+    
+    if (isUnlocked) {
+      document.documentElement.style.display = 'block';
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.getElementById('anti-flash');
+        if (style) style.remove();
+      });
+    } else {
+      // Kill the page immediately
+      document.write('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=index.html"></head><body>Redirecting to home...</body></html>');
+      window.stop(); // Stop any further loading
+      window.location.href = 'index.html';
     }
-    if (!unlocked) { window.location.href = 'index.html'; }
   })();
 </script>
 
@@ -51,27 +59,30 @@
     z-index: 100;
     background: var(--paper);
     border-bottom: 1px solid var(--rule);
-    padding: 0 48px;
+    padding: 0 40px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 56px;
+    height: 64px;
   }
   .nav-brand {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.01em;
     color: var(--mid);
+    text-decoration: none;
   }
   .nav-links {
     display: flex;
-    gap: 32px;
+    gap: 28px;
     list-style: none;
+    align-items: center;
   }
   .nav-links a {
-    font-size: 12px;
-    letter-spacing: 0.08em;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     text-decoration: none;
     color: var(--mid);
@@ -161,7 +172,6 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background: var(--ink);
     position: relative;
     overflow: hidden;
   }
@@ -171,25 +181,27 @@
     font-family: 'Playfair Display', serif;
     font-size: 200px;
     font-weight: 900;
-    color: rgba(255,255,255,0.03);
+    color: rgba(13, 15, 20, 0.03);
     bottom: -30px;
     right: -20px;
     line-height: 1;
     pointer-events: none;
   }
   .problem-card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(13, 15, 20, 0.02);
+    border: 1px solid var(--rule);
     border-radius: 4px;
     padding: 32px;
     margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
   }
   .problem-label {
     font-family: 'DM Mono', monospace;
     font-size: 10px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--accent-light);
+    color: var(--accent);
     margin-bottom: 16px;
   }
   .problem-statement {
@@ -197,17 +209,19 @@
     font-size: 22px;
     font-weight: 400;
     font-style: italic;
-    color: #f5f2ec;
+    color: var(--ink);
     line-height: 1.5;
   }
   .stat-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
+    position: relative;
+    z-index: 1;
   }
   .stat-box {
-    background: rgba(201, 76, 46, 0.15);
-    border: 1px solid rgba(201, 76, 46, 0.3);
+    background: rgba(201, 76, 46, 0.05);
+    border: 1px solid rgba(201, 76, 46, 0.15);
     border-radius: 4px;
     padding: 20px;
   }
@@ -215,13 +229,13 @@
     font-family: 'Playfair Display', serif;
     font-size: 36px;
     font-weight: 700;
-    color: var(--accent-light);
+    color: var(--accent);
     line-height: 1;
     margin-bottom: 6px;
   }
   .stat-desc {
     font-size: 12px;
-    color: rgba(245,242,236,0.6);
+    color: var(--mid);
   }
 
   /* SECTIONS */
@@ -672,8 +686,10 @@
     .hero-left { padding: 64px 24px; }
   }
 </style>
+<script src="cms-sync.js"></script>
+  <link rel="stylesheet" href="assets/cursor.css">
 </head>
-<body>
+<body data-project-slug="ai-powered-insights">
 
 <nav>
   <div class="nav-brand">Case Study — Sogolytics</div>
@@ -692,12 +708,12 @@
 <section class="hero" id="overview" style="padding:0; border-bottom:1px solid var(--rule);">
   <div class="hero-left">
     <div class="hero-tag">UX Design · Enterprise SaaS · 2024</div>
-    <h1>Rethinking<br><em>Smart Filters</em><br>at Scale</h1>
-    <p class="hero-sub">Redesigning filter creation across Sogolytics' five enterprise products — from a cumbersome, error-prone workflow into an intelligent, intuitive experience.</p>
+    <h1 data-cms-field="title">Rethinking<br><em>Smart Filters</em><br>at Scale</h1>
+    <p class="hero-sub" data-cms-field="description">Redesigning filter creation across Sogolytics' five enterprise products — from a cumbersome, error-prone workflow into an intelligent, intuitive experience.</p>
     <div class="meta-row">
       <div class="meta-item">
         <div class="meta-label">Timeline</div>
-        <div class="meta-value">6 Months</div>
+        <div class="meta-value" data-cms-field="meta.timeline">6 Months</div>
       </div>
       <div class="meta-item">
         <div class="meta-label">Budget</div>
@@ -705,11 +721,11 @@
       </div>
       <div class="meta-item">
         <div class="meta-label">Platform</div>
-        <div class="meta-value">Multi-product</div>
+        <div class="meta-value" data-cms-field="meta.platform">Multi-product</div>
       </div>
       <div class="meta-item">
         <div class="meta-label">Role</div>
-        <div class="meta-value">UX Designer</div>
+        <div class="meta-value" data-cms-field="meta.role">UX Designer</div>
       </div>
     </div>
   </div>
@@ -732,6 +748,19 @@
 </section>
 
 <!-- RESEARCH -->
+
+
+<!-- SHOWREEL -->
+<section style="padding:64px 0;background:var(--bg,#f5f2ec)">
+  <div style="max-width:960px;margin:0 auto;padding:0 40px">
+    <div style="margin-bottom:28px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#4a4642;margin-bottom:12px">More Work &middot; Micro Projects</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,32px);font-weight:700;color:#0d0f14;line-height:1.2">Other features I shipped.<br><em style="color:#c94c2e">Same rigour. Different problems.</em></h2>
+    </div>
+  </div>
+  <div id="showreel-sogolytics_case_study"></div>
+</section>
+
 <section id="research">
   <div class="section-header">
     <span class="section-num">01 — RESEARCH</span>
@@ -1136,5 +1165,9 @@
   <span>UX Design Case Study · CODEX Framework</span>
 </footer>
 
+  <script src="assets/cursor.js"></script>
+
+  <script src="showreel.js"></script>
+  <script>initShowreel('showreel-sogolytics_case_study');</script>
 </body>
 </html>

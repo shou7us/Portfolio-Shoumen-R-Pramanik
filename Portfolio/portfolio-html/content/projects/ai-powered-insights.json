@@ -1,0 +1,38 @@
+{
+  "coverImage": "/images/filter-cover-image.png",
+  "meta": {
+    "role": "UX Designer",
+    "year": "2024",
+    "timeline": "6 Months",
+    "team": "Lead UX · PM · Engineering",
+    "platform": "Multi-product"
+  },
+  "slug": "ai-powered-insights",
+  "order": 9,
+  "visibility": "private",
+  "status": "published",
+  "highlight": false,
+  "title": "Rethinking<br><em>Smart Filters</em><br>at Scale",
+  "images": {
+    "wireframe": "/images/ai-powered-insights/wireframe.png",
+    "journeyMap": "/images/ai-powered-insights/journey-map.png",
+    "finals": [
+      "/images/ai-powered-insights/final-01.png",
+      "/images/ai-powered-insights/final-02.png",
+      "/images/ai-powered-insights/final-03.png"
+    ]
+  },
+  "tags": [
+    "AI UX",
+    "Enterprise Reporting",
+    "Healthcare · Finance · K–12",
+    "Data Visualisation",
+    "B2B SaaS",
+    "Figma"
+  ],
+  "id": "09",
+  "password": "srp2026",
+  "file": "sogolytics-case-study.html",
+  "description": "Redesigning filter creation across Sogolytics' five enterprise products — from a cumbersome, error-prone workflow into an intelligent, intuitive experience.",
+  "ndaNote": "Specific metrics and screen visuals withheld under NDA. Full context available on request."
+}

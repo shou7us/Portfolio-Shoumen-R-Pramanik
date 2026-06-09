@@ -1,0 +1,38 @@
+{
+  "coverImage": "/images/create-with-ai-cover.png",
+  "meta": {
+    "role": "Lead Product Designer",
+    "year": "2024",
+    "timeline": "[PLACEHOLDER]",
+    "team": "Designer · PM · AI Engineers · Data Analyst",
+    "platform": "B2B SaaS · Survey Platform"
+  },
+  "slug": "survey-creation-90",
+  "order": 8,
+  "visibility": "private",
+  "status": "published",
+  "highlight": false,
+  "title": "Cutting Survey Creation<br><em>Time by 90%</em><br>Through AI-Assisted Design",
+  "images": {
+    "wireframe": "/images/survey-creation-90/wireframe.png",
+    "journeyMap": "/images/survey-creation-90/journey-map.png",
+    "finals": [
+      "/images/survey-creation-90/final-01.png",
+      "/images/survey-creation-90/final-02.png",
+      "/images/survey-creation-90/final-03.png"
+    ]
+  },
+  "tags": [
+    "AI UX",
+    "Zero-to-One Feature",
+    "Onboarding Design",
+    "B2B SaaS",
+    "Progressive Disclosure",
+    "Figma"
+  ],
+  "id": "08",
+  "password": "srp2026",
+  "file": "ai-survey-creation-case-study.html",
+  "description": "A 40% survey abandonment rate and 2–4 hour creation workflows were quietly killing retention. I led end-to-end design of an AI-assisted builder that reshaped how users create, brand, and launch surveys — in under 10 minutes.",
+  "ndaNote": "Employer and product details anonymised at their request. Full context available under mutual NDA."
+}

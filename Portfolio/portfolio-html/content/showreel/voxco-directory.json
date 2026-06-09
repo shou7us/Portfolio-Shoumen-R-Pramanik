@@ -1,0 +1,30 @@
+{
+  "id": "voxco-directory",
+  "title": "Voxco Directory",
+  "year": "2023",
+  "category": "Feature Design · SaaS",
+  "accent": "#34D399",
+  "order": 4,
+  "slides": [
+    { "type": "intro", "sub": "Derived fields that compute at runtime, not design-time" },
+    {
+      "type": "problem",
+      "heading": "Analysts needed custom fields but had no dev support",
+      "decisions": [
+        "Formula builder using familiar spreadsheet syntax",
+        "Live preview — see result before saving",
+        "Scope-aware — fields inherit from parent directory"
+      ]
+    },
+    { "type": "wireframe", "caption": "Derived field configuration flow", "image": "" },
+    { "type": "final", "caption": "Formula editor with live preview panel", "image": "" },
+    {
+      "type": "metrics",
+      "stats": [
+        { "v": "0 dev", "l": "Support required" },
+        { "v": "12 min", "l": "Avg field setup time" },
+        { "v": "94%", "l": "Task completion rate" }
+      ]
+    }
+  ]
+}

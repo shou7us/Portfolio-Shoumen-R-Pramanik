@@ -2,17 +2,25 @@
 <html lang="en">
 <head>
 
+<style id="anti-flash">body { display: none !important; }</style>
 <script>
-  // Client-side protection against direct URLs
   (function(){
-    let unlocked = false;
-    for (let i = 0; i < sessionStorage.length; i++) {
-      let key = sessionStorage.key(i);
-      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
-        unlocked = true; break;
-      }
+    const slug = 'customer-directory';
+    const key = 'unlocked_v2_' + slug;
+    const isUnlocked = sessionStorage.getItem(key) === btoa('srp2026');
+    
+    if (isUnlocked) {
+      document.documentElement.style.display = 'block';
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.getElementById('anti-flash');
+        if (style) style.remove();
+      });
+    } else {
+      // Kill the page immediately
+      document.write('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=index.html"></head><body>Redirecting to home...</body></html>');
+      window.stop(); // Stop any further loading
+      window.location.href = 'index.html';
     }
-    if (!unlocked) { window.location.href = 'index.html'; }
   })();
 </script>
 
@@ -111,11 +119,11 @@
   .ph-3-2   { aspect-ratio: 3/2; }
 
   /* ════════ NAV ════════ */
-  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid transparent; transition: all 0.3s ease; }
-  nav.scrolled { background: #f5f2ec; border-bottom-color: var(--border); }
-  .nav-left { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
-  .nav-right { display: flex; align-items: center; gap: 24px; }
-  .nav-right a { font-family: 'Playfair Display', serif; font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none; letter-spacing: 0.04em; text-transform: uppercase; transition: color 0.2s; }
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 40px; height: 64px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid transparent; transition: all 0.3s ease; background: var(--bg); }
+  nav.scrolled { background: rgba(245, 242, 236, 0.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom-color: var(--border); }
+  .nav-left { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; letter-spacing: -0.01em; }
+  .nav-right { display: flex; align-items: center; gap: 28px; }
+  .nav-right a { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); text-decoration: none; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s; }
   .nav-right a:hover { color: var(--text); }
   .nav-badge { background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent); font-family: var(--mono); font-size: 11px; padding: 4px 10px; border-radius: 2px; letter-spacing: 0.05em; }
 
@@ -394,8 +402,10 @@
     * { animation: none !important; transition: none !important; }
   }
 </style>
+<script src="cms-sync.js"></script>
+  <link rel="stylesheet" href="assets/cursor.css">
 </head>
-<body>
+<body data-project-slug="customer-directory">
 
 <a href="#main-content" style="position:absolute;left:-9999px;" onfocus="this.style.cssText='position:fixed;top:16px;left:16px;background:var(--accent);color:white;padding:10px 16px;border-radius: 2px;z-index:9999;width:auto;height:auto;'">Skip to main content</a>
 
@@ -418,15 +428,15 @@
 <div class="hero">
   <div class="wrap">
     <div class="hero-label">UX Case Study · B2B SaaS Experience Management</div>
-    <h1>Scrapping <em>$180K</em> of engineering work — and shipping the product that was actually needed</h1>
-    <p class="hero-sub">Six weeks into development, I discovered we were building for the wrong users. Evidence convinced leadership to pivot. The redesigned product shipped within three months.</p>
+    <h1 data-cms-field="title">Scrapping <em>$180K</em> of engineering work — and shipping the product that was actually needed</h1>
+    <p class="hero-sub" data-cms-field="description">Six weeks into development, I discovered we were building for the wrong users. Evidence convinced leadership to pivot. The redesigned product shipped within three months.</p>
     <div class="hero-meta">
-      <span class="chip">Role: UX Designer (end-to-end)</span>
+      <span class="chip" data-cms-field="meta.role">Role: UX Designer (end-to-end)</span>
       <span class="chip">Company: [B2B SaaS Experience Management Platform]</span>
-      <span class="chip">Timeline: Jan – Sep 2023 · 9 months</span>
-      <span class="chip accent">Team: 2 PMs · 8 Eng · 1 Researcher</span>
+      <span class="chip" data-cms-field="meta.timeline">Timeline: Jan – Sep 2023 · 9 months</span>
+      <span class="chip accent" data-cms-field="meta.team">Team: 2 PMs · 8 Eng · 1 Researcher</span>
     </div>
-    <div class="stat-bar">
+    <div class="stat-bar" data-cms-list="stats">
       <div class="stat-cell"><div class="stat-num">$2.1M</div><div class="stat-label">Incremental ARR</div><div class="stat-sub">Tracked cohort · 12 months</div></div>
       <div class="stat-cell"><div class="stat-num">89%</div><div class="stat-label">Feature Adoption</div><div class="stat-sub">↑ from 34% baseline</div></div>
       <div class="stat-cell"><div class="stat-num">83%↓</div><div class="stat-label">Support Tickets</div><div class="stat-sub">Import-related · post-launch</div></div>
@@ -450,12 +460,25 @@
 </div>
 
 <!-- ══════════════════ OVERVIEW ══════════════════ -->
+
+
+<!-- SHOWREEL -->
+<section style="padding:64px 0;background:var(--bg,#f5f2ec)">
+  <div style="max-width:960px;margin:0 auto;padding:0 40px">
+    <div style="margin-bottom:28px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#4a4642;margin-bottom:12px">More Work &middot; Micro Projects</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,32px);font-weight:700;color:#0d0f14;line-height:1.2">Other features I shipped.<br><em style="color:#c94c2e">Same rigour. Different problems.</em></h2>
+    </div>
+  </div>
+  <div id="showreel-customer_directory_case_study"></div>
+</section>
+
 <section id="overview">
   <div class="wrap">
     <div class="section-label">Project Overview</div>
     <h2>A CRM-integrated data management system for regulated industries</h2>
-    <p>The Customer Directory was built for credit unions, healthcare networks, and K–12 institutions — letting these organisations manage contact lists, build segments, and trigger targeted surveys. I owned all design decisions end-to-end: information architecture, interaction design, usability research, stakeholder alignment, and a 47-component design system.</p>
-    <p>The project's defining challenge wasn't UI complexity. It was identifying who we were actually designing for — before we shipped the wrong answer at scale.</p>
+    <p data-cms-field="narrative.challenge">The Customer Directory was built for credit unions, healthcare networks, and K–12 institutions — letting these organisations manage contact lists, build segments, and trigger targeted surveys. I owned all design decisions end-to-end: information architecture, interaction design, usability research, stakeholder alignment, and a 47-component design system.</p>
+    <p data-cms-field="narrative.solution">The project's defining challenge wasn't UI complexity. It was identifying who we were actually designing for — before we shipped the wrong answer at scale.</p>
 
     <div class="problem-grid fade-up">
       <div class="problem-card"><div class="problem-card-header">⚠ User Pain Points</div><ul><li>3.2 hrs lost per survey launch to data prep outside the platform</li><li>Non-technical users forced to think like database admins</li><li>73% of support tickets from import failures</li></ul></div>
@@ -1071,5 +1094,9 @@
     }
   });
 </script>
+  <script src="assets/cursor.js"></script>
+
+  <script src="showreel.js"></script>
+  <script>initShowreel('showreel-customer_directory_case_study');</script>
 </body>
 </html>

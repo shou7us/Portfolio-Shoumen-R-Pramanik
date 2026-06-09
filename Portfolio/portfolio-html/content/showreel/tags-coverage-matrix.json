@@ -1,0 +1,30 @@
+{
+  "id": "tags-coverage-matrix",
+  "title": "Tags Coverage Matrix",
+  "year": "2024",
+  "category": "Data Viz · Enterprise",
+  "accent": "#38BDF8",
+  "order": 2,
+  "slides": [
+    { "type": "intro", "sub": "Tag hygiene at a glance across every survey and question" },
+    {
+      "type": "problem",
+      "heading": "Zero visibility into which questions were missing tags",
+      "decisions": [
+        "Matrix over list — spatial scanning wins",
+        "Progress rings for instant status reads",
+        "Inline drawer — no page navigation to edit"
+      ]
+    },
+    { "type": "wireframe", "caption": "Matrix layout with coverage ring states", "image": "" },
+    { "type": "final", "caption": "Coverage Matrix with animated progress rings", "image": "" },
+    {
+      "type": "metrics",
+      "stats": [
+        { "v": "80%", "l": "Faster tag audits" },
+        { "v": "2 clicks", "l": "To fix any gap" },
+        { "v": "Zero", "l": "Post-launch tickets" }
+      ]
+    }
+  ]
+}

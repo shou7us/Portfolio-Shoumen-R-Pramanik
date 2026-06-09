@@ -1,0 +1,59 @@
+{
+  "coverImage": "/images/directory-cover-image.png",
+  "meta": {
+    "role": "Role: UX Designer (end-to-end)",
+    "year": "2023",
+    "timeline": "Timeline: Jan – Sep 2023 · 9 months",
+    "team": "Team: 2 PMs · 8 Eng · 1 Researcher",
+    "platform": "B2B SaaS · XM Platform"
+  },
+  "slug": "customer-directory",
+  "order": 3,
+  "narrative": {
+    "challenge": "The Customer Directory was built for credit unions, healthcare networks, and K–12 institutions — letting these organisations manage contact lists, build segments, and trigger targeted surveys. I owned all design decisions end-to-end: information architecture, interaction design, usability research, stakeholder alignment, and a 47-component design system.",
+    "solution": "The project's defining challenge wasn't UI complexity. It was identifying who we were actually designing for — before we shipped the wrong answer at scale."
+  },
+  "visibility": "private",
+  "status": "published",
+  "highlight": true,
+  "title": "Scrapping <em>$180K</em> of engineering work — and shipping the product that was actually needed",
+  "images": {
+    "wireframe": "/images/customer-directory/wireframe.png",
+    "journeyMap": "/images/customer-directory/journey-map.png",
+    "finals": [
+      "/images/customer-directory/final-01.png",
+      "/images/customer-directory/final-02.png",
+      "/images/customer-directory/final-03.png"
+    ]
+  },
+  "tags": [
+    "End-to-End UX",
+    "Design Systems",
+    "Usability Research",
+    "Regulated Industries",
+    "IA",
+    "Figma"
+  ],
+  "id": "03",
+  "password": "srp2026",
+  "file": "customer-directory-case-study.html",
+  "description": "Six weeks into development, I discovered we were building for the wrong users. Evidence convinced leadership to pivot. The redesigned product shipped within three months.",
+  "ndaNote": "Employer and product details anonymised at their request. Full context available under mutual NDA.",
+  "stats": [
+    {
+      "value": "$2.1M",
+      "label": "Incremental ARR",
+      "note": "Tracked cohort · 12 months"
+    },
+    {
+      "value": "89%",
+      "label": "Feature Adoption",
+      "note": "↑ from 34% baseline"
+    },
+    {
+      "value": "83%↓",
+      "label": "Support Tickets",
+      "note": "Import-related · post-launch"
+    }
+  ]
+}

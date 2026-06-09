@@ -2,17 +2,25 @@
 <html lang="en">
 <head>
 
+<style id="anti-flash">body { display: none !important; }</style>
 <script>
-  // Client-side protection against direct URLs
   (function(){
-    let unlocked = false;
-    for (let i = 0; i < sessionStorage.length; i++) {
-      let key = sessionStorage.key(i);
-      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
-        unlocked = true; break;
-      }
+    const slug = 'survey-creation-90';
+    const key = 'unlocked_v2_' + slug;
+    const isUnlocked = sessionStorage.getItem(key) === btoa('srp2026');
+    
+    if (isUnlocked) {
+      document.documentElement.style.display = 'block';
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.getElementById('anti-flash');
+        if (style) style.remove();
+      });
+    } else {
+      // Kill the page immediately
+      document.write('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=index.html"></head><body>Redirecting to home...</body></html>');
+      window.stop(); // Stop any further loading
+      window.location.href = 'index.html';
     }
-    if (!unlocked) { window.location.href = 'index.html'; }
   })();
 </script>
 
@@ -51,17 +59,19 @@
   nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 200;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 48px; height: 56px;
+    padding: 0 40px; height: 64px;
     background: #f5f2ec;
     border-bottom: 1px solid var(--border);
   }
   .nav-brand {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 15px; letter-spacing: -0.01em;
     color: var(--accent);
   }
-  .nav-links { display: flex; gap: 28px; list-style: none; }
+  .nav-links { display: flex; gap: 28px; list-style: none; align-items: center; }
   .nav-links a {
+    font-family: 'DM Mono', monospace;
     font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
     text-decoration: none; color: var(--text-mid);
     transition: color 0.2s;
@@ -100,7 +110,7 @@
     font-weight: 900; line-height: 1.08;
     letter-spacing: -0.02em;
     margin-bottom: 28px;
-    color: #fff;
+    color: var(--text);
   }
   .hero h1 em { color: var(--accent); font-style: italic; }
   .hero-lead {
@@ -159,11 +169,11 @@
     font-family: 'Playfair Display', serif;
     font-size: clamp(28px, 3vw, 42px); font-weight: 700;
     line-height: 1.15; letter-spacing: -0.02em;
-    color: #fff; margin-bottom: 48px;
+    color: var(--text); margin-bottom: 48px;
   }
   h3 {
     font-family: 'Playfair Display', serif;
-    font-size: 18px; font-weight: 700; color: #fff;
+    font-size: 18px; font-weight: 700; color: var(--text);
     margin-bottom: 12px;
   }
   p { color: var(--text-mid); line-height: 1.8; margin-bottom: 16px; }
@@ -216,7 +226,7 @@
     font-size: 24px;
   }
   .persona-avatar .avatar-name {
-    font-size: 14px; font-weight: 700; color: #fff;
+    font-size: 14px; font-weight: 700; color: var(--text);
   }
   .persona-avatar .avatar-role {
     font-family: 'DM Mono', monospace;
@@ -421,7 +431,7 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 16px;
   }
-  .interaction-body h4 { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .interaction-body h4 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
   .interaction-body p { font-size: 13px; margin-bottom: 0; }
 
   /* ── IMPACT ── */
@@ -462,7 +472,7 @@
   }
   .ds-chip .chip-icon { font-size: 18px; }
   .ds-chip .chip-text { font-size: 13px; color: var(--text-mid); }
-  .ds-chip .chip-text strong { display: block; color: #fff; font-size: 14px; margin-bottom: 2px; }
+  .ds-chip .chip-text strong { display: block; color: var(--text); font-size: 14px; margin-bottom: 2px; }
 
   /* ── DIDN'T BUILD ── */
   .not-built-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -471,7 +481,7 @@
     border-radius: 2px; padding: 28px;
   }
   .not-built-card .nb-head {
-    font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 10px;
+    font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 10px;
     display: flex; align-items: center; gap: 10px;
   }
   .nb-cross {
@@ -557,8 +567,10 @@
     footer { flex-direction: column; gap: 16px; text-align: center; }
   }
 </style>
+<script src="cms-sync.js"></script>
+  <link rel="stylesheet" href="assets/cursor.css">
 </head>
-<body>
+<body data-project-slug="survey-creation-90">
 
 <div class="scroll-progress"><div class="scroll-bar" id="scrollBar"></div></div>
 
@@ -581,12 +593,12 @@
 <section class="hero" style="border:none; padding-left:0; padding-right:0;">
   <div class="hero-left">
     <div class="hero-eyebrow fade-up">AI-Powered Product Design · ACME Inc.</div>
-    <h1 class="fade-up delay-1">Cutting Survey Creation<br><em>Time by 90%</em><br>Through AI-Assisted Design</h1>
-    <p class="hero-lead fade-up delay-2">A 40% survey abandonment rate and 2–4 hour creation workflows were quietly killing retention. I led end-to-end design of an AI-assisted builder that reshaped how users create, brand, and launch surveys — in under 10 minutes.</p>
+    <h1 class="fade-up delay-1" data-cms-field="title">Cutting Survey Creation<br><em>Time by 90%</em><br>Through AI-Assisted Design</h1>
+    <p class="hero-lead fade-up delay-2" data-cms-field="description">A 40% survey abandonment rate and 2–4 hour creation workflows were quietly killing retention. I led end-to-end design of an AI-assisted builder that reshaped how users create, brand, and launch surveys — in under 10 minutes.</p>
     <div class="hero-meta fade-up delay-3">
       <div class="hero-meta-item">
         <label>Role</label>
-        <span>Lead Product Designer</span>
+        <span data-cms-field="meta.role">Lead Product Designer</span>
       </div>
       <div class="hero-meta-item">
         <label>Company</label>
@@ -594,11 +606,11 @@
       </div>
       <div class="hero-meta-item">
         <label>Team</label>
-        <span>Designer · PM · AI Engineers · Data Analyst</span>
+        <span data-cms-field="meta.team">Designer · PM · AI Engineers · Data Analyst</span>
       </div>
       <div class="hero-meta-item">
-        <label>Scope</label>
-        <span>Single product cycle · End-to-end</span>
+        <label>Timeline</label>
+        <span data-cms-field="meta.timeline">[PLACEHOLDER]</span>
       </div>
     </div>
   </div>
@@ -649,6 +661,7 @@
 <!-- ══════════════════════════════════════════
      PROBLEM FRAMING
 ══════════════════════════════════════════ -->
+
 <section id="problem" class="alt">
   <div class="section-label">01 · Problem Framing</div>
   <h2>Four forces converging on a single friction point</h2>
@@ -705,6 +718,18 @@
 <!-- ══════════════════════════════════════════
      RESEARCH
 ══════════════════════════════════════════ -->
+
+<!-- SHOWREEL -->
+<section style="padding:64px 0;background:var(--bg,#f5f2ec)">
+  <div style="max-width:960px;margin:0 auto;padding:0 40px">
+    <div style="margin-bottom:28px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#4a4642;margin-bottom:12px">More Work &middot; Micro Projects</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,32px);font-weight:700;color:#0d0f14;line-height:1.2">Other features I shipped.<br><em style="color:#c94c2e">Same rigour. Different problems.</em></h2>
+    </div>
+  </div>
+  <div id="showreel-ai_survey_creation_case_study"></div>
+</section>
+
 <section id="research">
   <div class="section-label">02 · User Research</div>
   <h2>50 interviews, one session that changed everything</h2>
@@ -735,7 +760,7 @@
   <!-- Observation callout -->
   <div style="background: var(--surface-2); border: 1px solid rgba(255,179,71,0.25); border-left: 3px solid var(--accent-warm); border-radius: 2px; padding: 24px 28px; margin-bottom: 48px;">
     <div style="font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent-warm); margin-bottom: 10px;">The Reframing Moment</div>
-    <p style="margin-bottom:0; color: var(--text); font-size: 15px; line-height: 1.7;">During a moderated usability session, I watched a user spend nearly 2 hours structuring a 10-question survey — then delete the whole thing out of frustration. No error. No bug. Just exhaustion from the tool. <strong style="color: #fff;">That wasn't a usability problem. It was a product strategy problem.</strong></p>
+    <p style="margin-bottom:0; color: var(--text); font-size: 15px; line-height: 1.7;">During a moderated usability session, I watched a user spend nearly 2 hours structuring a 10-question survey — then delete the whole thing out of frustration. No error. No bug. Just exhaustion from the tool. <strong style="color: var(--accent);">That wasn't a usability problem. It was a product strategy problem.</strong></p>
   </div>
 
   <!-- Placeholder: research wall -->
@@ -803,7 +828,7 @@
       </tbody>
     </table>
   </div>
-  <p style="margin-top: 16px; font-size: 13px;"><strong style="color:#fff;">Total time: 2–4 hours. 40% never reach launch.</strong></p>
+  <p style="margin-top: 16px; font-size: 13px;"><strong style="color:var(--accent);">Total time: 2–4 hours. 40% never reach launch.</strong></p>
 </section>
 
 <!-- ══════════════════════════════════════════
@@ -1308,5 +1333,9 @@
     document.getElementById('scrollBar').style.width = pct + '%';
   });
 </script>
+  <script src="assets/cursor.js"></script>
+
+  <script src="showreel.js"></script>
+  <script>initShowreel('showreel-ai_survey_creation_case_study');</script>
 </body>
 </html>

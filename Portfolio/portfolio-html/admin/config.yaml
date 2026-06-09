@@ -1,0 +1,117 @@
+backend:
+  name: git-gateway
+  branch: main
+
+local_backend: true
+
+media_folder: "images"
+public_folder: "/images"
+
+collections:
+  - name: "projects"
+    label: "Case Studies"
+    folder: "content/projects"
+    create: true
+    slug: "{{slug}}"
+    extension: "json"
+    format: "json"
+    identifier_field: "title"
+    fields:
+      - { label: "Project Title", name: "title", widget: "string" }
+      - { label: "Slug", name: "slug", widget: "string" }
+      - { label: "HTML File", name: "file", widget: "string" }
+      - { label: "Description (Summary)", name: "description", widget: "text" }
+      - { label: "Cover Image", name: "coverImage", widget: "image", required: false }
+      
+      - label: "Narrative Content"
+        name: "narrative"
+        widget: "object"
+        fields:
+          - { label: "The Challenge", name: "challenge", widget: "text", required: false }
+          - { label: "The Solution", name: "solution", widget: "text", required: false }
+          - { label: "The Impact", name: "impact", widget: "text", required: false }
+
+      - label: "Meta Data"
+        name: "meta"
+        widget: "object"
+        fields:
+          - { label: "Role", name: "role", widget: "string" }
+          - { label: "Year", name: "year", widget: "string" }
+          - { label: "Timeline", name: "timeline", widget: "string" }
+          - { label: "Team", name: "team", widget: "string" }
+          - { label: "Platform", name: "platform", widget: "string" }
+
+      - label: "Images"
+        name: "images"
+        widget: "object"
+        fields:
+          - { label: "Wireframe", name: "wireframe", widget: "image", required: false }
+          - { label: "Journey Map", name: "journeyMap", widget: "image", required: false }
+          - label: "Final Screens"
+            name: "finals"
+            widget: "list"
+            field: { label: "Image", name: "image", widget: "image" }
+            required: false
+
+      - label: "Performance Stats"
+        name: "stats"
+        widget: "list"
+        fields:
+          - { label: "Value", name: "value", widget: "string" }
+          - { label: "Label", name: "label", widget: "string" }
+          - { label: "Note", name: "note", widget: "string", required: false }
+
+      - label: "Tags"
+        name: "tags"
+        widget: "list"
+        field: { label: "Tag", name: "tag", widget: "string" }
+      
+      - label: "Visibility"
+        name: "visibility"
+        widget: "select"
+        options: ["public", "private"]
+      - { label: "Password (if private)", name: "password", widget: "string", required: false }
+      - { label: "Order", name: "order", widget: "number" }
+      - { label: "Highlight (Featured)", name: "highlight", widget: "boolean" }
+      - { label: "NDA Note", name: "ndaNote", widget: "text", required: false }
+
+  - name: "showreel"
+    label: "Showreel Projects"
+    folder: "content/showreel"
+    create: false
+    slug: "{{id}}"
+    extension: "json"
+    format: "json"
+    identifier_field: "title"
+    fields:
+      - { label: "Project ID", name: "id", widget: "string" }
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Year", name: "year", widget: "string" }
+      - { label: "Category", name: "category", widget: "string" }
+      - { label: "Accent Colour", name: "accent", widget: "color", default: "#F5A623" }
+      - { label: "Order", name: "order", widget: "number" }
+      - label: "Slides"
+        name: "slides"
+        widget: "list"
+        fields:
+          - label: "Slide Type"
+            name: "type"
+            widget: "select"
+            options: ["intro", "problem", "wireframe", "final", "metrics"]
+          - { label: "Subtitle (intro only)", name: "sub", widget: "string", required: false }
+          - { label: "Problem Heading (problem only)", name: "heading", widget: "string", required: false }
+          - label: "Key Decisions (problem only)"
+            name: "decisions"
+            widget: "list"
+            field: { label: "Decision", name: "decision", widget: "string" }
+            required: false
+          - { label: "Caption (wireframe/final)", name: "caption", widget: "string", required: false }
+          - { label: "Image (wireframe/final)", name: "image", widget: "image", required: false }
+          - label: "Stats (metrics only)"
+            name: "stats"
+            widget: "list"
+            required: false
+            fields:
+              - { label: "Value", name: "v", widget: "string" }
+              - { label: "Label", name: "l", widget: "string" }
+

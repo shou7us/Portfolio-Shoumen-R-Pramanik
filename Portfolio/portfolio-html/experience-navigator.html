@@ -2,17 +2,25 @@
 <html lang="en">
 <head>
 
+<style id="anti-flash">body { display: none !important; }</style>
 <script>
-  // Client-side protection against direct URLs
   (function(){
-    let unlocked = false;
-    for (let i = 0; i < sessionStorage.length; i++) {
-      let key = sessionStorage.key(i);
-      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
-        unlocked = true; break;
-      }
+    const slug = 'experience-navigator';
+    const key = 'unlocked_v2_' + slug;
+    const isUnlocked = sessionStorage.getItem(key) === btoa('srp2026');
+    
+    if (isUnlocked) {
+      document.documentElement.style.display = 'block';
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.getElementById('anti-flash');
+        if (style) style.remove();
+      });
+    } else {
+      // Kill the page immediately
+      document.write('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=index.html"></head><body>Redirecting to home...</body></html>');
+      window.stop(); // Stop any further loading
+      window.location.href = 'index.html';
     }
-    if (!unlocked) { window.location.href = 'index.html'; }
   })();
 </script>
 
@@ -79,21 +87,23 @@
   /* ── NAV ────────────────────────────────────── */
   nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    padding: 0 2rem; height: 64px;
+    padding: 0 40px; height: 64px;
     display: flex; align-items: center; justify-content: space-between;
     background: #f5f2ec;
     border-bottom: 1px solid var(--border);
     transition: background 0.3s;
   }
-  .nav-brand { display: flex; align-items: center; gap: 0.6rem; }
-  .nav-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+  .nav-brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+  .nav-name { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--text-primary); }
   .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); flex-shrink: 0; }
-  .nav-title { font-size: 0.8rem; color: var(--text-muted); font-weight: 400; }
-  .nav-links { display: flex; gap: 2rem; list-style: none; }
-  .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.2s; position: relative; }
-  .nav-links a::after { content: ''; position: absolute; bottom: -3px; left: 0; width: 0; height: 1px; background: var(--amber); transition: width 0.25s; }
+  .nav-title { font-size: 0.8rem; color: var(--text-muted); font-weight: 400; display: none; }
+  .nav-links { display: flex; gap: 28px; list-style: none; align-items: center; }
+  .nav-links a { 
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-secondary); text-decoration: none; transition: color 0.2s; 
+  }
   .nav-links a:hover { color: var(--amber); }
-  .nav-links a:hover::after { width: 100%; }
 
 
 
@@ -393,8 +403,10 @@
     .impact-number { font-size: 4rem; }
   }
 </style>
+<script src="cms-sync.js"></script>
+  <link rel="stylesheet" href="assets/cursor.css">
 </head>
-<body>
+<body data-project-slug="experience-navigator">
 
 <div id="progress"></div>
 
@@ -424,20 +436,20 @@
   <div class="container">
     <div class="hero-inner fade-in">
       <div class="eyebrow"><span class="eyebrow-dot"></span><span>UX Case Study · Enterprise SaaS · Virginia · Healthcare · Finance · K–12</span></div>
-      <h1 class="display">
+      <h1 class="display" data-cms-field="title">
         Eliminating the
         <span class="display-line2">Strategic Execution</span>
         <span class="display-accent">Gap</span>
       </h1>
-      <p class="hero-sub">Designing an AI-powered experience strategy builder that converts a business goal into a fully operational CX/EX programme in 2 minutes.</p>
+      <p class="hero-sub" data-cms-field="description">Designing an AI-powered experience strategy builder that converts a business goal into a fully operational CX/EX programme in 2 minutes.</p>
       <div class="btn-row">
         <a href="#overview" class="btn-primary">Read Case Study</a>
         <a href="#contact" class="btn-ghost">Get in Touch</a>
       </div>
-      <div class="stats-bar">
-        <div class="stat-item"><span class="stat-num">UX</span><span class="stat-label">Designer (Lead)</span></div>
-        <div class="stat-item"><span class="stat-num">3</span><span class="stat-label">Person Team</span></div>
-        <div class="stat-item"><span class="stat-num">3mo</span><span class="stat-label">Sprint</span></div>
+      <div class="stats-bar" data-cms-list="stats">
+        <div class="stat-item"><span class="stat-num" data-cms-field="meta.role">UX</span><span class="stat-label">Designer (Lead)</span></div>
+        <div class="stat-item"><span class="stat-num" data-cms-field="meta.team">3</span><span class="stat-label">Person Team</span></div>
+        <div class="stat-item"><span class="stat-num" data-cms-field="meta.timeline">3mo</span><span class="stat-label">Sprint</span></div>
         <div class="stat-item"><span class="stat-num">~99%</span><span class="stat-label">Time Reduction</span></div>
       </div>
 
@@ -455,13 +467,26 @@
 </section>
 
 <!-- OVERVIEW -->
+
+
+<!-- SHOWREEL -->
+<section style="padding:64px 0;background:var(--bg,#f5f2ec)">
+  <div style="max-width:960px;margin:0 auto;padding:0 40px">
+    <div style="margin-bottom:28px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#4a4642;margin-bottom:12px">More Work &middot; Micro Projects</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,32px);font-weight:700;color:#0d0f14;line-height:1.2">Other features I shipped.<br><em style="color:#c94c2e">Same rigour. Different problems.</em></h2>
+    </div>
+  </div>
+  <div id="showreel-experience_navigator"></div>
+</section>
+
 <section id="overview">
   <div class="container">
     <div class="fade-in">
       <span class="section-eyebrow">01 — Project Overview</span>
       <h2 class="section-title">From abstract goal to operational programme</h2>
-      <p class="section-sub">Experience Navigator is an AI-powered strategy generation tool built for mid-to-senior CX and EX leaders who are accountable for business outcomes but lack the time and specialist depth to build cross-functional programmes from scratch.</p>
-      <p style="color:var(--text-secondary); margin-bottom:2rem;">The core problem was what I framed as the <strong style="color:var(--amber)">Strategic Execution Gap</strong> — organisations routinely set high-level goals like "reduce churn" or "improve onboarding" but have no systematic way to convert those intentions into operational plans, survey logic, and measurable KPIs. I led UX across a 3-person team (1 designer, 1 PM, 1 developer) over a 3-month sprint, designing the end-to-end experience from goal input to a fully generated, section-by-section strategy output.</p>
+      <p class="section-sub" data-cms-field="narrative.challenge">Experience Navigator is an AI-powered strategy generation tool built for mid-to-senior CX and EX leaders who are accountable for business outcomes but lack the time and specialist depth to build cross-functional programmes from scratch.</p>
+      <p style="color:var(--text-secondary); margin-bottom:2rem;" data-cms-field="narrative.solution">The core problem was what I framed as the <strong style="color:var(--amber)">Strategic Execution Gap</strong> — organisations routinely set high-level goals like "reduce churn" or "improve onboarding" but have no systematic way to convert those intentions into operational plans, survey logic, and measurable KPIs. I led UX across a 3-person team (1 designer, 1 PM, 1 developer) over a 3-month sprint, designing the end-to-end experience from goal input to a fully generated, section-by-section strategy output.</p>
 
       <!-- COMPANY CONTEXT -->
       <div style="background: rgba(0,0,0,0.04); border:1px solid var(--border); border-radius: 2px; padding:1.75rem; margin-bottom:1.5rem;">

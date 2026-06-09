@@ -1,0 +1,31 @@
+{
+  "id": "ai-logic-suggest",
+  "title": "AI Logic Suggest",
+  "year": "2024",
+  "category": "AI · Survey Builder",
+  "accent": "#F5A623",
+  "order": 1,
+  "slides": [
+    { "type": "intro", "sub": "Reducing survey logic setup from 45 min to under 5" },
+    {
+      "type": "problem",
+      "heading": "Logic setup took 45+ minutes for non-technical users",
+      "decisions": [
+        "Natural language over rule-based UI",
+        "In-context suggestions, not a separate panel",
+        "Progressive disclosure for power users"
+      ]
+    },
+    { "type": "wireframe", "caption": "Input-to-logic flow exploration", "image": "" },
+    { "type": "wireframe", "caption": "Suggestion panel — empty / loading / result states", "image": "" },
+    { "type": "final", "caption": "AI Suggest panel with live rule preview", "image": "" },
+    {
+      "type": "metrics",
+      "stats": [
+        { "v": "60%", "l": "Reduction in setup time" },
+        { "v": "3×", "l": "Branching adoption" },
+        { "v": "4.6/5", "l": "Usability score" }
+      ]
+    }
+  ]
+}

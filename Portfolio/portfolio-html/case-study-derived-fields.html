@@ -2,17 +2,25 @@
 <html lang="en">
 <head>
 
+<style id="anti-flash">body { display: none !important; }</style>
 <script>
-  // Client-side protection against direct URLs
   (function(){
-    let unlocked = false;
-    for (let i = 0; i < sessionStorage.length; i++) {
-      let key = sessionStorage.key(i);
-      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
-        unlocked = true; break;
-      }
+    const slug = 'ai-derived-fields';
+    const key = 'unlocked_v2_' + slug;
+    const isUnlocked = sessionStorage.getItem(key) === btoa('srp2026');
+    
+    if (isUnlocked) {
+      document.documentElement.style.display = 'block';
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.getElementById('anti-flash');
+        if (style) style.remove();
+      });
+    } else {
+      // Kill the page immediately
+      document.write('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=index.html"></head><body>Redirecting to home...</body></html>');
+      window.stop(); // Stop any further loading
+      window.location.href = 'index.html';
     }
-    if (!unlocked) { window.location.href = 'index.html'; }
   })();
 </script>
 
@@ -37,52 +45,31 @@
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 300;
-  line-height: 1.7;
-  overflow-x: hidden;
-  cursor: none;
-}
-.cursor {
-  position: fixed; width: 8px; height: 8px;
-  background: var(--accent); border-radius: 50%;
-  pointer-events: none; z-index: 9999;
-  transform: translate(-50%,-50%);
-  transition: transform 0.15s, opacity 0.2s;
-}
-.cursor-ring {
-  position: fixed; width: 32px; height: 32px;
-  border: 1px solid rgba(255,59,31,0.35); border-radius: 50%;
-  pointer-events: none; z-index: 9998;
-  transform: translate(-50%,-50%);
-  transition: width 0.2s, height 0.2s;
-}
+
+
+
 
 /* Nav */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 1.25rem 3rem;
+  padding: 0 40px; height: 64px;
   background: #f5f2ec;
   border-bottom: 1px solid var(--border);
 }
-.nav-back {
-  font-family: 'DM Mono', monospace; font-size: 0.65rem;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--muted); text-decoration: none;
-  display: flex; align-items: center; gap: 0.6rem;
-  transition: color 0.2s;
+.nav-logo {
+  font-family: 'Playfair Display', serif; font-weight: 700; font-size: 15px;
+  letter-spacing: -0.01em; color: var(--text); text-decoration: none;
 }
-.nav-back:hover { color: var(--accent); }
-.nav-title {
-  font-family: 'DM Mono', monospace; font-size: 0.65rem;
-  letter-spacing: 0.08em; color: var(--muted);
+.nav-links { display: flex; gap: 28px; list-style: none; align-items: center; }
+.nav-links a {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color 0.2s;
 }
+.nav-links a:hover { color: var(--accent); }
 .nav-tag {
-  font-family: 'DM Mono', monospace; font-size: 0.6rem;
+  font-family: 'DM Mono', monospace; font-size: 11px;
   letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--accent); border: 1px solid rgba(255,59,31,0.3);
   padding: 0.25rem 0.75rem; border-radius: 2px;
@@ -129,10 +116,15 @@ nav {
 .cs-chip {
   font-family: 'DM Mono', monospace; font-size: 0.6rem;
   letter-spacing: 0.08em; color: var(--muted);
-  border: 1px solid var(--border2); padding: 0.3rem 0.8rem;
-  border-radius: 2px;
+  background: rgba(0,0,0,0.05); padding: 0.4rem 0.8rem;
+  border-radius: 4px; font-weight: 600;
+  border: 1px solid transparent; transition: all 0.2s;
 }
-.cs-chip.hi { color: var(--accent); border-color: rgba(255,59,31,0.3); }
+.cs-chip.hi { 
+  color: var(--accent); 
+  background: var(--accent2); 
+  border-color: transparent; 
+}
 .cs-meta-panel {
   display: flex; flex-direction: column; gap: 2rem;
   padding: 2rem; border: 1px solid var(--border2);
@@ -637,18 +629,26 @@ nav {
   .comp-gap-grid { grid-template-columns: 1fr; }
 }
 </style>
+<script src="cms-sync.js"></script>
+  <link rel="stylesheet" href="assets/cursor.css">
 </head>
-<body>
+<body data-project-slug="ai-derived-fields">
 
 <div class="progress-bar" id="progressBar"></div>
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
+
+
 
 <nav>
-  <a href="index.html" style="color: var(--accent); font-weight: 700; margin-right: auto; padding-left: 20px; text-decoration: none;">← Home</a>
-  <a href="portfolio.html" class="nav-back">← Portfolio</a>
-  <span class="nav-title">AI-Powered Derived Fields</span>
-  <span class="nav-tag">AI/ML UX · B2B SaaS · 2024</span>
+  <a href="index.html" class="nav-logo">XM Platform</a>
+  <ul class="nav-links">
+    <li><a href="index.html" style="color: var(--accent); font-weight: 700;">← Home</a></li>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#market">Market</a></li>
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#solution">Solution</a></li>
+    <li><a href="#impact">Impact</a></li>
+  </ul>
+  <span class="nav-tag">AI/ML UX · 2024</span>
 </nav>
 
 <!-- HERO -->
@@ -657,11 +657,11 @@ nav {
   <div class="cs-hero-grid">
     <div>
       <div class="cs-label reveal">Case study 01</div>
-      <h1 class="cs-hero-title reveal reveal-delay-1">
+      <h1 class="cs-hero-title reveal reveal-delay-1" data-cms-field="title">
         Designing AI that surfaces what analysts<br>
         <em>didn't know to ask for</em>
       </h1>
-      <p class="cs-hero-sub reveal reveal-delay-2">
+      <p class="cs-hero-sub reveal reveal-delay-2" data-cms-field="description">
         I led the end-to-end UX design of an AI feature that reads a contact Directory schema, 
         infers the business domain, and proactively suggests computed fields — while also building 
         formulas from natural language. I shaped the capability architecture, trust model, 
@@ -679,15 +679,15 @@ nav {
     <div class="cs-meta-panel reveal reveal-delay-2">
       <div class="cs-meta-row">
         <div class="cs-meta-key">My role</div>
-        <div class="cs-meta-val">Lead UX Designer — end-to-end ownership from capability definition to trust architecture</div>
+        <div class="cs-meta-val" data-cms-field="meta.role">Lead UX Designer — end-to-end ownership from capability definition to trust architecture</div>
       </div>
       <div class="cs-meta-row">
         <div class="cs-meta-key">Collaborators</div>
-        <div class="cs-meta-val">Product Manager · Engineering lead · Data science · Legal / Compliance</div>
+        <div class="cs-meta-val" data-cms-field="meta.team">Product Manager · Engineering lead · Data science · Legal / Compliance</div>
       </div>
       <div class="cs-meta-row">
         <div class="cs-meta-key">Timeline</div>
-        <div class="cs-meta-val">[PLACEHOLDER: e.g. 14 weeks, discovery through beta]</div>
+        <div class="cs-meta-val" data-cms-field="meta.timeline">[PLACEHOLDER: e.g. 14 weeks, discovery through beta]</div>
       </div>
       <div class="cs-meta-row">
         <div class="cs-meta-key">Platform</div>
@@ -704,10 +704,23 @@ nav {
 
 <div class="cs-body">
 
+<!-- SHOWREEL -->
+<section style="padding:64px 0;background:var(--bg,#f5f2ec)">
+  <div style="max-width:960px;margin:0 auto;padding:0 40px">
+    <div style="margin-bottom:28px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#4a4642;margin-bottom:12px">More Work &middot; Micro Projects</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,32px);font-weight:700;color:#0d0f14;line-height:1.2">Other features I shipped.<br><em style="color:#c94c2e">Same rigour. Different problems.</em></h2>
+    </div>
+  </div>
+  <div id="showreel-case_study_derived_fields"></div>
+</section>
+
+
 <!-- STEP 1: OVERVIEW -->
 <div class="cs-section reveal">
   <div class="step-label">Step 01 · Overview</div>
-  <h2 class="cs-section-title">The problem <em>hiding behind</em> the feature request</h2>
+  
+<h2 class="cs-section-title">The problem <em>hiding behind</em> the feature request</h2>
   <p class="cs-body-text">
     The platform's Directory module let business analysts store contact data — names, account numbers, 
     credit scores, loan details — but had no way to compute values from it. Every derived metric 
@@ -1558,24 +1571,6 @@ nav {
 </div><!-- end cs-body -->
 
 <script>
-// Cursor
-const cursor = document.getElementById('cursor');
-const ring = document.getElementById('cursorRing');
-let mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove', e => {
-  mx=e.clientX; my=e.clientY;
-  cursor.style.left=mx+'px'; cursor.style.top=my+'px';
-});
-(function animRing(){
-  rx+=(mx-rx)*0.1; ry+=(my-ry)*0.1;
-  ring.style.left=rx+'px'; ring.style.top=ry+'px';
-  requestAnimationFrame(animRing);
-})();
-document.querySelectorAll('a,button,tr').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{ cursor.style.transform='translate(-50%,-50%) scale(2.5)'; ring.style.width='50px';ring.style.height='50px'; });
-  el.addEventListener('mouseleave',()=>{ cursor.style.transform='translate(-50%,-50%) scale(1)'; ring.style.width='32px';ring.style.height='32px'; });
-});
-
 // Progress bar
 const bar = document.getElementById('progressBar');
 window.addEventListener('scroll', () => {
@@ -1590,5 +1585,9 @@ const obs = new IntersectionObserver(entries=>{
 },{threshold:0.1});
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 </script>
+  <script src="assets/cursor.js"></script>
+
+  <script src="showreel.js"></script>
+  <script>initShowreel('showreel-case_study_derived_fields');</script>
 </body>
 </html>

@@ -2,17 +2,25 @@
 <html lang="en">
 <head>
 
+<style id="anti-flash">body { display: none !important; }</style>
 <script>
-  // Client-side protection against direct URLs
   (function(){
-    let unlocked = false;
-    for (let i = 0; i < sessionStorage.length; i++) {
-      let key = sessionStorage.key(i);
-      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
-        unlocked = true; break;
-      }
+    const slug = 'ai-assistant';
+    const key = 'unlocked_v2_' + slug;
+    const isUnlocked = sessionStorage.getItem(key) === btoa('srp2026');
+    
+    if (isUnlocked) {
+      document.documentElement.style.display = 'block';
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.getElementById('anti-flash');
+        if (style) style.remove();
+      });
+    } else {
+      // Kill the page immediately
+      document.write('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=index.html"></head><body>Redirecting to home...</body></html>');
+      window.stop(); // Stop any further loading
+      window.location.href = 'index.html';
     }
-    if (!unlocked) { window.location.href = 'index.html'; }
   })();
 </script>
 
@@ -52,13 +60,13 @@
   nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 48px;
+    padding: 0 40px; height: 64px;
     background: #f5f2ec;
     border-bottom: 1px solid var(--border);
   }
-  .nav-logo { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
-  .nav-links { display: flex; gap: 32px; list-style: none; }
-  .nav-links a { font-size: 13px; color: var(--muted); text-decoration: none; letter-spacing: 0.5px; transition: color .2s; }
+  .nav-logo { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 15px; letter-spacing: -0.01em; color: var(--accent); }
+  .nav-links { display: flex; gap: 28px; list-style: none; align-items: center; }
+  .nav-links a { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-decoration: none; letter-spacing: 0.1em; text-transform: uppercase; transition: color .2s; }
   .nav-links a:hover { color: var(--text); }
   .nav-tag { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); background: rgba(74,255,212,0.08); border: 1px solid rgba(74,255,212,0.2); padding: 4px 12px; border-radius: 2px; }
 
@@ -772,8 +780,10 @@
     footer { flex-direction: column; gap: 8px; padding: 32px 24px; }
   }
 </style>
+<script src="cms-sync.js"></script>
+  <link rel="stylesheet" href="assets/cursor.css">
 </head>
-<body>
+<body data-project-slug="ai-assistant">
 
 <!-- NAV -->
 <nav>
@@ -799,7 +809,22 @@
   <div class="hero-grid"></div>
   <!-- Hero floating mockup -->
   <div class="hero-mockup">
-    <svg viewBox="0 0 780 500" xmlns="http://www.w3.org/2000/svg" style="border-radius: 12px"> <defs> <linearGradient id="hg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0F1118"/><stop offset="100%" stop-color="#161922"/></linearGradient> <linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4AFFD4" stop-opacity="1"/><stop offset="100%" stop-color="#4AFFD4" stop-opacity="0.2"/></linearGradient> <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7C6FFF" stop-opacity="1"/><stop offset="100%" stop-color="#7C6FFF" stop-opacity="0.2"/></linearGradient> <linearGradient id="gauge1" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#FF6B6B"/><stop offset="50%" stop-color="#F4C95D"/><stop offset="100%" stop-color="#4AFFD4"/></linearGradient> <clipPath id="cp1"><rect width="780" height="500" rx="12"/></clipPath> </defs> <rect width="780" height="500" rx="12" fill="url(#hg1)" clip-path="url(#cp1)"/> <!-- subtle grid --> <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/></pattern> <rect width="780" height="500" fill="url(#grid)"/> <!-- Top nav bar --> <rect width="780" height="44" fill="rgba(7,8,12,0.9)"/> <circle cx="16" cy="22" r="6" fill="#4AFFD4" opacity="0.8"/> <circle cx="30" cy="22" r="6" fill="rgba(255,255,255,0.1)"/> <rect x="44" y="16" width="1" height="12" fill="rgba(255,255,255,0.1)"/> <rect x="54" y="19" width="60" height="6" rx="3" fill="rgba(255,255,255,0.12)"/> <rect x="120" y="19" width="4" height="6" rx="2" fill="rgba(255,255,255,0.07)"/> <rect x="130" y="19" width="80" height="6" rx="3" fill="rgba(255,255,255,0.07)"/> <!-- Tab bar --> <rect y="44" width="780" height="36" fill="rgba(15,17,24,0.95)"/> <rect x="16" y="56" width="56" height="6" rx="3" fill="#4AFFD4" opacity="0.9"/> <rect y="79" width="60" height="2" fill="#4AFFD4" opacity="0.6"/> <rect x="88" y="56" width="72" height="6" rx="3" fill="rgba(255,255,255,0.1)"/> <rect x="176" y="56" width="56" height="6" rx="3" fill="rgba(255,255,255,0.07)"/> <rect x="248" y="56" width="64" height="6" rx="3" fill="rgba(255,255,255,0.07)"/> <rect x="328" y="56" width="52" height="6" rx="3" fill="rgba(255,255,255,0.07)"/> <!-- Date range chip --> <rect x="16" y="90" width="130" height="22" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/> <rect x="28" y="97" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.2)"/> <rect x="42" y="99" width="64" height="4" rx="2" fill="rgba(255,255,255,0.2)"/> <rect x="110" y="99" width="10" height="4" rx="2" fill="rgba(255,255,255,0.1)"/> <!-- LEFT PANEL - Highlights --> <rect x="16" y="120" width="170" height="200" rx="10" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/> <rect x="28" y="132" width="50" height="5" rx="2.5" fill="rgba(255,255,255,0.35)"/> <rect x="28" y="146" width="30" height="4" rx="2" fill="#4AFFD4" opacity="0.7"/> <rect x="64" y="146" width="24" height="4" rx="2" fill="rgba(255,255,255,0.15)"/> <rect x="94" y="146" width="28" height="4" rx="2" fill="rgba(255,255,255,0.1)"/> <rect x="28" y="158" width="70" height="4" rx="2" fill="rgba(255,255,255,0.1)"/> <rect x="28" y="174" width="55" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/> <rect x="136" y="172" width="36" height="8" rx="3" fill="rgba(74,255,212,0.15)"/> <rect x="140" y="175" width="28" height="3" rx="1.5" fill="#4AFFD4" opacity="0.7"/> <rect x="28" y="190" width="45" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <rect x="28" y="204" width="55" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/> <rect x="136" y="202" width="36" height="8" rx="3" fill="rgba(255,107,107,0.15)"/> <rect x="140" y="205" width="28" height="3" rx="1.5" fill="#FF6B6B" opacity="0.7"/> <rect x="28" y="218" width="40" height="4" rx="2" fill="rgba(255,255,255,0.1)"/> <!-- CENTER PANEL - CES Gauge --> <rect x="196" y="120" width="210" height="200" rx="10" fill="rgba(255,255,255,0.03)" stroke="rgba(74,255,212,0.15)" stroke-width="0.8"/> <rect x="210" y="133" width="100" height="6" rx="3" fill="rgba(255,255,255,0.3)"/> <!-- gauge arc --> <path d="M 245 260 A 70 70 0 0 1 357 260" fill="none" stroke="url(#gauge1)" stroke-width="12" stroke-linecap="round"/> <!-- gauge needle --> <line x1="301" y1="260" x2="285" y2="210" stroke="rgba(255,255,255,0.9)" stroke-width="2" stroke-linecap="round"/> <circle cx="301" cy="260" r="5" fill="#1a1d27" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/> <rect x="270" y="270" width="24" height="12" rx="4" fill="rgba(244,201,93,0.15)"/> <rect x="274" y="274" width="16" height="4" rx="2" fill="#F4C95D" opacity="0.9"/> <rect x="212" y="290" width="16" height="4" rx="2" fill="rgba(255,255,255,0.2)"/> <rect x="358" y="290" width="16" height="4" rx="2" fill="rgba(255,255,255,0.2)"/> <!-- RIGHT PANEL - NPS Gauge --> <rect x="416" y="120" width="180" height="200" rx="10" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/> <rect x="428" y="133" width="80" height="6" rx="3" fill="rgba(255,255,255,0.25)"/> <path d="M 440 280 A 60 60 0 0 1 556 280" fill="none" stroke="url(#gauge1)" stroke-width="10" stroke-linecap="round"/> <line x1="498" y1="280" x2="498" y2="232" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round"/> <circle cx="498" cy="280" r="4" fill="#1a1d27" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/> <!-- Trend line chart --> <rect x="16" y="332" width="580" height="152" rx="10" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/> <rect x="28" y="344" width="100" height="5" rx="2.5" fill="rgba(255,255,255,0.2)"/> <!-- chart grid lines --> <line x1="28" y1="398" x2="580" y2="398" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/> <line x1="28" y1="420" x2="580" y2="420" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/> <line x1="28" y1="442" x2="580" y2="442" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/> <!-- trend line path --> <polyline points="28,365 80,375 132,373 184,395 236,397 288,396 340,396 392,397 444,396 496,397 548,396" fill="none" stroke="#4AFFD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> <!-- area fill --> <polygon points="28,365 80,375 132,373 184,395 236,397 288,396 340,396 392,397 444,396 496,397 548,396 548,470 28,470" fill="url(#gg)" opacity="0.12"/> <!-- milestone pins --> <circle cx="120" cy="400" r="5" fill="rgba(255,107,107,0.3)" stroke="#FF6B6B" stroke-width="1"/> <circle cx="270" cy="400" r="5" fill="rgba(255,107,107,0.3)" stroke="#FF6B6B" stroke-width="1"/> <circle cx="420" cy="400" r="5" fill="rgba(255,107,107,0.3)" stroke="#FF6B6B" stroke-width="1"/> <!-- X axis labels --> <rect x="60" y="458" width="28" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <rect x="160" y="458" width="28" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <rect x="260" y="458" width="28" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <rect x="360" y="458" width="28" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <rect x="460" y="458" width="28" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <!-- ===== AI ASSISTANT PANEL ===== --> <rect x="606" y="0" width="174" height="500" fill="rgba(10,11,16,0.97)" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/> <!-- Panel header --> <rect x="606" y="0" width="174" height="52" fill="rgba(15,17,24,1)"/> <circle cx="628" cy="26" r="10" fill="rgba(124,111,255,0.2)" stroke="rgba(124,111,255,0.4)" stroke-width="1"/> <rect x="623" y="23" width="10" height="6" rx="1" fill="#7C6FFF" opacity="0.8"/> <rect x="644" y="20" width="80" height="5" rx="2.5" fill="rgba(255,255,255,0.35)"/> <rect x="644" y="30" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.12)"/> <rect x="766" y="18" width="8" height="8" rx="2" fill="rgba(255,255,255,0.1)"/> <line x1="606" y1="52" x2="780" y2="52" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/> <!-- AI chat bubble - assistant --> <rect x="616" y="62" width="140" height="52" rx="8" fill="rgba(124,111,255,0.12)" stroke="rgba(124,111,255,0.2)" stroke-width="0.5"/> <rect x="624" y="70" width="100" height="3.5" rx="1.75" fill="rgba(255,255,255,0.25)"/> <rect x="624" y="78" width="120" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/> <rect x="624" y="86" width="88" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/> <rect x="624" y="94" width="56" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/> <!-- user bubble --> <rect x="626" y="124" width="130" height="32" rx="8" fill="rgba(74,255,212,0.1)" stroke="rgba(74,255,212,0.2)" stroke-width="0.5"/> <rect x="634" y="132" width="100" height="3.5" rx="1.75" fill="rgba(74,255,212,0.5)"/> <rect x="634" y="140" width="72" height="3.5" rx="1.75" fill="rgba(74,255,212,0.3)"/> <!-- AI reply bubble --> <rect x="616" y="166" width="140" height="64" rx="8" fill="rgba(124,111,255,0.12)" stroke="rgba(124,111,255,0.2)" stroke-width="0.5"/> <rect x="624" y="174" width="108" height="3.5" rx="1.75" fill="rgba(255,255,255,0.25)"/> <rect x="624" y="182" width="120" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/> <rect x="624" y="190" width="96" height="3.5" rx="1.75" fill="rgba(255,255,255,0.15)"/> <rect x="624" y="198" width="80" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/> <rect x="624" y="208" width="56" height="3.5" rx="1.75" fill="rgba(255,255,255,0.1)"/> <!-- Preview confirm card --> <rect x="616" y="240" width="140" height="72" rx="8" fill="rgba(74,255,212,0.06)" stroke="rgba(74,255,212,0.25)" stroke-width="0.8"/> <rect x="624" y="249" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.3)"/> <rect x="624" y="258" width="110" height="3" rx="1.5" fill="rgba(255,255,255,0.12)"/> <rect x="624" y="265" width="95" height="3" rx="1.5" fill="rgba(255,255,255,0.12)"/> <rect x="624" y="272" width="80" height="3" rx="1.5" fill="rgba(255,255,255,0.1)"/> <rect x="624" y="283" width="52" height="18" rx="6" fill="rgba(74,255,212,0.2)" stroke="rgba(74,255,212,0.4)" stroke-width="0.8"/> <rect x="629" y="289" width="42" height="6" rx="3" fill="#4AFFD4" opacity="0.8"/> <rect x="682" y="283" width="40" height="18" rx="6" fill="rgba(255,255,255,0.05)"/> <rect x="686" y="289" width="32" height="6" rx="3" fill="rgba(255,255,255,0.2)"/> <!-- Prompt library chips --> <rect x="616" y="322" width="60" height="3.5" rx="1.75" fill="rgba(255,255,255,0.2)"/> <rect x="616" y="333" width="140" height="22" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/> <rect x="624" y="340" width="86" height="4" rx="2" fill="rgba(255,255,255,0.2)"/> <rect x="616" y="360" width="140" height="22" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/> <rect x="624" y="367" width="96" height="4" rx="2" fill="rgba(255,255,255,0.15)"/> <rect x="616" y="387" width="140" height="22" rx="6" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/> <rect x="624" y="394" width="76" height="4" rx="2" fill="rgba(255,255,255,0.15)"/> <!-- Input bar --> <rect x="606" y="426" width="174" height="74" fill="rgba(10,11,16,0.98)"/> <line x1="606" y1="426" x2="780" y2="426" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/> <rect x="616" y="436" width="148" height="34" rx="8" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/> <rect x="624" y="450" width="60" height="4" rx="2" fill="rgba(255,255,255,0.12)"/> <rect x="726" y="438" width="28" height="28" rx="7" fill="rgba(124,111,255,0.25)" stroke="rgba(124,111,255,0.4)" stroke-width="0.8"/> <path d="M 735 452 L 740 456 L 745 448" fill="none" stroke="#7C6FFF" stroke-width="1.5" stroke-linecap="round"/> <!-- mic icon bottom --> <rect x="616" y="478" width="16" height="16" rx="4" fill="rgba(255,255,255,0.05)"/> <rect x="620" y="482" width="8" height="8" rx="2" fill="rgba(255,255,255,0.2)"/> <rect x="636" y="478" width="16" height="16" rx="4" fill="rgba(255,255,255,0.05)"/> <rect x="640" y="482" width="8" height="8" rx="2" fill="rgba(255,255,255,0.15)"/> </svg> </div> <div class="hero-content"> <div class="hero-eyebrow"> <span class="tag tag-teal">AI / UX Design</span> <span class="hero-divider"></span> <span class="tag tag-purple">SaaS · B2B</span> <span class="hero-divider"></span> <span class="tag tag-gold">Experience Management</span> </div> <h1>Designing a<br><em>Conversational AI</em><br>for an XM Platform</h1> <p class="hero-sub">How we embedded a natural-language AI assistant across every module of a SaaS Experience Management Platform — supporting text, speech, and file inputs — translating plain English into live API actions, reducing task time by 60%, and putting the power of data analysts in every user's hands.</p> <div class="hero-meta"> <div class="meta-item"> <span class="meta-label">Role</span> <span class="meta-value">Lead Product Designer</span> </div> <div class="meta-item"> <span class="meta-label">Platform</span> <span class="meta-value">SaaS XM · Web</span> </div> <div class="meta-item"> <span class="meta-label">Scope</span> <span class="meta-value">End-to-End AI Feature</span> </div> <div class="meta-item"> <span class="meta-label">Timeline</span> <span class="meta-value">[PLACEHOLDER]</span> </div> </div> </div> <div class="scroll-line"> <span>Scroll</span> <div class="scroll-line-bar"></div> </div> </section> <hr class="divider"> <!-- OVERVIEW --> <section id="overview"> <div class="section-inner"> <div class="section-label">01 · Overview</div> <h2>One assistant.<br>Every module. Zero friction.</h2> <p>The XM Platform helps enterprises collect, analyse, and act on experience data across the customer and employee lifecycle. Powerful — but complex. Non-technical users routinely needed analyst support to filter dashboards, configure surveys, or interpret reports.</p> <p>The AI Assistant changes this. Embedded across Survey Creation, Survey Distribution, Reports, CX Dashboard, and Custom Dashboard — it lets users type or speak naturally, and the system translates intent into live API calls that execute immediately.</p> <div class="overview-grid"> <div class="overview-cell"> <h3>The Problem</h3> <p>Power users could unlock deep insights; everyone else was stuck. High cognitive load, steep learning curves, and analyst bottlenecks meant most platform capability went unused.</p>
+    <img data-cms-field="coverImage" src="" alt="Project Hero" style="width: 100%; height: auto; border-radius: 12px; box-shadow: 0 32px 64px rgba(0,0,0,0.3); border: 1px solid var(--border);">
+  </div> <div class="hero-content"> <div class="hero-eyebrow"> <span class="tag tag-teal">AI / UX Design</span> <span class="hero-divider"></span> <span class="tag tag-purple">SaaS · B2B</span> <span class="hero-divider"></span> <span class="tag tag-gold">Experience Management</span> </div> <h1 data-cms-field="title">Designing a<br><em>Conversational AI</em><br>for an XM Platform</h1> <p class="hero-sub" data-cms-field="description">How we embedded a natural-language AI assistant across every module of a SaaS Experience Management Platform — supporting text, speech, and file inputs — translating plain English into live API actions, reducing task time by 60%, and putting the power of data analysts in every user's hands.</p> <div class="hero-meta"> <div class="meta-item"> <span class="meta-label">Role</span> <span class="meta-value" data-cms-field="meta.role">Lead Product Designer</span> </div> <div class="meta-item"> <span class="meta-label">Platform</span> <span class="meta-value" data-cms-field="meta.platform">SaaS XM · Web</span> </div> <div class="meta-item"> <span class="meta-label">Scope</span> <span class="meta-value">End-to-End AI Feature</span> </div> <div class="meta-item"> <span class="meta-label">Timeline</span> <span class="meta-value" data-cms-field="meta.timeline">[PLACEHOLDER]</span> </div> </div> </div> <div class="scroll-line"> <span>Scroll</span> <div class="scroll-line-bar"></div> </div> </section>
+
+
+<!-- SHOWREEL -->
+<section style="padding:64px 0;background:var(--bg,#f5f2ec)">
+  <div style="max-width:960px;margin:0 auto;padding:0 40px">
+    <div style="margin-bottom:28px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#4a4642;margin-bottom:12px">More Work &middot; Micro Projects</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,32px);font-weight:700;color:#0d0f14;line-height:1.2">Other features I shipped.<br><em style="color:#c94c2e">Same rigour. Different problems.</em></h2>
+    </div>
+  </div>
+  <div id="showreel-ai_assistant_case_study"></div>
+</section>
+
+<hr class="divider"> <!-- OVERVIEW --> <section id="overview"> <div class="section-inner"> <div class="section-label">01 · Overview</div> <h2>One assistant.<br>Every module. Zero friction.</h2> <p>The XM Platform helps enterprises collect, analyse, and act on experience data across the customer and employee lifecycle. Powerful — but complex. Non-technical users routinely needed analyst support to filter dashboards, configure surveys, or interpret reports.</p> <p>The AI Assistant changes this. Embedded across Survey Creation, Survey Distribution, Reports, CX Dashboard, and Custom Dashboard — it lets users type or speak naturally, and the system translates intent into live API calls that execute immediately.</p> <div class="overview-grid"> <div class="overview-cell"> <h3>The Problem</h3> <p>Power users could unlock deep insights; everyone else was stuck. High cognitive load, steep learning curves, and analyst bottlenecks meant most platform capability went unused.</p>
       </div>
       <div class="overview-cell">
         <h3>The Opportunity</h3>
@@ -2758,11 +2783,32 @@
 
 <hr class="divider">
 
+<!-- DYNAMIC CMS GALLERY -->
+<section id="gallery" class="section-inner" style="padding: 60px 0;">
+  <div class="section-label">Gallery · Visual Artifacts</div>
+  <div id="cms-finals-container" data-cms-list="images.finals" data-cms-class="gallery-img" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 32px;">
+    <!-- CMS will inject Final Screens here -->
+  </div>
+  
+  <div id="cms-wireframes-container" data-cms-list="images.wireframe" data-cms-class="gallery-img" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 48px; border-top: 1px solid var(--border); padding-top: 48px;">
+    <!-- CMS will inject Wireframes here -->
+  </div>
+</section>
+
+<style>
+  .gallery-img { width: 100%; border-radius: 4px; border: 1px solid var(--border); transition: transform 0.3s; }
+  .gallery-img:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+</style>
+
 <!-- FOOTER -->
 <footer>
   <div class="footer-left">XM Platform · Conversational AI Case Study</div>
   <div class="footer-right">Every [PLACEHOLDER] token marks a gap requiring your real data before publishing. Do not substitute estimates.</div>
 </footer>
 
+  <script src="assets/cursor.js"></script>
+
+  <script src="showreel.js"></script>
+  <script>initShowreel('showreel-ai_assistant_case_study');</script>
 </body>
 </html>

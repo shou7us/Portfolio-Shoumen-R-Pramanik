@@ -1,0 +1,42 @@
+{
+  "coverImage": "/images/cx-cover-image.png",
+  "meta": {
+    "role": "UX",
+    "year": "2024",
+    "timeline": "3mo",
+    "team": "3",
+    "platform": "Enterprise SaaS · CX + EX Strategy"
+  },
+  "slug": "experience-navigator",
+  "order": 6,
+  "narrative": {
+    "challenge": "Experience Navigator is an AI-powered strategy generation tool built for mid-to-senior CX and EX leaders who are accountable for business outcomes but lack the time and specialist depth to build cross-functional programmes from scratch.",
+    "solution": "The core problem was what I framed as the <strong style=\"color:var(--amber)\">Strategic Execution Gap</strong> — organisations routinely set high-level goals like \"reduce churn\" or \"improve onboarding\" but have no systematic way to convert those intentions into operational plans, survey logic, and measurable KPIs. I led UX across a 3-person team (1 designer, 1 PM, 1 developer) over a 3-month sprint, designing the end-to-end experience from goal input to a fully generated, section-by-section strategy output."
+  },
+  "visibility": "private",
+  "status": "published",
+  "highlight": false,
+  "title": "Eliminating the <span class=\"display-line2\">Strategic Execution</span> <span class=\"display-accent\"></span>",
+  "images": {
+    "wireframe": "/images/experience-navigator/wireframe.png",
+    "journeyMap": "/images/experience-navigator/journey-map.png",
+    "finals": [
+      "/images/experience-navigator/final-01.png",
+      "/images/experience-navigator/final-02.png",
+      "/images/experience-navigator/final-03.png"
+    ]
+  },
+  "tags": [
+    "AI UX",
+    "UX Strategy",
+    "Enterprise SaaS",
+    "Healthcare · Finance · K–12",
+    "0→1 Product",
+    "Figma"
+  ],
+  "id": "06",
+  "password": "srp2026",
+  "file": "experience-navigator.html",
+  "description": "Designing an AI-powered experience strategy builder that converts a business goal into a fully operational CX/EX programme in 2 minutes.",
+  "ndaNote": "Specific client names and internal metrics anonymised at the company's request. Full context available under mutual NDA."
+}

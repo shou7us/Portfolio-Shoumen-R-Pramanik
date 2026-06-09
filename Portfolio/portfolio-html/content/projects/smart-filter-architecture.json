@@ -1,0 +1,38 @@
+{
+  "id": "02",
+  "slug": "smart-filter-architecture",
+  "file": "sogolytics-filter-architecture-case-study.html",
+  "title": "Designing a <em>Unified Filter Architecture</em> Across a Multi-Product B2B Platform",
+  "description": "When five products each manage filters differently, power users pay a cognitive tax every time they switch contexts. I redesigned the cross-product filter architecture from the platform up \u2014 not from the screen in.",
+  "meta": {
+    "role": "Embedded UX Designer",
+    "year": "2024",
+    "timeline": "6 Months",
+    "team": "Designer + PM + Engineers",
+    "platform": "B2B SaaS \u00b7 5 Products"
+  },
+  "tags": [
+    "Systems Architecture",
+    "Cross-Product Design",
+    "IA Design",
+    "Usability Testing",
+    "B2B SaaS",
+    "Figma"
+  ],
+  "coverImage": "/images/filter-cover-image.png",
+  "images": {
+    "wireframe": "/images/smart-filter-architecture/wireframe.png",
+    "journeyMap": "/images/smart-filter-architecture/journey-map.png",
+    "finals": [
+      "/images/smart-filter-architecture/final-01.png",
+      "/images/smart-filter-architecture/final-02.png",
+      "/images/smart-filter-architecture/final-03.png"
+    ]
+  },
+  "status": "published",
+  "visibility": "private",
+  "password": "srp2026",
+  "order": 2,
+  "highlight": true,
+  "ndaNote": "Employer and sensitive performance metrics anonymised at their request. Full context available under mutual NDA."
+}

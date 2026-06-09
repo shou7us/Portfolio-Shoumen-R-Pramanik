@@ -1,0 +1,38 @@
+{
+  "coverImage": "/images/gemini_generated_image_e7i545e7i545e7i5.png",
+  "meta": {
+    "role": "Lead Product Designer",
+    "year": "2024",
+    "timeline": "[PLACEHOLDER]",
+    "team": "Lead UX · PM · Engineering",
+    "platform": "SaaS XM · Web"
+  },
+  "slug": "ai-assistant",
+  "order": 5,
+  "visibility": "private",
+  "status": "published",
+  "highlight": false,
+  "title": "Designing a<br><em>Conversational AI</em><br>for an XM Platform",
+  "images": {
+    "wireframe": "/images/ai-assistant/wireframe.png",
+    "journeyMap": "/images/ai-assistant/journey-map.png",
+    "finals": [
+      "/images/ai-assistant/final-01.png",
+      "/images/ai-assistant/final-02.png",
+      "/images/ai-assistant/final-03.png"
+    ]
+  },
+  "tags": [
+    "Conversational AI",
+    "Agentic Experience Design",
+    "Enterprise SaaS",
+    "Healthcare · Finance · K–12",
+    "AI UX",
+    "Figma"
+  ],
+  "id": "05",
+  "password": "srp2026",
+  "file": "ai-assistant-case-study.html",
+  "description": "How we embedded a natural-language AI assistant across every module of a SaaS Experience Management Platform — supporting text, speech, and file inputs — translating plain English into live API actions, reducing task time by 60%, and putting the power of data analysts in every user's hands.",
+  "ndaNote": "Specific metrics and screen visuals withheld under NDA. Full context available on request."
+}

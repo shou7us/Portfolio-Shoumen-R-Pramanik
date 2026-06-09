@@ -1,0 +1,38 @@
+{
+  "coverImage": "/images/plg-cover-image.png",
+  "meta": {
+    "role": "UX Designer",
+    "year": "2024",
+    "timeline": "2 Months",
+    "team": "Designer · PM · Engineering · GTM",
+    "platform": "B2B SaaS · Enterprise Tier"
+  },
+  "slug": "breaking-enterprise-ceiling",
+  "order": 7,
+  "visibility": "private",
+  "status": "published",
+  "highlight": false,
+  "title": "Breaking the<br><em>Enterprise</em><br>Ceiling",
+  "images": {
+    "wireframe": "/images/breaking-enterprise-ceiling/wireframe.png",
+    "journeyMap": "/images/breaking-enterprise-ceiling/journey-map.png",
+    "finals": [
+      "/images/breaking-enterprise-ceiling/final-01.png",
+      "/images/breaking-enterprise-ceiling/final-02.png",
+      "/images/breaking-enterprise-ceiling/final-03.png"
+    ]
+  },
+  "tags": [
+    "UX Strategy",
+    "PLG Design",
+    "Enterprise SaaS",
+    "Conversion Design",
+    "Governance UX",
+    "Figma"
+  ],
+  "id": "07",
+  "password": "srp2026",
+  "file": "breaking-enterprise-ceiling-full.html",
+  "description": "Repositioning a Feedback Platform for Global Scale Through AI Orchestration &amp; Product-Led Growth — SaaS · B2B · Virginia, USA",
+  "ndaNote": "Employer and product details anonymised at their request. Full context available under mutual NDA."
+}

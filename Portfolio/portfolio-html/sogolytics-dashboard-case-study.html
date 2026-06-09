@@ -2,17 +2,25 @@
 <html lang="en">
 <head>
 
+<style id="anti-flash">body { display: none !important; }</style>
 <script>
-  // Client-side protection against direct URLs
   (function(){
-    let unlocked = false;
-    for (let i = 0; i < sessionStorage.length; i++) {
-      let key = sessionStorage.key(i);
-      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
-        unlocked = true; break;
-      }
+    const slug = 'custom-dashboard';
+    const key = 'unlocked_v2_' + slug;
+    const isUnlocked = sessionStorage.getItem(key) === btoa('srp2026');
+    
+    if (isUnlocked) {
+      document.documentElement.style.display = 'block';
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.getElementById('anti-flash');
+        if (style) style.remove();
+      });
+    } else {
+      // Kill the page immediately
+      document.write('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=index.html"></head><body>Redirecting to home...</body></html>');
+      window.stop(); // Stop any further loading
+      window.location.href = 'index.html';
     }
-    if (!unlocked) { window.location.href = 'index.html'; }
   })();
 </script>
 
@@ -65,20 +73,22 @@ body {
 ───────────────────────────────────────────── */
 nav {
   position:fixed; top:0; left:0; right:0; z-index:200;
-  height:54px;
+  height:64px;
   background: #f5f2ec;
   border-bottom:1px solid var(--border);
   display:flex; align-items:center;
   justify-content:space-between;
-  padding:0 60px;
+  padding:0 40px;
 }
 .nav-brand {
-  font-family:'DM Mono',monospace;
-  font-size:10px; letter-spacing:.22em;
-  text-transform:uppercase; color:var(--text-3);
+  font-family:'Playfair Display', serif;
+  font-weight: 700;
+  font-size:15px; letter-spacing:-0.01em;
+  color:var(--text-3); text-decoration: none;
 }
-.nav-links { display:flex; gap:28px; list-style:none; }
+.nav-links { display:flex; gap:28px; list-style:none; align-items: center; }
 .nav-links a {
+  font-family: 'DM Mono', monospace;
   font-size:11px; letter-spacing:.10em; text-transform:uppercase;
   text-decoration:none; color:var(--text-3); transition:color .2s;
 }
@@ -574,8 +584,10 @@ footer {
 .ft-brand { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--text-3); }
 .ft-note  { font-size:12px; color:var(--text-3); font-style:italic; }
 </style>
+<script src="cms-sync.js"></script>
+  <link rel="stylesheet" href="assets/cursor.css">
 </head>
-<body>
+<body data-project-slug="custom-dashboard">
 
 <!-- NAV -->
 <nav>
@@ -599,24 +611,24 @@ footer {
 <section class="hero">
   <div class="hero-left fade">
     <div class="hero-eyebrow">Sogolytics &nbsp;·&nbsp; Experience Management Platform</div>
-    <h1>Designing <em>Decision Clarity</em> for a B2B Experience Management Platform</h1>
-    <p class="hero-sub">When Account Managers can't build dashboards confidently, enterprise clients can't act on their data. I designed a real-time, modular custom dashboard that closed four critical competitive gaps and replaced a manual email reporting chain with governed live sharing.</p>
+    <h1 data-cms-field="title">Designing <em>Decision Clarity</em> for a B2B Experience Management Platform</h1>
+    <p class="hero-sub" data-cms-field="description">When Account Managers can't build dashboards confidently, enterprise clients can't act on their data. I designed a real-time, modular custom dashboard that closed four critical competitive gaps and replaced a manual email reporting chain with governed live sharing.</p>
     <div class="meta-strip">
       <div class="meta-cell">
         <div class="meta-lbl">Role</div>
-        <div class="meta-val">Lead UX Designer</div>
+        <div class="meta-val" data-cms-field="meta.role">Lead UX Designer</div>
       </div>
       <div class="meta-cell">
         <div class="meta-lbl">Timeline</div>
-        <div class="meta-val">2 Months</div>
+        <div class="meta-val" data-cms-field="meta.timeline">2 Months</div>
       </div>
       <div class="meta-cell">
         <div class="meta-lbl">Team</div>
-        <div class="meta-val">1 Designer + 1 PM</div>
+        <div class="meta-val" data-cms-field="meta.team">1 Designer + 1 PM</div>
       </div>
       <div class="meta-cell">
         <div class="meta-lbl">Platform</div>
-        <div class="meta-val">B2B SaaS · 3 Tiers</div>
+        <div class="meta-val" data-cms-field="meta.platform">B2B SaaS · 3 Tiers</div>
       </div>
     </div>
     <div class="tag-row">
@@ -643,10 +655,23 @@ footer {
 <!-- ═══════════════════════════════════════════
      01 — PROJECT OVERVIEW
 ════════════════════════════════════════════ -->
+
+<!-- SHOWREEL -->
+<section style="padding:64px 0;background:var(--bg,#f5f2ec)">
+  <div style="max-width:960px;margin:0 auto;padding:0 40px">
+    <div style="margin-bottom:28px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#4a4642;margin-bottom:12px">More Work &middot; Micro Projects</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,32px);font-weight:700;color:#0d0f14;line-height:1.2">Other features I shipped.<br><em style="color:#c94c2e">Same rigour. Different problems.</em></h2>
+    </div>
+  </div>
+  <div id="showreel-sogolytics_dashboard_case_study"></div>
+</section>
+
 <section class="sec" id="overview">
   <div class="wrap">
     <div class="eyebrow"><span class="eyebrow-num">01</span> Project Overview</div>
-    <h2>The Problem Behind the Problem</h2>
+    
+<h2>The Problem Behind the Problem</h2>
 
     <div class="two-col">
       <div class="fade">
@@ -654,7 +679,7 @@ footer {
         <p>Account Managers — the internal power users who configure dashboards on behalf of enterprise clients — had no canvas-based builder. Every insight lived in a separate static report, manually exported and emailed. Every configuration change required rebuilding from scratch.</p>
         <div class="callout">
           <div class="callout-lbl">Core Problem</div>
-          <p>The platform lacked a configurable analysis layer. Account Managers couldn't combine ratings, response tables, score summaries, and contextual labels into a single shared surface — creating a critical churn risk at the enterprise tier against competitors who had already moved to configurable dashboards.</p>
+          <p data-cms-field="narrative.challenge">The platform lacked a configurable analysis layer. Account Managers couldn't combine ratings, response tables, score summaries, and contextual labels into a single shared surface — creating a critical churn risk at the enterprise tier against competitors who had already moved to configurable dashboards.</p>
         </div>
       </div>
 
@@ -1506,5 +1531,9 @@ window.addEventListener('scroll', () => {
   });
 });
 </script>
+  <script src="assets/cursor.js"></script>
+
+  <script src="showreel.js"></script>
+  <script>initShowreel('showreel-sogolytics_dashboard_case_study');</script>
 </body>
 </html>

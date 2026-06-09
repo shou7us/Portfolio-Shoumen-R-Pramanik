@@ -2,17 +2,25 @@
 <html lang="en">
 <head>
 
+<style id="anti-flash">body { display: none !important; }</style>
 <script>
-  // Client-side protection against direct URLs
   (function(){
-    let unlocked = false;
-    for (let i = 0; i < sessionStorage.length; i++) {
-      let key = sessionStorage.key(i);
-      if (key && key.startsWith('unlocked_') && sessionStorage.getItem(key) === btoa('srp2026')) {
-        unlocked = true; break;
-      }
+    const slug = 'smart-filter-architecture';
+    const key = 'unlocked_v2_' + slug;
+    const isUnlocked = sessionStorage.getItem(key) === btoa('srp2026');
+    
+    if (isUnlocked) {
+      document.documentElement.style.display = 'block';
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.getElementById('anti-flash');
+        if (style) style.remove();
+      });
+    } else {
+      // Kill the page immediately
+      document.write('<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=index.html"></head><body>Redirecting to home...</body></html>');
+      window.stop(); // Stop any further loading
+      window.location.href = 'index.html';
     }
-    if (!unlocked) { window.location.href = 'index.html'; }
   })();
 </script>
 
@@ -54,13 +62,13 @@ body { background:var(--bg); color:var(--text-1); font-family:'DM Sans',sans-ser
 /* ─── NAV ─── */
 nav {
   position:fixed; top:0; left:0; right:0; z-index:200;
-  height:54px; background: #f5f2ec;
+  height:64px; background: #f5f2ec;
   border-bottom:1px solid var(--border);
-  display:flex; align-items:center; justify-content:space-between; padding:0 60px;
+  display:flex; align-items:center; justify-content:space-between; padding:0 40px;
 }
-.nav-brand { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--text-3); }
-.nav-links  { display:flex; gap:28px; list-style:none; }
-.nav-links a { font-size:11px; letter-spacing:.10em; text-transform:uppercase; text-decoration:none; color:var(--text-3); transition:color .2s; }
+.nav-brand { font-family:'Playfair Display', serif; font-weight: 700; font-size:15px; letter-spacing:-.01em; color:var(--text-3); text-decoration: none; }
+.nav-links  { display:flex; gap:28px; list-style:none; align-items: center; }
+.nav-links a { font-family: 'DM Mono', monospace; font-size:11px; letter-spacing:.10em; text-transform:uppercase; text-decoration:none; color:var(--text-3); transition:color .2s; }
 .nav-links a:hover { color:var(--accent); }
 .nav-badge  { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.12em; border:1px solid var(--accent-dim); color:var(--accent); padding:3px 10px; border-radius: 3px; }
 #progress-bar { position:fixed; top:54px; left:0; z-index:199; height:2px; width:0%; background:var(--accent); transition:width .1s linear; }
@@ -264,8 +272,10 @@ footer { border-top:1px solid var(--border); padding:48px 60px; display:flex; ju
 .footer-left  { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--text-3); }
 .footer-right { font-size:12px; color:var(--text-3); font-style:italic; max-width:500px; text-align:right; }
 </style>
+<script src="cms-sync.js"></script>
+  <link rel="stylesheet" href="assets/cursor.css">
 </head>
-<body>
+<body data-project-slug="smart-filter-architecture">
 
 <!-- NAV -->
 <nav>
@@ -287,13 +297,13 @@ footer { border-top:1px solid var(--border); padding:48px 60px; display:flex; ju
 <section class="hero">
   <div class="hero-left">
     <div class="hero-eyebrow">Sogolytics · Experience Management Platform</div>
-    <h1>Designing a <em>Unified Filter Architecture</em> Across a Multi-Product B2B Platform</h1>
-    <p class="hero-sub">When five products each manage filters differently, power users pay a cognitive tax every time they switch contexts. I redesigned the cross-product filter architecture from the platform up — not from the screen in.</p>
+    <h1 data-cms-field="title">Designing a <em>Unified Filter Architecture</em> Across a Multi-Product B2B Platform</h1>
+    <p class="hero-sub" data-cms-field="description">When five products each manage filters differently, power users pay a cognitive tax every time they switch contexts. I redesigned the cross-product filter architecture from the platform up — not from the screen in.</p>
     <div class="meta-strip">
-      <div class="meta-cell"><div class="meta-lbl">Role</div><div class="meta-val">Embedded UX Designer</div></div>
-      <div class="meta-cell"><div class="meta-lbl">Timeline</div><div class="meta-val">6 Months</div></div>
-      <div class="meta-cell"><div class="meta-lbl">Team</div><div class="meta-val">Designer + PM + Engineers</div></div>
-      <div class="meta-cell"><div class="meta-lbl">Platform</div><div class="meta-val">B2B SaaS · 5 Products</div></div>
+      <div class="meta-cell"><div class="meta-lbl">Role</div><div class="meta-val" data-cms-field="meta.role">Embedded UX Designer</div></div>
+      <div class="meta-cell"><div class="meta-lbl">Timeline</div><div class="meta-val" data-cms-field="meta.timeline">6 Months</div></div>
+      <div class="meta-cell"><div class="meta-lbl">Team</div><div class="meta-val" data-cms-field="meta.team">Designer + PM + Engineers</div></div>
+      <div class="meta-cell"><div class="meta-lbl">Platform</div><div class="meta-val" data-cms-field="meta.platform">B2B SaaS · 5 Products</div></div>
     </div>
     <div class="tag-row">
       <span class="chip">Systems Architecture</span>
@@ -316,10 +326,23 @@ footer { border-top:1px solid var(--border); padding:48px 60px; display:flex; ju
 </section>
 
 <!-- SECTION 1 — OVERVIEW -->
+
+<!-- SHOWREEL -->
+<section style="padding:64px 0;background:var(--bg,#f5f2ec)">
+  <div style="max-width:960px;margin:0 auto;padding:0 40px">
+    <div style="margin-bottom:28px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#4a4642;margin-bottom:12px">More Work &middot; Micro Projects</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,32px);font-weight:700;color:#0d0f14;line-height:1.2">Other features I shipped.<br><em style="color:#c94c2e">Same rigour. Different problems.</em></h2>
+    </div>
+  </div>
+  <div id="showreel-sogolytics_filter_architecture_case_study"></div>
+</section>
+
 <section class="sec" id="overview">
   <div class="wrap">
     <div class="eyebrow"><span class="eyebrow-num">01 —</span> Project Overview</div>
-    <h2>The Problem Behind the Problem</h2>
+    
+<h2>The Problem Behind the Problem</h2>
     <div class="two-col">
       <div>
         <p>Sogolytics is a B2B experience management platform serving data analysts, marketing managers, and business owners across products spanning survey creation (SogoSurvey), CX analytics (SogoCX), employee experience (SogoEX), core data management (SogoCore), and integrations (SogoConnect). At the time of this project, the platform was undergoing a significant strategic shift — from a feedback tool to an enterprise-grade experience management suite.</p>
@@ -1173,5 +1196,9 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.3 });
 sections.forEach(s => observer.observe(s));
 </script>
+  <script src="assets/cursor.js"></script>
+
+  <script src="showreel.js"></script>
+  <script>initShowreel('showreel-sogolytics_filter_architecture_case_study');</script>
 </body>
 </html>

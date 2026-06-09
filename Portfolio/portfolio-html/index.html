@@ -123,7 +123,7 @@ body::after{
 /* Right column — all text */
 .hero-left{
   display:flex;flex-direction:column;justify-content:center;
-  padding:80px 40px 80px 48px;
+  padding:40px 40px 120px 48px; /* Shifted up by adjusting padding */
   position:relative;z-index:2;
 }
 
@@ -286,26 +286,32 @@ body::after{
 
 /* ─── PROJECT CARD ───────────────────────────── */
 .card{
-  background:var(--surf);
+  background:#ffffff;
   border:1px solid var(--bdr);
-  border-radius:12px;overflow:hidden;
+  border-radius:16px;overflow:hidden;
   cursor:pointer;
-  transition:transform .3s cubic-bezier(0.16, 1, 0.3, 1), border-color .3s, background .3s, box-shadow .3s;
+  transition: transform .3s, border-color .3s, box-shadow .3s;
   opacity:0;animation:fadeUp .6s forwards;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
 }
 .card:hover{
-  transform:translateY(-8px) scale(1.01);
+  transform: translateY(-4px);
   border-color:var(--acc);
-  background:color-mix(in srgb, var(--bg) 50%, white);
-  box-shadow:0 20px 40px rgba(0,0,0,0.06);
+  box-shadow:0 24px 48px rgba(0,0,0,0.08);
 }
 .card.featured{border-color:rgba(244,201,93,.18)}
-.card.featured:hover{border-color:var(--acc);box-shadow:0 20px 60px rgba(201, 76, 46,.12);}
+.card.featured:hover{border-color:var(--acc);box-shadow:0 24px 60px rgba(201, 76, 46,.12);}
+
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 
 .card-thumb{
   position:relative;width:100%;
-  background:rgba(255,255,255,0.025);
-  border-bottom:1px solid var(--bdr);
+  background:#f9f8f6;
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;
 }
@@ -349,11 +355,13 @@ body::after{
 .tag{
   font-family:'DM Mono',monospace;font-size:9px;
   letter-spacing:.08em;text-transform:uppercase;
-  color:var(--t1);border:1px solid var(--bdr);
-  border-radius:4px;padding:3px 8px;white-space:nowrap;
-  transition:color .2s,border-color .2s;
+  color:var(--t2);background:rgba(0,0,0,0.05);
+  border:1px solid transparent;
+  border-radius:4px;padding:4px 10px;white-space:nowrap;
+  font-weight:600;
+  transition:all .2s;
 }
-.card:hover .tag{color:var(--t2)}
+.card:hover .tag{background:var(--acc-dim);color:var(--acc)}
 .card-title{
   font-family:'Playfair Display',sans-serif;font-weight:700;
   font-size:17px;line-height:1.25;letter-spacing:-.02em;
@@ -364,6 +372,7 @@ body::after{
   font-size:13px;line-height:1.72;color:var(--t2);
   margin-bottom:18px;
   display:-webkit-box;-webkit-line-clamp:3;
+  line-clamp:3;
   -webkit-box-orient:vertical;overflow:hidden;
 }
 .card-meta{
@@ -663,7 +672,151 @@ footer{
 }
 .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s,transform .6s}
 .reveal.in{opacity:1;transform:translateY(0)}
+
+/* ─── HERO SHOWCASE (SHOWREEL) ───────────────── */
+.hero-showcase {
+  position: absolute;
+  right: 0; /* Extreme right alignment */
+  bottom: 0;
+  width: 480px;
+  height: auto;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--bdr);
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 50;
+  display: flex;
+  flex-direction: row; /* Horizontal layout like the image */
+  box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+  opacity: 0; animation: fadeUp .9s .6s forwards;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
+  cursor: pointer;
+}
+.hero-showcase:hover {
+  transform: translateY(-4px);
+  border-color: var(--acc);
+}
+.showcase-visual {
+  width: 168px; /* Increased from 120px (+40%) */
+  height: 168px; /* Increased from 120px (+40%) */
+  background: var(--bg);
+  border-right: 1px solid var(--bdr);
+  position: relative;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.showcase-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: opacity 0.5s ease-in-out;
+}
+.showcase-content {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1;
+}
+.showcase-tag {
+  font-family: 'DM Mono', monospace; font-size: 8px;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--acc); margin-bottom: 6px;
+}
+.showcase-title {
+  font-family: 'Playfair Display', serif; font-size: 16px;
+  font-weight: 700; line-height: 1.3; color: var(--t1);
+  margin-bottom: 8px;
+}
+.showcase-link {
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  text-transform: uppercase; color: var(--t3);
+  display: flex; align-items: center; gap: 6px;
+}
+.showcase-progress-bg {
+  position: absolute; bottom: 0; left: 0;
+  width: 100%; height: 2px; background: rgba(0,0,0,0.03);
+}
+.showcase-progress {
+  position: absolute; top: 0; left: 0;
+  height: 100%; background: var(--acc);
+  width: 0%; 
+}
+
+@media(max-width: 1000px) {
+  .hero-showcase { 
+    position: relative; bottom: 0; right: 0; width: 100%; 
+    margin-top: 40px; flex-direction: column; 
+  }
+  .showcase-visual { width: 100%; height: 200px; border-right: none; border-bottom: 1px solid var(--bdr); }
+}
+
+/* ─── INTERACTIVE SHAPES ─────────────────────── */
+.shapes-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 15px;
+  padding-bottom: 20px;
+  pointer-events: none;
+  z-index: 10;
+}
+.shape {
+  background: var(--acc);
+  opacity: 0.6; /* Lighter tone to avoid interference */
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1), opacity 0.3s;
+  pointer-events: auto;
+  cursor: grab;
+  position: relative;
+}
+.shape:hover { opacity: 1; }
+.shape:active { cursor: grabbing; }
+
+.shape.triangle {
+  width: 0; height: 0;
+  border-left: 40px solid transparent;
+  border-right: 40px solid transparent;
+  border-bottom: 70px solid var(--acc);
+  background: none;
+}
+.shape.square {
+  width: 60px; height: 60px;
+}
+.shape.circle {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+}
+.shape.semi {
+  width: 80px; height: 40px;
+  border-radius: 80px 80px 0 0;
+}
+.shape.d-shape {
+  width: 40px; height: 80px;
+  border-radius: 0 80px 80px 0;
+}
+.shape.quarter {
+  width: 60px; height: 60px;
+  border-radius: 60px 0 0 0;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+.shape-animated {
+  animation: float 4s ease-in-out infinite;
+}
 </style>
+  <link rel="stylesheet" href="assets/cursor.css">
 </head>
 <body>
 
@@ -692,6 +845,7 @@ footer{
       <h1 class="hero-name">Shoumen R<br><em>Pramanik</em></h1>
       <p class="hero-manifesto">I design systems that make complexity disappear — not because it doesn't exist, but because the right architecture absorbs it before the user ever has to.</p>
       <p class="hero-sub">10 years building AI-native products and enterprise SaaS across healthcare, financial services, and K–12 education. I ask more questions than most designers before I open Figma.</p>
+      
       <div class="hero-actions">
         <a class="btn-primary" href="#work">View Work</a>
         <a class="btn-secondary" href="mailto:hello@shoumenrp.com">Get in Touch</a>
@@ -713,6 +867,42 @@ footer{
       <div class="hero-portrait-label">Shoumen R Pramanik</div>
     </div>
 
+    <!-- Hero Showcase (Showreel) -->
+    <div class="hero-showcase" id="hero-showcase" onclick="openShowcaseProject()">
+      <div class="showcase-visual">
+        <div id="showcase-img-container" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"></div>
+      </div>
+      <div class="showcase-content">
+        <div class="showcase-tag">Latest Case Study</div>
+        <h3 class="showcase-title" id="showcase-title">Featured Work</h3>
+        <div class="showcase-link">
+          Read Case Study
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2.5 6h7M6.5 3l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="showcase-progress-bg">
+          <div class="showcase-progress" id="showcase-progress"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Shapes Section -->
+    <div class="shapes-container" id="interactive-shapes" style="justify-content: flex-start; padding: 0 60px 20px; gap: 0;">
+      <!-- Left Pile -->
+      <div class="shape triangle shape-animated" style="animation-delay: 0s; transform: rotate(-10deg); margin-right: -30px; z-index: 5;"></div>
+      <div class="shape semi shape-animated" style="animation-delay: 0.5s; transform: rotate(180deg); margin-right: -20px; z-index: 4;"></div>
+      <div class="shape triangle shape-animated" style="animation-delay: 0.2s; transform: rotate(30deg); margin-right: -15px; z-index: 6;"></div>
+      <div class="shape d-shape shape-animated" style="animation-delay: 0.8s; transform: rotate(-20deg); margin-right: -10px; z-index: 3;"></div>
+      <div class="shape circle shape-animated" style="animation-delay: 1.2s; margin-right: -25px; z-index: 2;"></div>
+      
+      <!-- Spacer -->
+      <div style="flex-grow: 1;"></div>
+
+      <!-- Right Scattered -->
+      <div class="shape square shape-animated" style="animation-delay: 1s; transform: rotate(45deg); margin-bottom: 90px; margin-right: 40px;"></div>
+      <div class="shape circle shape-animated" style="animation-delay: 2.5s; transform: scale(0.8); margin-right: 30px;"></div>
+      <div class="shape quarter shape-animated" style="animation-delay: 1.8s; transform: rotate(90deg); margin-bottom: 20px;"></div>
+    </div>
+
   </section>
 
   <!-- Work -->
@@ -722,9 +912,20 @@ footer{
         <div class="eyebrow">Selected Work</div>
         <h2 class="section-h2">9 projects. <em>All B2B enterprise.</em><br>All built at the architecture layer.</h2>
       </div>
-      <div class="grid-featured" id="grid-featured"></div>
-      <div class="grid-rest" id="grid-rest"></div>
+      <div class="grid-featured card-container" id="grid-featured"></div>
+      <div class="grid-rest card-container" id="grid-rest"></div>
     </div>
+  </section>
+
+  <!-- Showreel -->
+  <section id="showreel" style="padding: 80px 0">
+    <div class="section-wrap">
+      <div class="section-header reveal" style="margin-bottom: 32px">
+        <div class="eyebrow">More Work · Micro Projects</div>
+        <h2 class="section-h2" style="font-size: clamp(22px,3vw,32px)">Four more features.<br><em>Each one a design decision, not just a screen.</em></h2>
+      </div>
+    </div>
+    <div id="showreel-root"></div>
   </section>
 
   <!-- About -->
@@ -793,7 +994,7 @@ footer{
 ───────────────────────────────────────────── */
 let PROJECTS = [];
 
-fetch("projects.json")
+fetch("projects.json?t=" + Date.now())
 .then(res => res.json())
 .then(data => {
   PROJECTS = data.projects;
@@ -815,13 +1016,15 @@ function buildCard(p, delay) {
   const div = document.createElement('div');
   div.className = 'card' + (featured ? ' featured' : '');
   div.style.animationDelay = delay + 'ms';
+  const cleanTitle = p.title.replace(/<\/?[^>]+(>|$)/g, "");
   div.onclick = () => openProject(p.slug);
 
   div.innerHTML = `
     <div class="card-thumb">
       <div class="thumb-grid"></div>
       ${featured ? '<div class="thumb-glow"></div>' : ''}
-      <div class="thumb-label">Add cover image<br><span style="font-size:9px;opacity:.5">${p.coverImage}</span></div>
+      <img src="${p.coverImage}" alt="${cleanTitle}" class="card-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+      <div class="thumb-label" style="display:none">Add cover image<br><span style="font-size:9px;opacity:.5">${p.coverImage}</span></div>
       ${isPrivate ? `<div class="badge badge-lock"><svg width="9" height="9" viewBox="0 0 10 10" fill="none"><rect x="1.5" y="4.5" width="7" height="5" rx="1.2" stroke="currentColor" stroke-width=".9"/><path d="M3 4.5V3a2 2 0 0 1 4 0v1.5" stroke="currentColor" stroke-width=".9"/></svg>Private</div>` : ''}
       ${featured ? '<div class="badge badge-feat">Featured</div>' : ''}
     </div>
@@ -866,7 +1069,7 @@ function openProject(slug) {
 
   if (p.visibility === 'private' && p.password) {
     currentSlug = slug;
-    const key = 'unlocked_' + slug;
+    const key = 'unlocked_v2_' + slug;
     if (sessionStorage.getItem(key) === btoa(p.password)) {
       window.location.href = p.file;
     } else {
@@ -913,7 +1116,7 @@ function checkPassword() {
 
   setTimeout(() => {
     if (input === p.password) {
-      sessionStorage.setItem('unlocked_' + currentSlug, btoa(p.password));
+      sessionStorage.setItem('unlocked_v2_' + currentSlug, btoa(p.password));
       document.getElementById('pw-gate').classList.remove('active');
       window.location.href = p.file;
     } else {
@@ -953,9 +1156,91 @@ const io = new IntersectionObserver(entries => {
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
 /* ─────────────────────────────────────────────
-   INIT
+   SHAPE INTERACTIVITY
 ───────────────────────────────────────────── */
+const shapes = document.querySelectorAll('.shape');
+shapes.forEach(shape => {
+  shape.addEventListener('mousemove', e => {
+    const rect = shape.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    shape.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px) rotate(${x * 0.1}deg)`;
+  });
+
+  shape.addEventListener('mouseleave', () => {
+    shape.style.transform = '';
+  });
+
+  shape.addEventListener('mousedown', () => {
+    shape.style.transform = 'scale(0.9) rotate(10deg)';
+    shape.style.filter = 'brightness(1.2)';
+  });
+
+  shape.addEventListener('mouseup', () => {
+    shape.style.transform = '';
+    shape.style.filter = '';
+  });
+});
+/* ─────────────────────────────────────────────
+   HERO SHOWCASE (SHOWREEL) LOGIC
+───────────────────────────────────────────── */
+let showcaseIdx = 0;
+const showcaseDuration = 5000;
+let showcaseInterval;
+
+function updateShowcase() {
+  if (!PROJECTS || !PROJECTS.length) return;
+  const p = PROJECTS[showcaseIdx];
+  const titleEl = document.getElementById('showcase-title');
+  const imgContainer = document.getElementById('showcase-img-container');
+  const progress = document.getElementById('showcase-progress');
+
+  // Fade out
+  titleEl.style.opacity = 0;
+  imgContainer.style.opacity = 0;
+
+  setTimeout(() => {
+    titleEl.innerHTML = p.title;
+    imgContainer.innerHTML = `<img src="${p.coverImage}" class="showcase-img" alt="${p.title}" style="transform: scale(1.1)" onload="this.style.transform='scale(1)'" onerror="this.src='https://via.placeholder.com/600x800?text=Project+View'">`;
+    
+    // Fade in
+    titleEl.style.opacity = 1;
+    imgContainer.style.opacity = 1;
+    
+    // Progress bar animation
+    progress.style.transition = 'none';
+    progress.style.width = '0%';
+    
+    setTimeout(() => {
+      progress.style.transition = `width ${showcaseDuration}ms linear`;
+      progress.style.width = '100%';
+    }, 50);
+
+    showcaseIdx = (showcaseIdx + 1) % PROJECTS.length;
+  }, 400);
+}
+
+function openShowcaseProject() {
+  if (!PROJECTS) return;
+  const p = PROJECTS[(showcaseIdx - 1 + PROJECTS.length) % PROJECTS.length];
+  if (p) openProject(p.slug);
+}
+
+// Initialize showcase
+function initShowcase() {
+  if (PROJECTS && PROJECTS.length) {
+    updateShowcase();
+    showcaseInterval = setInterval(updateShowcase, showcaseDuration);
+  } else {
+    setTimeout(initShowcase, 100);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initShowcase);
 
 </script>
+  <script src="assets/cursor.js"></script>
+  <script src="showreel.js"></script>
+  <script>initShowreel('showreel-root');</script>
 </body>
 </html>

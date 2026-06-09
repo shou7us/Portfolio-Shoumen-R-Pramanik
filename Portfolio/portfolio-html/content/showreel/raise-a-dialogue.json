@@ -1,0 +1,30 @@
+{
+  "id": "raise-a-dialogue",
+  "title": "Raise a Dialogue",
+  "year": "2024",
+  "category": "Wizard · XM Platform",
+  "accent": "#A78BFA",
+  "order": 3,
+  "slides": [
+    { "type": "intro", "sub": "Turning a 7-step ordeal into a 3-phase conversation" },
+    {
+      "type": "problem",
+      "heading": "7-step wizard causing 40%+ drop-off at step 3",
+      "decisions": [
+        "Collapsed 7 steps into 3 logical phases",
+        "Persistent summary panel for orientation",
+        "Inline validation — no submit-to-error cycle"
+      ]
+    },
+    { "type": "wireframe", "caption": "7-step flow vs compressed 3-phase model", "image": "" },
+    { "type": "final", "caption": "Redesigned wizard with persistent summary sidebar", "image": "" },
+    {
+      "type": "metrics",
+      "stats": [
+        { "v": "42%", "l": "Drop-off reduction" },
+        { "v": "3 phases", "l": "Down from 7 steps" },
+        { "v": "2.1 min", "l": "Avg completion time" }
+      ]
+    }
+  ]
+}

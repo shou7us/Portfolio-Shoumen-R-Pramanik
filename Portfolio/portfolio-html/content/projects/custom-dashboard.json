@@ -1,0 +1,41 @@
+{
+  "coverImage": "/images/custom-dashboard.png",
+  "meta": {
+    "role": "Lead UX Designer",
+    "year": "2024",
+    "timeline": "2 Months",
+    "team": "1 Designer + 1 PM",
+    "platform": "B2B SaaS · 3 Tiers"
+  },
+  "slug": "custom-dashboard",
+  "order": 1,
+  "narrative": {
+    "challenge": "The platform lacked a configurable analysis layer. Account Managers couldn't combine ratings, response tables, score summaries, and contextual labels into a single shared surface — creating a critical churn risk at the enterprise tier against competitors who had already moved to configurable dashboards."
+  },
+  "visibility": "private",
+  "status": "published",
+  "highlight": true,
+  "title": "Designing <em>Decision Clarity</em> for a B2B Experience Management Platform",
+  "images": {
+    "wireframe": "/images/custom-dashboard/wireframe.png",
+    "journeyMap": "/images/custom-dashboard/journey-map.png",
+    "finals": [
+      "/images/custom-dashboard/final-01.png",
+      "/images/custom-dashboard/final-02.png",
+      "/images/custom-dashboard/final-03.png"
+    ]
+  },
+  "tags": [
+    "Interaction Design",
+    "Usability Testing",
+    "B2B Enterprise",
+    "Data Visualisation",
+    "Systems Thinking",
+    "Figma"
+  ],
+  "id": "01",
+  "password": "srp2026",
+  "file": "sogolytics-dashboard-case-study.html",
+  "description": "When Account Managers can't build dashboards confidently, enterprise clients can't act on their data. I designed a real-time, modular custom dashboard that closed four critical competitive gaps and replaced a manual email reporting chain with governed live sharing.",
+  "ndaNote": "Employer and product details anonymised at their request. Full context available under mutual NDA."
+}
