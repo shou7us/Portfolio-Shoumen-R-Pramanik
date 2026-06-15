@@ -1201,7 +1201,7 @@ function updateShowcase() {
 
   setTimeout(() => {
     titleEl.innerHTML = p.title;
-    imgContainer.innerHTML = `<img src="${p.coverImage}" class="showcase-img" alt="${p.title}" style="transform: scale(1.1)" onload="this.style.transform='scale(1)'" onerror="this.src='https://via.placeholder.com/600x800?text=Project+View'">`;
+    imgContainer.innerHTML = `<img src="${p.coverImage}" class="showcase-img" alt="${p.title}" style="transform: scale(1.1)" onload="this.style.transform='scale(1)'" onerror="this.src='https://placehold.co/600x800/eeeeee/a3a3a3?text=Project+View'">`;
     
     // Fade in
     titleEl.style.opacity = 1;
