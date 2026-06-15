@@ -1,7 +1,7 @@
 {
   "projects": [
     {
-      "coverImage": "/images/custom-dashboard.png",
+      "coverImage": "images/custom-dashboard.png",
       "meta": {
         "role": "Lead UX Designer",
         "year": "2024",
@@ -19,12 +19,12 @@
       "highlight": true,
       "title": "Designing <em>Decision Clarity</em> for a B2B Experience Management Platform",
       "images": {
-        "wireframe": "/images/custom-dashboard/wireframe.png",
-        "journeyMap": "/images/custom-dashboard/journey-map.png",
+        "wireframe": "images/custom-dashboard/wireframe.png",
+        "journeyMap": "images/custom-dashboard/journey-map.png",
         "finals": [
-          "/images/custom-dashboard/final-01.png",
-          "/images/custom-dashboard/final-02.png",
-          "/images/custom-dashboard/final-03.png"
+          "images/custom-dashboard/final-01.png",
+          "images/custom-dashboard/final-02.png",
+          "images/custom-dashboard/final-03.png"
         ]
       },
       "tags": [
@@ -62,14 +62,14 @@
         "B2B SaaS",
         "Figma"
       ],
-      "coverImage": "/images/filter-cover-image.png",
+      "coverImage": "images/filter-cover-image.png",
       "images": {
-        "wireframe": "/images/smart-filter-architecture/wireframe.png",
-        "journeyMap": "/images/smart-filter-architecture/journey-map.png",
+        "wireframe": "images/smart-filter-architecture/wireframe.png",
+        "journeyMap": "images/smart-filter-architecture/journey-map.png",
         "finals": [
-          "/images/smart-filter-architecture/final-01.png",
-          "/images/smart-filter-architecture/final-02.png",
-          "/images/smart-filter-architecture/final-03.png"
+          "images/smart-filter-architecture/final-01.png",
+          "images/smart-filter-architecture/final-02.png",
+          "images/smart-filter-architecture/final-03.png"
         ]
       },
       "status": "published",
@@ -80,7 +80,7 @@
       "ndaNote": "Employer and sensitive performance metrics anonymised at their request. Full context available under mutual NDA."
     },
     {
-      "coverImage": "/images/directory-cover-image.png",
+      "coverImage": "images/directory-cover-image.png",
       "meta": {
         "role": "Role: UX Designer (end-to-end)",
         "year": "2023",
@@ -99,12 +99,12 @@
       "highlight": true,
       "title": "Scrapping <em>$180K</em> of engineering work \u2014 and shipping the product that was actually needed",
       "images": {
-        "wireframe": "/images/customer-directory/wireframe.png",
-        "journeyMap": "/images/customer-directory/journey-map.png",
+        "wireframe": "images/customer-directory/wireframe.png",
+        "journeyMap": "images/customer-directory/journey-map.png",
         "finals": [
-          "/images/customer-directory/final-01.png",
-          "/images/customer-directory/final-02.png",
-          "/images/customer-directory/final-03.png"
+          "images/customer-directory/final-01.png",
+          "images/customer-directory/final-02.png",
+          "images/customer-directory/final-03.png"
         ]
       },
       "tags": [
@@ -139,7 +139,7 @@
       ]
     },
     {
-      "coverImage": "/images/derived-field-cover.png",
+      "coverImage": "images/derived-field-cover.png",
       "meta": {
         "role": "Lead UX Designer \u2014 end-to-end ownership from capability definition to trust architecture",
         "year": "2024",
@@ -154,12 +154,12 @@
       "highlight": false,
       "title": "Designing AI that surfaces what analysts<br> <em>didn't know to ask for</em>",
       "images": {
-        "wireframe": "/images/ai-derived-fields/wireframe.png",
-        "journeyMap": "/images/ai-derived-fields/journey-map.png",
+        "wireframe": "images/ai-derived-fields/wireframe.png",
+        "journeyMap": "images/ai-derived-fields/journey-map.png",
         "finals": [
-          "/images/ai-derived-fields/final-01.png",
-          "/images/ai-derived-fields/final-02.png",
-          "/images/ai-derived-fields/final-03.png"
+          "images/ai-derived-fields/final-01.png",
+          "images/ai-derived-fields/final-02.png",
+          "images/ai-derived-fields/final-03.png"
         ]
       },
       "tags": [
@@ -177,7 +177,7 @@
       "ndaNote": "Employer and product details anonymised at their request. Full context available under mutual NDA."
     },
     {
-      "coverImage": "/images/gemini_generated_image_e7i545e7i545e7i5.png",
+      "coverImage": "images/gemini_generated_image_e7i545e7i545e7i5.png",
       "meta": {
         "role": "Lead Product Designer",
         "year": "2024",
@@ -192,12 +192,12 @@
       "highlight": false,
       "title": "Designing a<br><em>Conversational AI</em><br>for an XM Platform",
       "images": {
-        "wireframe": "/images/ai-assistant/wireframe.png",
-        "journeyMap": "/images/ai-assistant/journey-map.png",
+        "wireframe": "images/ai-assistant/wireframe.png",
+        "journeyMap": "images/ai-assistant/journey-map.png",
         "finals": [
-          "/images/ai-assistant/final-01.png",
-          "/images/ai-assistant/final-02.png",
-          "/images/ai-assistant/final-03.png"
+          "images/ai-assistant/final-01.png",
+          "images/ai-assistant/final-02.png",
+          "images/ai-assistant/final-03.png"
         ]
       },
       "tags": [
@@ -215,7 +215,7 @@
       "ndaNote": "Specific metrics and screen visuals withheld under NDA. Full context available on request."
     },
     {
-      "coverImage": "/images/cx-cover-image.png",
+      "coverImage": "images/cx-cover-image.png",
       "meta": {
         "role": "UX",
         "year": "2024",
@@ -234,12 +234,12 @@
       "highlight": false,
       "title": "Eliminating the <span class=\"display-line2\">Strategic Execution</span> <span class=\"display-accent\"></span>",
       "images": {
-        "wireframe": "/images/experience-navigator/wireframe.png",
-        "journeyMap": "/images/experience-navigator/journey-map.png",
+        "wireframe": "images/experience-navigator/wireframe.png",
+        "journeyMap": "images/experience-navigator/journey-map.png",
         "finals": [
-          "/images/experience-navigator/final-01.png",
-          "/images/experience-navigator/final-02.png",
-          "/images/experience-navigator/final-03.png"
+          "images/experience-navigator/final-01.png",
+          "images/experience-navigator/final-02.png",
+          "images/experience-navigator/final-03.png"
         ]
       },
       "tags": [
@@ -257,7 +257,7 @@
       "ndaNote": "Specific client names and internal metrics anonymised at the company's request. Full context available under mutual NDA."
     },
     {
-      "coverImage": "/images/plg-cover-image.png",
+      "coverImage": "images/plg-cover-image.png",
       "meta": {
         "role": "UX Designer",
         "year": "2024",
@@ -272,12 +272,12 @@
       "highlight": false,
       "title": "Breaking the<br><em>Enterprise</em><br>Ceiling",
       "images": {
-        "wireframe": "/images/breaking-enterprise-ceiling/wireframe.png",
-        "journeyMap": "/images/breaking-enterprise-ceiling/journey-map.png",
+        "wireframe": "images/breaking-enterprise-ceiling/wireframe.png",
+        "journeyMap": "images/breaking-enterprise-ceiling/journey-map.png",
         "finals": [
-          "/images/breaking-enterprise-ceiling/final-01.png",
-          "/images/breaking-enterprise-ceiling/final-02.png",
-          "/images/breaking-enterprise-ceiling/final-03.png"
+          "images/breaking-enterprise-ceiling/final-01.png",
+          "images/breaking-enterprise-ceiling/final-02.png",
+          "images/breaking-enterprise-ceiling/final-03.png"
         ]
       },
       "tags": [
@@ -295,7 +295,7 @@
       "ndaNote": "Employer and product details anonymised at their request. Full context available under mutual NDA."
     },
     {
-      "coverImage": "/images/create-with-ai-cover.png",
+      "coverImage": "images/create-with-ai-cover.png",
       "meta": {
         "role": "Lead Product Designer",
         "year": "2024",
@@ -310,12 +310,12 @@
       "highlight": false,
       "title": "Cutting Survey Creation<br><em>Time by 90%</em><br>Through AI-Assisted Design",
       "images": {
-        "wireframe": "/images/survey-creation-90/wireframe.png",
-        "journeyMap": "/images/survey-creation-90/journey-map.png",
+        "wireframe": "images/survey-creation-90/wireframe.png",
+        "journeyMap": "images/survey-creation-90/journey-map.png",
         "finals": [
-          "/images/survey-creation-90/final-01.png",
-          "/images/survey-creation-90/final-02.png",
-          "/images/survey-creation-90/final-03.png"
+          "images/survey-creation-90/final-01.png",
+          "images/survey-creation-90/final-02.png",
+          "images/survey-creation-90/final-03.png"
         ]
       },
       "tags": [
@@ -333,7 +333,7 @@
       "ndaNote": "Employer and product details anonymised at their request. Full context available under mutual NDA."
     },
     {
-      "coverImage": "/images/filter-cover-image.png",
+      "coverImage": "images/filter-cover-image.png",
       "meta": {
         "role": "UX Designer",
         "year": "2024",
@@ -348,12 +348,12 @@
       "highlight": false,
       "title": "Rethinking<br><em>Smart Filters</em><br>at Scale",
       "images": {
-        "wireframe": "/images/ai-powered-insights/wireframe.png",
-        "journeyMap": "/images/ai-powered-insights/journey-map.png",
+        "wireframe": "images/ai-powered-insights/wireframe.png",
+        "journeyMap": "images/ai-powered-insights/journey-map.png",
         "finals": [
-          "/images/ai-powered-insights/final-01.png",
-          "/images/ai-powered-insights/final-02.png",
-          "/images/ai-powered-insights/final-03.png"
+          "images/ai-powered-insights/final-01.png",
+          "images/ai-powered-insights/final-02.png",
+          "images/ai-powered-insights/final-03.png"
         ]
       },
       "tags": [
